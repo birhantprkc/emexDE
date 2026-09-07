@@ -50,6 +50,7 @@
 
 /* kernel extension features */
 #define KSURFACE_KEXT_HARDENED_LOADING          0   /* crash on failed loads */
+#define KSURFACE_KEXT_ALLOW_CONSTRUCTORS        0   /* allows that kext link editor runs __attribute__((constructor)) in kexts */
 
 /* in releases these features shall be disabled */
 #if !DEBUG
