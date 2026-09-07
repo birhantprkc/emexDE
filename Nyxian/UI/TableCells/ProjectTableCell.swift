@@ -85,14 +85,16 @@ class ProjectTableCell: UITableViewCell {
         self.detailLeadingConstraintWImage?.isActive = true
         
         if #available(iOS 26.0, *) {
-            self.imageView?.layer.cornerRadius = 15
+            self.imageView?.layer.cornerRadius = 0
         } else {
             self.imageView?.layer.cornerRadius = 10
         }
         
-        self.imageView?.clipsToBounds = true
-        self.imageView?.layer.borderWidth = 0.5
-        self.imageView?.layer.borderColor = UIColor.gray.cgColor
+        if #unavailable(iOS 26.0) {
+            self.imageView?.clipsToBounds = true
+            self.imageView?.layer.borderWidth = 0.5
+            self.imageView?.layer.borderColor = UIColor.gray.cgColor
+        }
         
         self.separatorInset = .zero
         self.layoutMargins = .zero
@@ -104,7 +106,15 @@ class ProjectTableCell: UITableViewCell {
                    appIcon: UIImage?,
                    showArrow: Bool) {
         self.textLabel?.text = displayName
-        self.imageView?.image = appIcon
+        if let image = appIcon {
+            if #available(iOS 26.0, *) {
+                let scale = traitCollection.displayScale > 0 ? traitCollection.displayScale : 3.0
+                self.imageView?.image = Gib26Icon(image, CGSize(width: 50, height: 50), scale)
+                self.imageView?.layer.minificationFilter = .trilinear
+            } else {
+                self.imageView?.image = image
+            }
+        }
         self.accessoryType = showArrow ? .disclosureIndicator : .none
         
         if let bundleIdentifier = bundleIdentifier {
