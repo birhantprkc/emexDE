@@ -340,7 +340,8 @@ kern_return_t trust_nxt2_sign_fd(int fd,
         }
         
         /* signing blob */
-        priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, (const uint8_t*)&p, (long)p_len);
+        const uint8_t *p_ptr = p;
+        priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p_ptr, (long)p_len);
         memset(p, 0, p_len);
         free(p);
 #else
