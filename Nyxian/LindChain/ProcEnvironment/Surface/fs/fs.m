@@ -182,6 +182,11 @@ kern_return_t ksurface_fs_init(void)
             "/dev/nounlink",
             [[NSString stringWithFormat:@"%s/Documents/mntfs/rootfs/usr/lib", home] UTF8String],
         },
+        {
+            kFSMountAttrRead | kFSMountAttrWrite,
+            "/dev/nounlink",
+            [[NSString stringWithFormat:@"%s/Documents/mntfs/rootfs/usr/include", home] UTF8String],
+        },
         
         /* root bind mounts */
         {
