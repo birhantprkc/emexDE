@@ -444,6 +444,8 @@
 				MobileDevelopmentKit/Tools/MDKDependencyScanner.m,
 				MobileDevelopmentKit/Tools/MDKDriver.h,
 				MobileDevelopmentKit/Tools/MDKDriver.m,
+				MobileDevelopmentKit/Tools/MDKMachO.h,
+				MobileDevelopmentKit/Tools/MDKMachO.m,
 				MobileDevelopmentKit/Tools/MDKSDK.h,
 				MobileDevelopmentKit/Tools/MDKSDK.m,
 			);
@@ -469,6 +471,7 @@
 				MobileDevelopmentKit/Tools/MDKASTUnit.h,
 				MobileDevelopmentKit/Tools/MDKDependencyScanner.h,
 				MobileDevelopmentKit/Tools/MDKDriver.h,
+				MobileDevelopmentKit/Tools/MDKMachO.h,
 				MobileDevelopmentKit/Tools/MDKSDK.h,
 			);
 			target = 860D91742FAE1F95000D321B /* MobileDevelopmentKit */;

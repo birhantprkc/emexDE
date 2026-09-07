@@ -22,11 +22,10 @@
  * SOFTWARE.
  */
 
-#ifndef CCMACHO_H
-#define CCMACHO_H
+#import <MobileDevelopmentKit/MDKMachO.h>
 
-#include <CoreCompiler/CCBase.h>
-
-CC_EXPORT CFDataRef CCMachOObjectFileEmitWithText(const UInt8 *bytes, CFIndex length);
-
-#endif /* CCMACHO_H */
+NSData *MDKMachOObjectFileEmitWithText(const UInt8 *bytes,
+                                       CFIndex length)
+{
+    return (__bridge_transfer NSData*)CCMachOObjectFileEmitWithText(bytes, length);
+}
