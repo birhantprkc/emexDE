@@ -56,8 +56,9 @@ class FileListViewController: UIThemedTableViewController, UIDocumentPickerDeleg
     }
     
     init(isSublink: Bool = false,
-        path: String,
-        isReadOnly: Bool = false) {
+         path: String,
+         isReadOnly: Bool = false)
+    {
         self.project = nil
         self.path = path
         self.entries = FileListEntry.getEntries(ofPath: self.path)
