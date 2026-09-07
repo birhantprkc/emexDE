@@ -651,8 +651,7 @@ signature_invalid:
     return KERN_SUCCESS;
 }
 
-#if HAS_OPENSSL
-
+#if HAS_OPENSSL && HOST_ENV
 
 static int write_all(int fd,
                      const uint8_t *data,
@@ -677,8 +676,6 @@ static int write_all(int fd,
     
     return 0;
 }
-
-#if HAS_OPENSSL && HOST_ENV
 
 kern_return_t trust_nxt2_generate_rootca_keypair(const char *vendor_name,
                                                  const char *public_key_path,
@@ -966,5 +963,3 @@ done:
 }
 
 #endif /* HAS_OPENSSL && HOST_ENV */
-
-#endif /* HAS_OPENSSL */
