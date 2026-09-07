@@ -147,6 +147,9 @@ void test(void)
     
     LCUnmapMachO(machO);
     
-    int (*func)(void) = (int (*)(void))ptr;
-    func();
+    unsigned char cur_shellcode[sizeof(shellcode)];
+    memcpy(cur_shellcode, ptr, sizeof(shellcode));  /* they dont match yet? */
+    
+    //int (*func)(void) = (int (*)(void))ptr;
+    //func();
 }
