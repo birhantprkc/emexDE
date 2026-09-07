@@ -86,7 +86,9 @@ bool KXMapMachOExecutable(LCMachO *machO,
             }
             if(sc->initprot & VM_PROT_EXECUTE)
             {
+                /* executable mappings cannot be writable */
                 prot |= PROT_EXEC;
+                prot &= ~PROT_WRITE;
             }
             
             /*
