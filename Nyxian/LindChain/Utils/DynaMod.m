@@ -36,6 +36,116 @@ unsigned char shellcode[] = {
     0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a       // "World!\n"
 };
 
+int dynamod_mprotect(void *addr,
+                     size_t len,
+                     int prot)
+{
+    if(prot & PROT_EXEC && !(prot & PROT_WRITE))
+    {
+        /* aligning */
+        uintptr_t alignedAddr = (uintptr_t)addr & ~(uintptr_t)0x3FFF;
+        size_t alignedLen = (len + 0x3FFF) & ~(size_t)0x3FFF;
+        
+        /* create MachO object file for it */
+        NSData *data = MDKMachOObjectFileEmitWithText((void*)alignedAddr, alignedLen);
+        NSLog(@"%@", data);
+        
+        /* emit MachO header */
+        [data writeToURL:[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.macho"] atomically:YES];
+        
+        /* now we gotta link this shit */
+        MDKJob *job = [MDKJob jobWithType:kCCJobTypeLinker withArguments:@[
+            @"-arch",
+            @"arm64",
+            @"-platform_version",
+            @"ios",
+            @"18.0",
+            @"18.0",
+            @"-sectalign", @"__TEXT", @"__text", @"0x4000",
+            @"-dylib",
+            @"-o",
+            [[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.dylib"] path],
+            [[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.macho"] path],
+        ]];
+        
+        NSArray<MDKDiagnostic*> *diagnostics;
+        if(![job executeJobWithOutDiagnostics:&diagnostics withOutMainSource:nil])
+        {
+            for(MDKDiagnostic *diagnostic in diagnostics)
+            {
+                NSLog(@"%@", diagnostic.message);
+            }
+            goto do_fallback;
+        }
+        
+        /* now we gotta sign that shit */
+        NSURL *dylibURL = [[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.dylib"];
+        if(![LCUtils signMachOAtURL:dylibURL])
+        {
+            goto do_fallback;
+        }
+        NSLog(@"signed!");
+        
+        /* now we try to map it fast */
+        LCMachO *machO = LCMapMachO(dylibURL.path.UTF8String, false);
+        if(!machO)
+        {
+            goto do_fallback;
+        }
+        
+        bool isAppleSigned = LCCheckCodeSignature(machO);   /* asks the XNU kernel nicely */
+        if(!isAppleSigned)
+        {
+            LCUnmapMachO(machO);
+            goto do_fallback;
+        }
+        
+        NSLog(@"meaninglessly mapped!");
+        
+        const uint8_t *vptr = ((const uint8_t *)machO->header) + sizeof(struct mach_header_64);
+        off_t sliceOffset = (uint8_t*)machO->header - (uint8_t*)machO->map;
+        uint64_t ncmds = machO->header->ncmds;
+        for(uint32_t i = 0; i < ncmds; i++)
+        {
+            const struct load_command *lc = (const struct load_command *)vptr;
+            if(lc->cmd == LC_SEGMENT_64)
+            {
+                const struct segment_command_64 *sc = (const struct segment_command_64 *)vptr;
+                if(sc->vmsize == 0)
+                {
+                    vptr += lc->cmdsize;
+                    continue;
+                }
+                
+                /* now a lot of math ^^ */
+                off_t fileOff = sliceOffset + sc->fileoff;
+                if(sc->initprot & VM_PROT_EXECUTE)
+                {
+                    /* executable mappings cannot be writable */
+                    NSLog(@"found exec page!");
+                    
+                    if(sc->filesize > 0)
+                    {
+                        /*
+                         * it doesn't matter where you map something, it will still be
+                         * executable, even if the executable is not entirely mapped.
+                         * which is crazy.
+                         */
+                        void *r = mmap((void*)alignedAddr, sc->filesize - VM_PAGE_SIZE, PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff + VM_PAGE_SIZE);
+                        NSLog(@"mapped exec page at %p vs %p (first is JIT mapping location)", (void*)alignedAddr, r);
+                    }
+                    break;
+                }
+            }
+            vptr += lc->cmdsize;
+        }
+        
+        LCUnmapMachO(machO);
+    }
+do_fallback:
+    return mprotect(addr, len, prot);
+}
+
 __attribute__((constructor))
 void test(void)
 {
@@ -51,102 +161,9 @@ void test(void)
     memcpy(ptr, shellcode, sizeof(shellcode));
     
     /* create MachO object file for it */
-    NSData *data = MDKMachOObjectFileEmitWithText(ptr, PAGE_SIZE);
-    NSLog(@"%@", data);
+    dynamod_mprotect(ptr, sizeof(shellcode), PROT_READ | PROT_EXEC);
     
-    /* emit MachO header */
-    [data writeToURL:[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.macho"] atomically:YES];
-    
-    /* now we gotta link this shit */
-    MDKJob *job = [MDKJob jobWithType:kCCJobTypeLinker withArguments:@[
-        @"-arch",
-        @"arm64",
-        @"-platform_version",
-        @"ios",
-        @"18.0",
-        @"18.0",
-        @"-sectalign", @"__TEXT", @"__text", @"0x4000",
-        @"-dylib",
-        @"-o",
-        [[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.dylib"] path],
-        [[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.macho"] path],
-    ]];
-    
-    NSArray<MDKDiagnostic*> *diagnostics;
-    if(![job executeJobWithOutDiagnostics:&diagnostics withOutMainSource:nil])
-    {
-        for(MDKDiagnostic *diagnostic in diagnostics)
-        {
-            NSLog(@"%@", diagnostic.message);
-        }
-        return;
-    }
-    
-    /* now we gotta sign that shit */
-    NSURL *dylibURL = [[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.dylib"];
-    if(![LCUtils signMachOAtURL:dylibURL])
-    {
-        return;
-    }
-    NSLog(@"signed!");
-    
-    /* now we try to map it fast */
-    LCMachO *machO = LCMapMachO(dylibURL.path.UTF8String, false);
-    if(!machO)
-    {
-        return;
-    }
-    
-    bool isAppleSigned = LCCheckCodeSignature(machO);   /* asks the XNU kernel nicely */
-    if(!isAppleSigned)
-    {
-        LCUnmapMachO(machO);
-        return;
-    }
-    
-    NSLog(@"meaninglessly mapped!");
-    
-    const uint8_t *vptr = ((const uint8_t *)machO->header) + sizeof(struct mach_header_64);
-    off_t sliceOffset = (uint8_t*)machO->header - (uint8_t*)machO->map;
-    uint64_t ncmds = machO->header->ncmds;
-    for(uint32_t i = 0; i < ncmds; i++)
-    {
-        const struct load_command *lc = (const struct load_command *)vptr;
-        if(lc->cmd == LC_SEGMENT_64)
-        {
-            const struct segment_command_64 *sc = (const struct segment_command_64 *)vptr;
-            if(sc->vmsize == 0)
-            {
-                vptr += lc->cmdsize;
-                continue;
-            }
-            
-            /* now a lot of math ^^ */
-            off_t fileOff = sliceOffset + sc->fileoff;
-            if(sc->initprot & VM_PROT_EXECUTE)
-            {
-                /* executable mappings cannot be writable */
-                NSLog(@"found exec page!");
-                
-                if(sc->filesize > 0)
-                {
-                    /*
-                     * it doesn't matter where you map something, it will still be
-                     * executable, even if the executable is not entirely mapped.
-                     * which is crazy.
-                     */
-                    void *r = mmap(ptr, sc->filesize - VM_PAGE_SIZE, PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff + VM_PAGE_SIZE);
-                    NSLog(@"mapped exec page at %p vs %p (first is JIT mapping location)", ptr, r);
-                }
-                break;
-            }
-        }
-        vptr += lc->cmdsize;
-    }
-    
-    LCUnmapMachO(machO);
-    
-    /* correctly mapped shall be executable AMFI rejects it although validly signed */
+    /* correctly mapped shall be executable and it does execute */
     int (*func)(void) = (int (*)(void))ptr;
     func();
 }
