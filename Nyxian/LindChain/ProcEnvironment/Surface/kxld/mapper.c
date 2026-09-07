@@ -20,8 +20,10 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/kxld/mapper.h>
+#include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
 
 bool KXMapMachOExecutable(LCMachO *machO,
+                          int mode,
                           kxld_image_info_t *image_info)
 {
     /* how much memory does this kext need? */
@@ -95,7 +97,16 @@ bool KXMapMachOExecutable(LCMachO *machO,
              * AMFI allows MAP_PRIVATE and MAP_SHARED on executable pages.
              * interesting would be if you could do a partial mapping.
              */
-            int flags = (sc->initprot & VM_PROT_WRITE) ? (MAP_PRIVATE | MAP_FIXED) : (MAP_SHARED | MAP_FIXED);
+            int flags = 0;
+            if(mode & KXLD_MAP_PRIVATE)
+            {
+                flags = MAP_PRIVATE;
+            }
+            else
+            {
+                flags = (sc->initprot & VM_PROT_WRITE) ? MAP_PRIVATE : MAP_SHARED;
+            }
+            flags |= MAP_FIXED;
             
             /* the everything part */
             if(sc->filesize > 0)
