@@ -27,15 +27,14 @@
  * -------------------------------------------------------------------- */
 
 /* kernel process configuration */
-#define KSURFACE_EMIT_KERNEL_TASK   0   /* adds kernel task entry, instead of Nyxian entry MARK: unsupported currently */
-#define KSURFACE_EMIT_LAUNCHD       0   /* adds a launchd entry MARK: unsupported currently */
+#define KSURFACE_EMIT_KERNEL_TASK               0   /* adds kernel task entry, instead of Nyxian entry MARK: unsupported currently */
 
 /* syscalling coverage configuration */
-#define KSURFACE_SYS_IOCTL_ENABLED  1
-#define KSURFACE_SYS_SYSCTL_ENABLED 1
-#define KSURFACE_SYS_TASK_ENABLED   1
-#define KSURFACE_SYS_UCRED_ENABLED  1
-#define KSURFACE_SYS_PROC_ENABLED   1
+#define KSURFACE_SYS_IOCTL_ENABLED              1
+#define KSURFACE_SYS_SYSCTL_ENABLED             1
+#define KSURFACE_SYS_TASK_ENABLED               1
+#define KSURFACE_SYS_UCRED_ENABLED              1
+#define KSURFACE_SYS_PROC_ENABLED               1
 
 /* codesigning feature configuration */
 #define KSURFACE_CS_SANITIZE_ENTITLEMENTS       1   /* strips unecessary entitlements at launch time */

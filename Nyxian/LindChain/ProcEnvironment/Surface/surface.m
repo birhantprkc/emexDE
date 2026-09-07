@@ -236,6 +236,13 @@ static inline void ksurface_kinit_kproc(void)
     }
     klog_log("ksurface:kinit:kproc", "allocated kernel process @ %p", kproc);
     
+    kproc->nyx.identity = trust_identity_get_kernel();
+    if(kproc->nyx.identity == NULL)
+    {
+        /* shall never happen */
+        ksurface_panic("got NULL kernel trust identity");
+    }
+    
     kern_return_t kr;
 #if KSURFACE_EMIT_KERNEL_TASK
     /* setting up properties */
@@ -249,9 +256,6 @@ static inline void ksurface_kinit_kproc(void)
     proc_setpid(kproc, pid);
     proc_setppid(kproc, 1); /* this is done, because when debugging it has a other ppid than launchd's pid */
     proc_setsid(kproc, pid);
-    
-    /* getting own identity */
-    kproc->nyx.identity = trust_identity_get_kernel();
     const char *name = strrchr(kproc->nyx.identity->path, '/');
     name = name ? name + 1 : kproc->nyx.identity->path;
     strlcpy(kproc->bsd.kp_proc.p_comm, name, MAXCOMLEN);
@@ -278,20 +282,6 @@ static inline void ksurface_kinit_kproc(void)
         ksurface_panic("failed to insert kernel process");
     }
     
-#if KSURFACE_EMIT_LAUNCHD
-    kr = proc_spawn(kproc, &kproc, 1, "/sbin/launchd");
-    if(kr != KERN_SUCCESS)
-    {
-        /* shall never happen */
-        environment_panic("got NULL launchd process");
-    }
-    
-    /* when there is no kernel task we need to set ppid to 0 */
-#if !KSURFACE_EMIT_KERNEL_TASK
-    proc_setppid(kproc, 0);
-#endif /* !KSURFACE_EMIT_KERNEL_TASK */
-    
-#endif /* KSURFACE_EMIT_LAUNCHD */
     ksurface->proc_info.kern_proc = kproc;
     
     /* releaing our reference to kernel proc, because we return now and kproc is now held by the radix tree */
