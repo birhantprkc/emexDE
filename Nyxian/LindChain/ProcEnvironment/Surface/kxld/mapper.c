@@ -89,7 +89,11 @@ bool KXMapMachOExecutable(LCMachO *machO,
                 prot |= PROT_EXEC;
             }
             
-            int flags = (sc->initprot & VM_PROT_WRITE) ? (MAP_PRIVATE | MAP_FIXED) : (MAP_SHARED  | MAP_FIXED);
+            /*
+             * AMFI allows MAP_PRIVATE and MAP_SHARED on executable pages.
+             * interesting would be if you could do a partial mapping.
+             */
+            int flags = (sc->initprot & VM_PROT_WRITE) ? (MAP_PRIVATE | MAP_FIXED) : (MAP_SHARED | MAP_FIXED);
             
             /* the everything part */
             if(sc->filesize > 0)
