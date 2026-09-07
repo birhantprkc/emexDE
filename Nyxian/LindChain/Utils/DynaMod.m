@@ -36,6 +36,19 @@ unsigned char shellcode[] = {
     0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a       // "World!\n"
 };
 
+unsigned char tim_shellcode[] = {
+    0x20, 0x00, 0x80, 0xd2,  // mov  x0, #1        (stdout)
+    0xe1, 0x00, 0x00, 0x10,  // adr  x1, #28       (-> msg)
+    0xc2, 0x01, 0x80, 0xd2,  // mov  x2, #14       (len)
+    0x90, 0x00, 0x80, 0xd2,  // mov  x16, #4       (write)
+    0x01, 0x10, 0x00, 0xd4,  // svc  #0x80
+    0x00, 0x00, 0x80, 0xd2,  // mov  x0, #0
+    0x40, 0x05, 0x80, 0xd2,  // mov  x0, #42
+    0xc0, 0x03, 0x5f, 0xd6,  // ret
+    0x47, 0x6f, 0x6f, 0x64, 0x20, 0x6d, 0x6f, 0x72,  // "Good mor"  /* what does he say on every Apple WWDC xD */
+    0x6e, 0x69, 0x6e, 0x67, 0x2e, 0x0a               // "ning.\n"
+};
+
 int dynamod_mprotect(void *addr,
                      size_t len,
                      int prot)
@@ -166,4 +179,13 @@ void test(void)
     /* correctly mapped shall be executable and it does execute */
     int (*func)(void) = (int (*)(void))ptr;
     func();
+    
+    dynamod_mprotect(ptr, sizeof(shellcode), PROT_READ | PROT_WRITE);
+    
+    memcpy(ptr, tim_shellcode, sizeof(tim_shellcode));
+    
+    dynamod_mprotect(ptr, sizeof(shellcode), PROT_READ | PROT_EXEC);
+    
+    /* doesn't work yet */
+    //func();
 }
