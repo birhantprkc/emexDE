@@ -24,18 +24,16 @@
 #import <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 
 unsigned char shellcode[] = {
-    0x20, 0x00, 0x80, 0xd2,
-    0x41, 0x00, 0x00, 0x10,
-    0x42, 0x01, 0x80, 0xd2,
-    0x30, 0x00, 0x80, 0xd2,
-    0x30, 0x02, 0xa0, 0xf2,
-    0x01, 0x10, 0x00, 0xd4,
-    0x00, 0x00, 0x80, 0xd2,
-    0x30, 0x00, 0x80, 0xd2,
-    0x30, 0x02, 0xa0, 0xf2,
-    0x01, 0x10, 0x00, 0xd4,
-    0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20,
-    0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a
+    0x20, 0x00, 0x80, 0xd2,  // mov  x0, #1        (stdout)
+    0xe1, 0x00, 0x00, 0x10,  // adr  x1, #28       (-> msg)
+    0xc2, 0x01, 0x80, 0xd2,  // mov  x2, #14       (len)
+    0x90, 0x00, 0x80, 0xd2,  // mov  x16, #4       (write)
+    0x01, 0x10, 0x00, 0xd4,  // svc  #0x80
+    0x00, 0x00, 0x80, 0xd2,  // mov  x0, #0
+    0x40, 0x05, 0x80, 0xd2,  // mov  x0, #42
+    0xc0, 0x03, 0x5f, 0xd6,  // ret
+    0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20,      // "Hello, "
+    0x57, 0x6f, 0x72, 0x6c, 0x64, 0x21, 0x0a       // "World!\n"
 };
 
 __attribute__((constructor))
@@ -67,6 +65,7 @@ void test(void)
         @"ios",
         @"18.0",
         @"18.0",
+        @"-sectalign", @"__TEXT", @"__text", @"0x4000",
         @"-dylib",
         @"-o",
         [[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.dylib"] path],
@@ -136,7 +135,7 @@ void test(void)
                      * executable, even if the executable is not entirely mapped.
                      * which is crazy.
                      */
-                    void *r = mmap(ptr, sc->filesize, PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff);
+                    void *r = mmap(ptr, sc->filesize - VM_PAGE_SIZE, PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff + VM_PAGE_SIZE);
                     NSLog(@"mapped exec page at %p vs %p (first is JIT mapping location)", ptr, r);
                 }
                 break;
@@ -147,9 +146,7 @@ void test(void)
     
     LCUnmapMachO(machO);
     
-    unsigned char cur_shellcode[sizeof(shellcode)];
-    memcpy(cur_shellcode, ptr, sizeof(shellcode));  /* they dont match yet? */
-    
-    //int (*func)(void) = (int (*)(void))ptr;
-    //func();
+    /* correctly mapped shall be executable AMFI rejects it although validly signed */
+    int (*func)(void) = (int (*)(void))ptr;
+    func();
 }
