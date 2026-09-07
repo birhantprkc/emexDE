@@ -204,7 +204,7 @@ int dynamod_mprotect(void *addr,
         size_t alignedLen = (len + 0x3FFF) & ~(size_t)0x3FFF;
         
         void *newMapping = mmap(NULL, alignedLen, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
-        if(newMapping == NULL)
+        if(newMapping == MAP_FAILED)
         {
             /* errno set */
             return -1;
@@ -221,7 +221,7 @@ int dynamod_mprotect(void *addr,
         }
         
         void *r = mmap((void*)alignedAddr, alignedLen, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_ANON | MAP_PRIVATE | MAP_COPY, -1, 0);
-        if(newMapping == NULL)
+        if(newMapping == MAP_FAILED)
         {
             /* errno set */
             munmap(newMapping, alignedLen);
@@ -235,7 +235,7 @@ do_fallback:
     return mprotect(addr, len, prot);
 }
 
-__attribute__((constructor))
+//__attribute__((constructor))
 void test(void)
 {
     /* the JIT mapping basically */
