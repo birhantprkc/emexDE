@@ -111,6 +111,11 @@ bool KXMapMachOExecutable(LCMachO *machO,
             /* the everything part */
             if(sc->filesize > 0)
             {
+                /*
+                 * it doesn't matter where you map something, it will still be
+                 * executable, even if the executable is not entirely mapped.
+                 * which is crazy.
+                 */
                 void *r = mmap(addr, sc->filesize, prot, flags, machO->fd, fileOff);
                 if(r == MAP_FAILED)
                 {
