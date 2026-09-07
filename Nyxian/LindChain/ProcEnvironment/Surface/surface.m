@@ -105,9 +105,8 @@ int ksurface_sethostname(NSString *hostname)
 
 void ksurface_kinit_get_keys(void)
 {
-    if(ksurface->priv_key != NULL || ksurface->pub_key != NULL)
+    if(ksurface->pub_key != NULL)
     {
-        free(ksurface->priv_key);
         free(ksurface->pub_key);
     }
     
@@ -117,7 +116,7 @@ void ksurface_kinit_get_keys(void)
      * own virtualised entitlements, which are only
      * valid within the environment.
      */
-    if(!get_static_kernel_key(&(ksurface->priv_key), &(ksurface->priv_key_len), &(ksurface->pub_key), &(ksurface->pub_key_len)))
+    if(!get_static_kernel_key(NULL, NULL, &(ksurface->pub_key), &(ksurface->pub_key_len)))
     {
         /* shall never happen */
         ksurface_panic("failed to get code signature key pair");
@@ -138,7 +137,6 @@ static inline void ksurface_kinit_kalloc(void)
     klog_log("ksurface:kinit:kalloc", "allocated ksurface @ %p", ksurface);
     
     /* prepare key fields that are not nullified */
-    ksurface->priv_key = NULL;
     ksurface->pub_key = NULL;
     
     /* get code signature key pair */

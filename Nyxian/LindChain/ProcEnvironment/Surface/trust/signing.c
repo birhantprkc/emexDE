@@ -330,9 +330,19 @@ kern_return_t trust_nxt2_sign_fd(int fd,
         EVP_PKEY *priv = NULL;
         
 #if !__NXTOOL
+        uint8_t *p = NULL;
+        size_t p_len;
+        if(!get_static_kernel_key(&(p), &(p_len), NULL, NULL))
+        {
+            /* shall never happen */
+            free(blob_header);
+            return KERN_FAILURE;
+        }
+        
         /* signing blob */
-        const uint8_t *p = ksurface->priv_key;
-        priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, &p, (long)ksurface->priv_key_len);
+        priv = d2i_PrivateKey(EVP_PKEY_EC, NULL, (const uint8_t*)&p, (long)p_len);
+        memset(p, 0, p_len);
+        free(p);
 #else
         if(priv_der_path == NULL)
         {
