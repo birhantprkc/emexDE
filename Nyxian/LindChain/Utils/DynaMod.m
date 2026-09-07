@@ -131,7 +131,7 @@ int dynamod_mprotect(void *addr,
                          * executable, even if the executable is not entirely mapped.
                          * which is crazy.
                          */
-                        void *r = mmap((void*)alignedAddr, sc->filesize - VM_PAGE_SIZE, PROT_READ | PROT_EXEC, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff + VM_PAGE_SIZE);
+                        void *r = mmap((void*)alignedAddr, sc->filesize - VM_PAGE_SIZE, prot, MAP_FIXED | MAP_PRIVATE, machO->fd, fileOff + VM_PAGE_SIZE);
                         NSLog(@"mapped exec page at %p vs %p (first is JIT mapping location)", (void*)alignedAddr, r);
                     }
                     break;
