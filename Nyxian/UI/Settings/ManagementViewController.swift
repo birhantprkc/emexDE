@@ -91,16 +91,16 @@ class ManagementViewController: UIThemedTableViewController {
             case 1:
                 if indexPath.row == 0 {
                     do {
-                        try FileManager.default.createDirectory(atPath: "\(NSHomeDirectory())/Library/RootCAGen", withIntermediateDirectories: true)
-                        trust_nxt2_generate_rootca_keypair(UserDefaults.standard.string(forKey: "LDEOrganizationPrefix") ?? NXUser.shared().username,"\(NSHomeDirectory())/Library/RootCAGen/pub.nxt2c", "\(NSHomeDirectory())/Library/RootCAGen/priv.der")
-                        if !zipDirectoryAtPath("\(NSHomeDirectory())/Library/RootCAGen", "\(NSHomeDirectory())/Library/RootCAGen.zip", false) {
-                            try FileManager.default.removeItem(atPath: "\(NSHomeDirectory())/Library/RootCAGen")
-                            throw NSError(domain: "org.emexlabs.nyxian.rootca.zip", code: -1, userInfo: [NSLocalizedDescriptionKey:"Failed to zip RootCA"])
+                        try FileManager.default.createDirectory(atPath: "\(NSHomeDirectory())/Library/RootTrustAnchor", withIntermediateDirectories: true)
+                        trust_nxt2_generate_rootca_keypair(UserDefaults.standard.string(forKey: "LDEOrganizationPrefix") ?? NXUser.shared().username,"\(NSHomeDirectory())/Library/RootTrustAnchor/pub.nxt2c", "\(NSHomeDirectory())/Library/RootTrustAnchor/priv.der")
+                        if !zipDirectoryAtPath("\(NSHomeDirectory())/Library/RootCAGen", "\(NSHomeDirectory())/Library/RootTrustAnchor.zip", false) {
+                            try FileManager.default.removeItem(atPath: "\(NSHomeDirectory())/Library/RootTrustAnchor")
+                            throw NSError(domain: "org.emexlabs.nyxian.root-trust-anchor.zip", code: -1, userInfo: [NSLocalizedDescriptionKey:"Failed to zip RootTrustAnchor"])
                         }
-                        try FileManager.default.removeItem(atPath: "\(NSHomeDirectory())/Library/RootCAGen")
-                        share(url: URL(fileURLWithPath: "\(NSHomeDirectory())/Library/RootCAGen.zip"), remove: true)
+                        try FileManager.default.removeItem(atPath: "\(NSHomeDirectory())/Library/RootTrustAnchor")
+                        share(url: URL(fileURLWithPath: "\(NSHomeDirectory())/Library/RootTrustAnchor.zip"), remove: true)
                     } catch {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to generate new RootCA: \(error.localizedDescription)")
+                        NotificationServer.NotifyUser(level: .error, notification: "Failed to generate new RootTrustAnchor: \(error.localizedDescription)")
                     }
                 } else {
                     print("pressed on list rootca")
