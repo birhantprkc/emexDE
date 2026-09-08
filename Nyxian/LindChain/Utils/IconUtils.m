@@ -81,3 +81,22 @@ UIImage *Gib26Icon(UIImage *rawIcon,
     
     return [UIImage imageWithCGImage:rendered.CGImage scale:scale orientation:UIImageOrientationUp];
 }
+
+UIImage *Gib26FallbackIcon(CGSize size, CGFloat scale)
+{
+    ISIcon *icon = [PrivClass(ISIcon) transparentIcon];
+    if(!icon)
+    {
+        return nil;
+    }
+    
+    ISImageDescriptor *descriptor = ISIDescriptorFor(size, scale);
+    
+    IFImage *rendered = [icon prepareImageForDescriptor:descriptor];
+    if(!rendered || !rendered.CGImage)
+    {
+        return nil;
+    }
+    
+    return [UIImage imageWithCGImage:rendered.CGImage scale:scale orientation:UIImageOrientationUp];
+}

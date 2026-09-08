@@ -55,6 +55,9 @@
 
 @interface ISIcon : NSObject
 
++ (id)genericApplicationIcon;
++ (id)transparentIcon;
+
 - (instancetype)initWithImages:(NSArray<IFImage *> *)images;
 
 

@@ -161,7 +161,14 @@ class ProjectTableCell: UITableViewCell {
             titleCenterConstraint.isActive = true
         }
         
-        if let appIcon {
+        var appIcon: UIImage? = appIcon
+        if appIcon == nil {
+            if #unavailable(iOS 26.0) {
+                appIcon = UIImage(named: "DefaultIcon")
+            }
+        }
+        
+        //if let appIcon {
             iconView.isHidden = false
             NSLayoutConstraint.activate(iconConstraints)
             titleLeadingWithoutIcon.isActive = false
@@ -171,7 +178,7 @@ class ProjectTableCell: UITableViewCell {
             pendingRawIcon = appIcon
             pendingCacheKey = cacheKey ?? bundleIdentifier ?? displayName
             applyIcon(appIcon, key: pendingCacheKey!)
-        } else {
+        /*} else {
             iconView.isHidden = true
             iconView.image = nil
             pendingRawIcon = nil
@@ -181,7 +188,7 @@ class ProjectTableCell: UITableViewCell {
             titleLeadingWithoutIcon.isActive = true
             subtitleLeadingWithIcon.isActive = false
             subtitleLeadingWithoutIcon.isActive = true
-        }
+        }*/
     }
     
     private var currentScale: CGFloat {
@@ -194,7 +201,7 @@ class ProjectTableCell: UITableViewCell {
         applyIcon(raw, key: key)
     }
     
-    private func applyIcon(_ raw: UIImage, key: String) {
+    private func applyIcon(_ raw: UIImage?, key: String) {
         guard #available(iOS 26.0, *) else {
             renderToken = UUID()
             iconView.image = raw
@@ -216,7 +223,12 @@ class ProjectTableCell: UITableViewCell {
         iconView.image = nil
         
         Self.renderQueue.async { [weak self] in
-            var rendered = Gib26Icon(raw, CGSize(width: side, height: side), scale)
+            var rendered: UIImage? = nil
+            if let raw = raw {
+                rendered = Gib26Icon(raw, CGSize(width: side, height: side), scale)
+            } else {
+                rendered = Gib26FallbackIcon(CGSize(width: side, height: side), scale)
+            }
             rendered = rendered?.preparingForDisplay() ?? rendered
             
             DispatchQueue.main.async { [weak self] in
