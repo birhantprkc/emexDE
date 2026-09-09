@@ -153,7 +153,7 @@ kern_return_t ksurface_shimcache_build(void)
     klog_log("shimcache:emit", "building shims into shimcache");
     NSArray<MDKJob*> *jobs = [driver generateJobs];
     for(MDKJob *job in jobs)
-    { 
+    {
         NSArray<MDKDiagnostic*> *outDiagnostic = nil;
         NSString *mainSourceFile = nil;
         BOOL success = [job executeJobWithOutDiagnostics:&outDiagnostic withOutMainSource:&mainSourceFile];

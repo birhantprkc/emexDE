@@ -253,6 +253,7 @@ static void *__HWHookThreadContextServer(void *ctxp)
             case 0x30:  /* this is a hardware breakpoint hook */
             case 0x31:
             {
+                printf("meow!\n");
                 /* debug register are set */
                 arm_thread_state64_t state;
                 mach_msg_type_number_t count = ARM_THREAD_STATE64_COUNT;
