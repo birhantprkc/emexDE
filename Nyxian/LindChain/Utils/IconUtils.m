@@ -50,23 +50,27 @@ static ISImageDescriptor *ISIDescriptorFor(CGSize size,
     }
 }
 
-UIImage *Gib26Icon(UIImage *rawIcon,
+UIImage *Gib26Icon(UIImage *rawLightIcon,
+                   UIImage *rawDarkIcon,
                    CGSize size,
                    CGFloat scale)
 {
-    if(!rawIcon.CGImage)
+    if(!rawLightIcon.CGImage || !rawDarkIcon.CGImage)
     {
         return nil;
     }
     
-    IFImage *source = [[PrivClass(IFImage) alloc] initWithCGImage:rawIcon.CGImage scale:rawIcon.scale];
-    if(!source)
+    /* like black and white hole from the universe x3 (white hole, black hole, tight ...) */
+    IFImage *lightSource = [[PrivClass(IFImage) alloc] initWithCGImage:rawLightIcon.CGImage scale:rawLightIcon.scale];  /* like from my flashlight */
+    IFImage *darkSource = [[PrivClass(IFImage) alloc] initWithCGImage:rawDarkIcon.CGImage scale:rawDarkIcon.scale];
+    if(!lightSource || !darkSource)
     {
         return nil;
     }
     
-    ISIcon *icon = [[PrivClass(ISIcon) alloc] initWithImages:@[source]];
-    if(!icon)
+    ISIcon *lightIcon = [[PrivClass(ISIcon) alloc] initWithImages:@[lightSource]];
+    ISIcon *darkIcon = [[PrivClass(ISIcon) alloc] initWithImages:@[darkSource]];
+    if(!lightIcon || !darkIcon)
     {
         return nil;
     }
@@ -75,13 +79,26 @@ UIImage *Gib26Icon(UIImage *rawIcon,
     ISImageDescriptor *descriptor = ISIDescriptorFor(size, scale, NO);
     
     /* apperently what apple uses */
-    IFImage *rendered = [icon prepareImageForDescriptor:descriptor];
-    if(!rendered || !rendered.CGImage)
+    IFImage *lightRendered = [lightIcon prepareImageForDescriptor:descriptor];
+    IFImage *darkRendered = [darkIcon prepareImageForDescriptor:descriptor];
+    if(!lightRendered || !lightRendered.CGImage ||
+       !darkRendered || !darkRendered.CGImage)
     {
         return nil;
     }
     
-    return [UIImage imageWithCGImage:rendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    UIImage *lightImage = [UIImage imageWithCGImage:lightRendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    UIImage *darkImage = [UIImage imageWithCGImage:darkRendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    
+    UIImageAsset *asset = [[UIImageAsset alloc] init];
+    
+    UITraitCollection *lightTraits = [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleLight];
+    UITraitCollection *darkTraits = [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark];
+    
+    [asset registerImage:lightImage withTraitCollection:lightTraits];
+    [asset registerImage:darkImage withTraitCollection:darkTraits];
+    
+    return [asset imageWithTraitCollection:UITraitCollection.currentTraitCollection];
 }
 
 UIImage *Gib26FallbackIcon(CGSize size, CGFloat scale)
