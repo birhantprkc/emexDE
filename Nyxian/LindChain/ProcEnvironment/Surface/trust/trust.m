@@ -300,7 +300,7 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
                 }
             }
         }
-        NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/shimcache.dylib"] path] UTF8String], kFSMountPermissionRead);
+        NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/rtpatch"] path] UTF8String], kFSMountPermissionRead);
         if(extensions != nil)
         {
             [filePermissions addObjectsFromArray:extensions];

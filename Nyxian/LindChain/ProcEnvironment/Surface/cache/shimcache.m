@@ -128,7 +128,7 @@ kern_return_t ksurface_shimcache_build(void)
     }
     
     /* now we need to compile them together to one shimcache */
-    NSString *shimCacheDylib = [[[[NXBootstrap shared] rootURL] URLByAppendingPathComponent:@"/mntfs/bootfs/shimcache.dylib"] path];
+    NSString *shimCacheDylib = [[[[NXBootstrap shared] rootURL] URLByAppendingPathComponent:@"/mntfs/bootfs/rtpatch"] path];
     
     NSMutableArray<NSString*> *driverFlags = [NSMutableArray array];
     [driverFlags addObjectsFromArray:[NXProjectConfig sdkCompilerFlags]];

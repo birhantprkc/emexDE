@@ -43,7 +43,7 @@
 static const char *gHostImageNeedles[] = {
     "/Nyxian.app/PlugIns/LiveProcess.appex/LiveProcess",
     "/Nyxian.app/PlugIns/LiveProcess.appex/Frameworks/LiveShim.framework/LiveShim",
-    "/mntfs/bootfs/shimcache.dylib"
+    "/mntfs/bootfs/rtpatch"
 };
 
 static bool isHostImagePath(const char *path)
