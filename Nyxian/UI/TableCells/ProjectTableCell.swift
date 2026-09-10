@@ -229,7 +229,6 @@ class ProjectTableCell: UITableViewCell {
             } else {
                 rendered = Gib26FallbackIcon(CGSize(width: side, height: side), scale)
             }
-            rendered = rendered?.preparingForDisplay() ?? rendered
             
             DispatchQueue.main.async { [weak self] in
                 if let rendered {

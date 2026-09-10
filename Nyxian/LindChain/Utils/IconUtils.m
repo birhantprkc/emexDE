@@ -24,13 +24,15 @@
 #import <LindChain/Utils/IconUtils.h>
 #import <LindChain/Private/UIKitPrivate.h>
 
-static ISImageDescriptor *ISIDescriptorFor(CGSize size, CGFloat scale)
+static ISImageDescriptor *ISIDescriptorFor(CGSize size,
+                                           CGFloat scale,
+                                           BOOL darkMode)
 {
     static NSMutableDictionary *cache;
     static dispatch_once_t once;
     dispatch_once(&once, ^{ cache = [NSMutableDictionary new]; });
 
-    NSString *key = [NSString stringWithFormat:@"%.1fx%.1f@%.1f", size.width, size.height, scale];
+    NSString *key = [NSString stringWithFormat:@"%.1fx%.1f@%.1f.%@", size.width, size.height, scale, @(darkMode)];
     @synchronized(cache)
     {
         ISImageDescriptor *descriptor = cache[key];
@@ -38,7 +40,7 @@ static ISImageDescriptor *ISIDescriptorFor(CGSize size, CGFloat scale)
         {
             descriptor = [[PrivClass(ISImageDescriptor) alloc] initWithSize:size scale:scale];
             descriptor.shape = 1;
-            descriptor.appearance = ISImageDescriptorApparanceLightMode;
+            descriptor.appearance = darkMode ? ISImageDescriptorApparanceDarkMode : ISImageDescriptorApparanceLightMode;
             descriptor.appearanceVariant = ISImageDescriptorApparanceVariantDefault;
             descriptor.shouldApplyMask = YES;
             descriptor.drawBorder = YES;
@@ -70,7 +72,7 @@ UIImage *Gib26Icon(UIImage *rawIcon,
     }
     
     /* more research is needed on how apple applies the format :c */
-    ISImageDescriptor *descriptor = ISIDescriptorFor(size, scale);
+    ISImageDescriptor *descriptor = ISIDescriptorFor(size, scale, NO);
     
     /* apperently what apple uses */
     IFImage *rendered = [icon prepareImageForDescriptor:descriptor];
@@ -90,13 +92,27 @@ UIImage *Gib26FallbackIcon(CGSize size, CGFloat scale)
         return nil;
     }
     
-    ISImageDescriptor *descriptor = ISIDescriptorFor(size, scale);
+    ISImageDescriptor *lightDescriptor = ISIDescriptorFor(size, scale, NO);
+    ISImageDescriptor *darkDescriptor = ISIDescriptorFor(size, scale, YES);
     
-    IFImage *rendered = [icon prepareImageForDescriptor:descriptor];
-    if(!rendered || !rendered.CGImage)
+    IFImage *lightRendered = [icon prepareImageForDescriptor:lightDescriptor];
+    IFImage *darkRendered = [icon prepareImageForDescriptor:darkDescriptor];
+    if(!lightRendered || !lightRendered.CGImage ||
+       !darkRendered || !darkRendered.CGImage)
     {
         return nil;
     }
     
-    return [UIImage imageWithCGImage:rendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    UIImage *lightImage = [UIImage imageWithCGImage:lightRendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    UIImage *darkImage = [UIImage imageWithCGImage:darkRendered.CGImage scale:scale orientation:UIImageOrientationUp];
+    
+    UIImageAsset *asset = [[UIImageAsset alloc] init];
+    
+    UITraitCollection *lightTraits = [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleLight];
+    UITraitCollection *darkTraits = [UITraitCollection traitCollectionWithUserInterfaceStyle:UIUserInterfaceStyleDark];
+    
+    [asset registerImage:lightImage withTraitCollection:lightTraits];
+    [asset registerImage:darkImage withTraitCollection:darkTraits];
+    
+    return [asset imageWithTraitCollection:UITraitCollection.currentTraitCollection];
 }
