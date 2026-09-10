@@ -363,9 +363,13 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
         offset++;
     }
     
-    if(entries[kDyldPtrFcntl].found == NULL)
+    /* on iOS 17 it seems like there is no normal fcntl call */
+    if(!@available(iOS 18.0, *))
     {
-        entries[kDyldPtrFcntl].found = findDyldFcntl17(dyldBase);
+        if(entries[kDyldPtrFcntl].found == NULL)
+        {
+            entries[kDyldPtrFcntl].found = findDyldFcntl17(dyldBase);
+        }
     }
     
     static const char *names[kDyldPtrCount] = {
