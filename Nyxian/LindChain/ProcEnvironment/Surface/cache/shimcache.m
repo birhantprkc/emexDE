@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/shimcache/shimcache.h>
+#include <LindChain/ProcEnvironment/Surface/cache/shimcache.h>
 #include <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #include <LindChain/ProcEnvironment/Surface/fs/mount.h>
 #include <stdio.h>

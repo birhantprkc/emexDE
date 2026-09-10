@@ -305,7 +305,7 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
         {
             [filePermissions addObjectsFromArray:extensions];
         }
-        extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/ptrcache"] path] UTF8String], kFSMountPermissionRead);
+        extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/patchfinder.bin"] path] UTF8String], kFSMountPermissionRead);
         if(extensions != nil)
         {
             [filePermissions addObjectsFromArray:extensions];
