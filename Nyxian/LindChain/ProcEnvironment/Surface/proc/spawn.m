@@ -309,7 +309,7 @@ kern_return_t proc_reap(ksurface_proc_t *proc)
     PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:pid];
     if(process != NULL)
     {
-        [process terminate];
+        [process forceTerminate];
     }
     
     return KERN_SUCCESS;

@@ -132,7 +132,7 @@
     kern_return_t kr = tty_attach_proc(_process.proc, tty);
     if(kr != KERN_SUCCESS)
     {
-        [process terminate];
+        [process forceTerminate];
         kvo_release(tty);
         return NO;
     }
@@ -142,7 +142,7 @@
     
     if(_terminal == nil)
     {
-        [process terminate];
+        [process forceTerminate];
         kvo_release(tty);
         return NO;
     }
@@ -169,7 +169,7 @@
         BOOL succeeded __attribute__((unused)) = [self.terminal resignFirstResponder];
     });
     self.terminal.ttyHandle = nil;
-    [_process terminate];
+    [_process forceTerminate];
     
     return YES;
 }
