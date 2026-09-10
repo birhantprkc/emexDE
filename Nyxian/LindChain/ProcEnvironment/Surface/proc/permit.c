@@ -42,17 +42,14 @@ bool proc_snapshot_primitive_over_proc_allowed(ksurface_proc_snapshot_t *proc,
         return true;
     }
     
-    proc_visibility_t vis = proc_get_proc_visibility(proc);
-    
-    /* locking target process aswell */
-    kvo_rdlock(targetProc);
-    
     /*
      * checking if process can even see the target,
      * otherwise it shouldnt be able to have
      * permitives over a process. not seeing it means
      * it doesnt exist for the caller.
      */
+    proc_visibility_t vis = proc_get_proc_visibility(proc);
+    kvo_rdlock(targetProc);
     if(!proc_can_see_proc(proc, targetProc, vis))
     {
         errno = ESRCH;
@@ -139,4 +136,42 @@ out_euid_check:
 out_yes:
     kvo_unlock(targetProc);
     return true;
+}
+
+bool proc_primitive_over_proc_allowed(ksurface_proc_t *proc,
+                                      ksurface_proc_t *targetProc,
+                                      PEEntitlementFlags entitlementsNeeded,
+                                      PEEntitlementFlags targetEntitlementsNeeded)
+{
+    kvo_rdlock(proc);   /* when rdlocking a non snapshot it shall be like a snapshot */
+    bool isAllowed = proc_snapshot_primitive_over_proc_allowed((ksurface_proc_snapshot_t*)proc, targetProc, entitlementsNeeded, targetEntitlementsNeeded);
+    kvo_unlock(proc);
+    return isAllowed;
+}
+
+bool proc_pid_primitive_over_pid_allowed(pid_t pid,
+                                         pid_t targetPid,
+                                         PEEntitlementFlags entitlementsNeeded,
+                                         PEEntitlementFlags targetEntitlementsNeeded)
+{
+    /* look both up */
+    ksurface_proc_t *proc = NULL;
+    if(proc_for_pid(pid, &proc) != KERN_SUCCESS)
+    {
+        errno = ESRCH;
+        return false;
+    }
+    
+    ksurface_proc_t *targetProc = NULL;
+    if(proc_for_pid(targetPid, &targetProc) != KERN_SUCCESS)
+    {
+        kvo_release(proc);
+        errno = ESRCH;
+        return false;
+    }
+    
+    bool isAllowed = proc_primitive_over_proc_allowed(proc, targetProc, entitlementsNeeded, targetEntitlementsNeeded);
+    kvo_release(targetProc);
+    kvo_release(proc);
+    return isAllowed;
 }
