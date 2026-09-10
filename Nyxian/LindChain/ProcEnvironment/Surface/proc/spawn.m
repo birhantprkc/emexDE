@@ -369,8 +369,8 @@ kern_return_t proc_zombify(ksurface_proc_t *proc)
     kvo_unlock(proc);
     
     ksurface_proc_t *parent = NULL;
-    kern_return_t ksr = proc_parent_for_proc(proc, &parent);
-    if(ksr == KERN_SUCCESS)
+    kern_return_t kr = proc_parent_for_proc(proc, &parent);
+    if(kr == KERN_SUCCESS)
     {
         kvo_event_trigger(parent, kProcEventTypeWait4, (uintptr_t)proc);
         
@@ -392,10 +392,10 @@ kern_return_t proc_state_change(ksurface_proc_t *proc,
                                 int64_t status)
 {
     ksurface_proc_t *parent = NULL;
-    kern_return_t ksr = proc_parent_for_proc(proc, &parent);
-    if(ksr != KERN_SUCCESS)
+    kern_return_t kr = proc_parent_for_proc(proc, &parent);
+    if(kr != KERN_SUCCESS)
     {
-        return ksr;
+        return kr;
     }
     
     pthread_mutex_lock(&(parent->children.mutex));

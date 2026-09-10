@@ -129,9 +129,8 @@
     _process = process;
     
     /* attaching tty to process lifecycle */
-    kern_return_t ksr = tty_attach_proc(_process.proc, tty);
-    
-    if(ksr != KERN_SUCCESS)
+    kern_return_t kr = tty_attach_proc(_process.proc, tty);
+    if(kr != KERN_SUCCESS)
     {
         [process terminate];
         kvo_release(tty);

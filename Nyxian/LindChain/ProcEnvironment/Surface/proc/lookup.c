@@ -60,10 +60,10 @@ kern_return_t proc_for_pid_with_pidv(pid_t pid,
 {
     /* aquiring proc object */
     ksurface_proc_t *found = NULL;
-    kern_return_t ret = proc_for_pid(pid, &found);
-    if(ret != KERN_SUCCESS)
+    kern_return_t kr = proc_for_pid(pid, &found);
+    if(kr != KERN_SUCCESS)
     {
-        return ret;
+        return kr;
     }
     
     /* perform pidv validation */
@@ -172,11 +172,14 @@ kern_return_t proc_task_for_proc(ksurface_proc_t *proc,
     }
     kvo_unlock(proc);
     
-    /* what happened ?? :3 */
+    /*
+     * should have worked, may not work due to some
+     * condition, so it is way better guarding for
+     * that condition.
+     */
     if(kr != KERN_SUCCESS)
     {
-        /* something went wrong :< */
-        return kr;
+        return KERN_FAILURE;
     }
     
     /*
