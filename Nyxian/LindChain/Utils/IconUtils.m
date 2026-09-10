@@ -38,8 +38,8 @@ static ISImageDescriptor *ISIDescriptorFor(CGSize size, CGFloat scale)
         {
             descriptor = [[PrivClass(ISImageDescriptor) alloc] initWithSize:size scale:scale];
             descriptor.shape = 1;
-            descriptor.appearance = 0;
-            descriptor.appearanceVariant = 0;
+            descriptor.appearance = ISImageDescriptorApparanceLightMode;
+            descriptor.appearanceVariant = ISImageDescriptorApparanceVariantDefault;
             descriptor.shouldApplyMask = YES;
             descriptor.drawBorder = YES;
             cache[key] = descriptor;
@@ -84,7 +84,7 @@ UIImage *Gib26Icon(UIImage *rawIcon,
 
 UIImage *Gib26FallbackIcon(CGSize size, CGFloat scale)
 {
-    ISIcon *icon = [PrivClass(ISIcon) transparentIcon];
+    ISIcon *icon = [PrivClass(ISIcon) genericApplicationIcon];
     if(!icon)
     {
         return nil;
