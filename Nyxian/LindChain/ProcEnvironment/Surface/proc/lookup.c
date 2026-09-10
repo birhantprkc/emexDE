@@ -196,6 +196,23 @@ kern_return_t proc_task_for_proc(ksurface_proc_t *proc,
     return KERN_SUCCESS;
 }
 
+kern_return_t proc_task_for_pid(pid_t pid,
+                                task_special_port_t flavour,
+                                task_t *task)
+{
+    /* aquiring proc object */
+    ksurface_proc_t *found = NULL;
+    kern_return_t kr = proc_for_pid(pid, &found);
+    if(kr != KERN_SUCCESS)
+    {
+        return kr;
+    }
+    
+    kr = proc_task_for_proc(found, flavour, task);
+    kvo_release(found);
+    return kr;
+}
+
 kern_return_t proc_parent_for_proc(ksurface_proc_t *child,
                                    ksurface_proc_t **parent)
 {
