@@ -24,26 +24,12 @@
 #include <assert.h>
 #include <errno.h>
 
-bool proc_snapshot_primitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
-                                              pid_t targetPid,
-                                              PEEntitlementFlags entitlementsNeeded,
-                                              PEEntitlementFlags targetEntitlementsNeeded)
+bool proc_snapshot_primitive_over_proc_allowed(ksurface_proc_snapshot_t *proc,
+                                               ksurface_proc_t *targetProc,
+                                               PEEntitlementFlags entitlementsNeeded,
+                                               PEEntitlementFlags targetEntitlementsNeeded)
 {
     assert(proc != NULL);
-    
-    /*
-     * getting target process, because
-     * we have to check if the caller
-     * process has the needed priveleges
-     * to operate onto the target process
-     */
-    ksurface_proc_t *targetProc = NULL;
-    kern_return_t kr = proc_for_pid(targetPid, &targetProc);
-    if(kr != KERN_SUCCESS)
-    {
-        errno = ESRCH;
-        return false;
-    }
     
     /*
      * checking if its the same process,
@@ -53,7 +39,6 @@ bool proc_snapshot_primitive_over_pid_allowed(ksurface_proc_snapshot_t *proc,
      */
     if((ksurface_proc_t*)(proc->header.orig) == targetProc)
     {
-        kvo_release(targetProc);
         return true;
     }
     
@@ -148,12 +133,10 @@ out_euid_check:
         errno = EPERM;
     out_no:
         kvo_unlock(targetProc);
-        kvo_release(targetProc);
         return false;
     }
     
 out_yes:
     kvo_unlock(targetProc);
-    kvo_release(targetProc);
     return true;
 }

@@ -42,7 +42,7 @@ DEFINE_SYSCALL_HANDLER(gettask)
      * in the first place and if the process allows for it except if the
      * caller is a special process.
      */
-    if(!proc_snapshot_primitive_over_pid_allowed(sys_proc_snapshot_, pid, name_only ? kPEEntitlementFlagNone : kPEEntitlementFlagTaskForPid, name_only ? kPEEntitlementFlagNone : kPEEntitlementFlagGetTaskAllowed))
+    if(!proc_snapshot_primitive_over_proc_allowed(sys_proc_snapshot_, target, name_only ? kPEEntitlementFlagNone : kPEEntitlementFlagTaskForPid, name_only ? kPEEntitlementFlagNone : kPEEntitlementFlagGetTaskAllowed))
     {
         sys_set_errno(errno);
         
