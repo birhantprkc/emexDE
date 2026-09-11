@@ -598,20 +598,14 @@ struct ProjectTemplateOptionsView: View {
                         title: "Interface:",
                         options: model.interfaceOptions,
                         disabledIDs: model.interfaceDisabledIDs,
-                        selectionID: Binding(
-                            get: { model.interfaceSelection },
-                            set: { model.interfaceSelection = $0 }
-                        )
+                        selectionID: $model.interfaceSelection
                     )
                 }
                 
                 ProjectTemplatePickerRow(
                     title: "Language:",
                     options: model.languageOptions,
-                    selectionID: Binding(
-                        get: { model.languageSelection },
-                        set: { model.languageSelection = $0 }
-                    )
+                    selectionID: $model.languageSelection
                 )
             }
         }
@@ -619,6 +613,11 @@ struct ProjectTemplateOptionsView: View {
         .padding(.horizontal, 18)
         .padding(.bottom, 6)
         .fixedSize(horizontal: false, vertical: true)
+        .onAppear {
+            if model.schemeKind == .kSurfaceKext {
+                model.languageSelection = "C"
+            }
+        }
     }
     
     private var themedDivider: some View {
