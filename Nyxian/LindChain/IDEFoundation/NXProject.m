@@ -304,9 +304,6 @@
             (__bridge NSString*)kNXT2EntitlementSUGID: @(NO),
             (__bridge NSString*)kNXT2EntitlementSystemTaskPorts: @(NO),
             
-            /* dyld */
-            (__bridge NSString*)kNXT2EntitlementDYLDHideLP: @(NO),
-            
             /* process */
             (__bridge NSString*)kNXT2EntitlementProcessEnumeration: @(NO),
             (__bridge NSString*)kNXT2EntitlementProcessKill: @(NO),

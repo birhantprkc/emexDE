@@ -92,9 +92,6 @@ static CFDictionaryRef trust_identity_validate_entitlements(CFStringRef executab
         { kNXT2EntitlementSUGID,                        CFBooleanGetTypeID() },
         { kNXT2EntitlementSystemTaskPorts,              CFBooleanGetTypeID() },
         
-        /* dyld */
-        { kNXT2EntitlementDYLDHideLP,                   CFBooleanGetTypeID() },
-        
         /* process */
         { kNXT2EntitlementProcessEnumeration,           CFBooleanGetTypeID() },
         { kNXT2EntitlementProcessKill,                  CFBooleanGetTypeID() },
@@ -334,9 +331,6 @@ PEEntitlementFlags trust_identity_entitlement_flags_from_entitlements(CFDictiona
     if(ENT_IS_TRUE(entitlements, kNXT2EntitlementTaskForPid)) legacyEntitlements |= kPEEntitlementFlagTaskForPid;
     if(ENT_IS_TRUE(entitlements, kNXT2EntitlementSystemTaskPorts)) legacyEntitlements |= kPEEntitlementFlagSystemTaskPorts;
     if(ENT_IS_TRUE(entitlements, kNXT2EntitlementSUGID)) legacyEntitlements |= kPEEntitlementFlagProcessElevate;
-    
-    /* dyld */
-    if(ENT_IS_TRUE(entitlements, kNXT2EntitlementDYLDHideLP)) legacyEntitlements |= kPEEntitlementFlagDyldHideLiveProcess;
     
     /* process */
     if(ENT_IS_TRUE(entitlements, kNXT2EntitlementProcessEnumeration)) legacyEntitlements |= kPEEntitlementFlagProcessEnumeration;
