@@ -19,12 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Utils/ktfp.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LiveShim/LiveShimSyscall.h>
-#import <assert.h>
-#import <ksurface_config.h>
-#import <ksurface_abi.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
+#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LiveShim/LiveShimSyscall.h>
+#include <ksurface_abi.h>
+#include <assert.h>
 
 void task_normalize(task_t task)
 {
@@ -58,8 +57,8 @@ typedef struct {
     };
 } __Request__exception_raise_large_t;
 
-kern_return_t ktfp(mach_port_t exceptionPort,
-                   task_t *task)
+kern_return_t task_handoff(mach_port_t exceptionPort,
+                           task_t *task)
 {
     kern_return_t kr = KERN_FAILURE;
     

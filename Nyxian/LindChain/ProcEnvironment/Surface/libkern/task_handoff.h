@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KTFP_KTFP_H
-#define KTFP_KTFP_H
+#ifndef SURFACE_LIBKERN_TASK_HANDOFF_H
+#define SURFACE_LIBKERN_TASK_HANDOFF_H
 
 #include <mach/mach.h>
 
-kern_return_t ktfp(mach_port_t exceptionPort, task_t *task);
+kern_return_t task_handoff(mach_port_t exceptionPort, task_t *task);
 
-#endif /* KTFP_KTFP_H */
+#endif /* SURFACE_LIBKERN_TASK_HANDOFF_H */
