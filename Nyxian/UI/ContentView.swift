@@ -446,6 +446,10 @@ final class ProjectTemplateOptionsModel: ObservableObject {
     var showsAppOptions: Bool {
         return schemeKind == .app
     }
+    
+    var showLanguageOptions: Bool {
+        return schemeKind != .kSurfaceKext
+    }
 
     var normalizedOrganizationIdentifier: String {
         return Self.organizationIdentifier(from: organizationIdentifier)
@@ -602,11 +606,13 @@ struct ProjectTemplateOptionsView: View {
                     )
                 }
                 
-                ProjectTemplatePickerRow(
-                    title: "Language:",
-                    options: model.languageOptions,
-                    selectionID: $model.languageSelection
-                )
+                if model.showLanguageOptions {
+                    ProjectTemplatePickerRow(
+                        title: "Language:",
+                        options: model.languageOptions,
+                        selectionID: $model.languageSelection
+                    )
+                }
             }
         }
         .padding(.top, 2)
