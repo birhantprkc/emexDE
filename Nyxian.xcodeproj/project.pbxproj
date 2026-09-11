@@ -268,7 +268,7 @@
 				LindChain/ProcEnvironment/Shims/posix_spawn.m,
 				LindChain/ProcEnvironment/Shims/proxy.m,
 				LindChain/ProcEnvironment/Shims/vfork.c,
-				LindChain/ProcEnvironment/Surface/extra/relax.c,
+				LindChain/ProcEnvironment/Surface/libkern/relax.c,
 				LindChain/ProcEnvironment/Surface/trust/signing.c,
 				LindChain/ProcEnvironment/Utils/fd.c,
 				LindChain/ProcEnvironment/Utils/ktfp.c,

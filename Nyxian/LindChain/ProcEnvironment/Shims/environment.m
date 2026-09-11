@@ -20,7 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Shims/environment.h>
-#import <LindChain/ProcEnvironment/Surface/extra/relax.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/relax.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCBootstrap.h>
 #import <LiveShim/LiveShimSyscall.h>
 #import <LindChain/Utils/CFTools.h>

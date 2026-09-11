@@ -23,7 +23,7 @@
 #define SURFACE_SYS_PROC_INFO_H
 
 #include <LindChain/ProcEnvironment/Surface/surface.h>
-#include <LindChain/ProcEnvironment/Surface/extra/xnubits/proc_info.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/xnubits/proc_info.h>
 
 DEFINE_SYSCALL_HANDLER(proc_info);
 

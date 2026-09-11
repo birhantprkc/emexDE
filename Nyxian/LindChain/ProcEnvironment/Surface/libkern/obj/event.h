@@ -22,7 +22,7 @@
 #ifndef KVOBJECT_EVENT_H
 #define KVOBJECT_EVENT_H
 
-#import <LindChain/ProcEnvironment/Surface/obj/defs.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/obj/defs.h>
 #include <mach/kern_return.h>
 
 #define kvo_event_register(kvo, mask, handler, context, event) kvobject_event_register((kvobject_t*)kvo, (kvobject_event_type_t)mask, handler, context, event)
