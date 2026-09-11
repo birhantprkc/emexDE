@@ -30,17 +30,17 @@ void TrustPresetsInit(void)
 {
     kPEEntitlementsNXT2PresetsKernel = (__bridge CFDictionaryRef)@{
         /* platformization */
-        (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
+        (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),   /* needed so trust layer allows creation of other platform identities */
     };
     
     kPEEntitlementsNXT2PresetsDaemonBootstrap = (__bridge CFDictionaryRef)@{
         /* platformization */
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
-        (__bridge NSString*)kNXT2EntitlementPlatformUser: @(0), /* make sure once set they cannot go back up */
+        (__bridge NSString*)kNXT2EntitlementPlatformUser: @(0), /* tighter than platform-root since they can only set UID and GID once */
         (__bridge NSString*)kNXT2EntitlementPlatformGroup: @(0),
         
         /* management */
-        (__bridge NSString*)kNXT2EntitlementManagementProcEnvironment: @(YES),
+        (__bridge NSString*)kNXT2EntitlementManagementProcEnvironment: @(YES),  /* needed to open apps for other processes that issue a request */
         
         /* launch services */
         (__bridge NSString*)kNXT2EntitlementLaunchServicesSetEndpointAllowList: @[
@@ -49,9 +49,7 @@ void TrustPresetsInit(void)
         
         /* sandbox */
         (__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite: @[
-            @"$(ROOTFS)"
+            @"$(ROOTFS)"    /* must be so bootstrapd stays operational */
         ],
-        (__bridge NSString*)kNXT2EntitlementSandboxFileRead: @[],
-        (__bridge NSString*)kNXT2EntitlementSandboxNoContainer: @(YES),
     };
 }
