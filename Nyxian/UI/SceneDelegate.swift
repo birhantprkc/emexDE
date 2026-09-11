@@ -39,21 +39,21 @@ fileprivate func errorFallback(title: String, message: String) {
     }
 }
 
-struct NXApplicationState {
-    static var extensionExists: Bool = {
+@objc class NXApplicationState: NSObject {
+    @objc static var extensionExists: Bool = {
         return PEGetLiveProcessBundle() != nil
     }()
     
-    static var extensionCorrectlyEntitled: Bool = {
+    @objc static var extensionCorrectlyEntitled: Bool = {
         return PEExtensionHasGetTaskAllowed()
     }()
     
-    static var extensionLessMode: Bool = {
+    @objc static var extensionLessMode: Bool = {
         return !extensionExists || !extensionCorrectlyEntitled;
     }()
     
     private static var actualLoadKernelExtensions: Bool = false
-    static var loadKernelExtensions: Bool {
+    @objc static var loadKernelExtensions: Bool {
         get {
             if UserDefaults.standard.bool(forKey: "LDEDisableKernelExtensionsForce") {
                 UserDefaults.standard.removeObject(forKey: "LDEDisableKernelExtensionsForce")
@@ -69,9 +69,9 @@ struct NXApplicationState {
         }
     }
     
-    static var fileListRequiresToSendRequests: Bool = false
+    @objc static var fileListRequiresToSendRequests: Bool = false
     
-    static func restartAppWithoutKEXTLoadingEnabled() {
+    @objc static func restartAppWithoutKEXTLoadingEnabled() {
         UserDefaults.standard.set(true, forKey: "LDEDisableKernelExtensionsForce")
         PERestartSelf()
     }
@@ -239,7 +239,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
         let themedTabViewController: UIThemedTabViewController = UIThemedTabViewController()
         
         let contentViewController: ContentViewController = ContentViewController()
-        let settingsViewController: SettingsViewController = SettingsViewController()
+        let settingsViewController: NXSettingsTableViewController = NXSettingsTableViewController()
         
         let contentNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
         let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
