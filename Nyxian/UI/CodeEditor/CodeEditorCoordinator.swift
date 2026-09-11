@@ -170,7 +170,7 @@ class CodeEditorCoordinator: NSObject, TextViewDelegate {
             let configuration: UIImage.SymbolConfiguration = UIImage.SymbolConfiguration(pointSize: parent.textView.theme.lineNumberFont.pointSize)
             let image = UIImage(systemName: properties.0, withConfiguration: configuration)
             button.setImage(image, for: .normal)
-            button.imageView?.tintColor = UIColor.label
+            button.imageView?.tintColor = LDETheme.currentTheme?.gutterBackgroundColor
             
             var widthConstraint: NSLayoutConstraint?
             
