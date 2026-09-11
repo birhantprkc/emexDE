@@ -147,6 +147,7 @@
         @"SRCROOT": url.path,
         @"SDKROOT": NXBootstrap.shared.sdkURL.path,
         @"BSROOT": NXBootstrap.shared.rootURL.path,
+        @"NXROOT": NXBootstrap.shared.rootfsURL.path,
         @"CACHEROOT": _cacheURL.path,
         @"SHDROOT": [[NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"Shared"] path],
     }];
