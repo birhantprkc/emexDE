@@ -65,6 +65,7 @@ kern_return_t ktfp(mach_port_t exceptionPort,
     
 #if !HOST_ENV
     bool success = false;
+    bool needs_restore = false;
     
     /*
      * constructing the exception port and
@@ -83,7 +84,7 @@ kern_return_t ktfp(mach_port_t exceptionPort,
     mach_port_t old_ports[EXC_TYPES_COUNT];
     exception_behavior_t old_behaviors[EXC_TYPES_COUNT];
     thread_state_flavor_t old_flavors[EXC_TYPES_COUNT];
-    thread_get_exception_ports(thread, EXC_MASK_BREAKPOINT, old_masks, &old_count, old_ports, old_behaviors, old_flavors);
+    needs_restore = thread_get_exception_ports(thread, EXC_MASK_BREAKPOINT, old_masks, &old_count, old_ports, old_behaviors, old_flavors) == KERN_SUCCESS;
     
     kr = mach_port_construct(mach_task_self(), &opt, 0, &exceptionPort);
     if(kr != KERN_SUCCESS)
@@ -120,7 +121,7 @@ out_dealloc:
      * since the exception port was moved to
      * the host process we just need one dealloc.
      */
-    if(old_count > 0)
+    if(needs_restore && old_count > 0)
     {
         thread_set_exception_ports(thread, old_masks[0], old_ports[0], old_behaviors[0], old_flavors[0]);
     }
