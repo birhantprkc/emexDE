@@ -71,8 +71,8 @@ class KextToggleTableCell: UITableViewCell {
     }
     
     private func applyTheme() {
-        toggle.onTintColor = currentTheme?.appLabel
-        toggle.thumbTintColor = currentTheme?.appTableCell
+        toggle.onTintColor = LDETheme.currentTheme?.appLabel
+        toggle.thumbTintColor = LDETheme.currentTheme?.appTableCell
     }
     
     override func layoutSubviews() {

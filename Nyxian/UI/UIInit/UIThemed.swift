@@ -26,19 +26,19 @@ import ObjectiveC.runtime
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = currentTheme?.appTableView
-        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
+        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.view.backgroundColor = currentTheme?.appTableView
-        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
+        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
         
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
@@ -49,12 +49,12 @@ import ObjectiveC.runtime
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
-        self.view.backgroundColor = currentTheme?.appTableView
-        self.tableView.backgroundColor = currentTheme?.appTableView
-        self.tableView.separatorColor = currentTheme?.gutterHairlineColor
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
+        self.tableView.backgroundColor = LDETheme.currentTheme?.appTableView
+        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
         
         for cell in tableView.visibleCells {
-            cell.backgroundColor = currentTheme?.appTableCell
+            cell.backgroundColor = LDETheme.currentTheme?.appTableCell
         }
     }
 }
@@ -63,17 +63,17 @@ import ObjectiveC.runtime
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
 
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
@@ -84,7 +84,7 @@ import ObjectiveC.runtime
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
     }
 }
 
@@ -95,7 +95,7 @@ import ObjectiveC.runtime
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
         NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
     }
     
@@ -105,7 +105,7 @@ import ObjectiveC.runtime
     }
     
     @objc func handleMyNotification(_ notification: Notification) {
-        self.view.backgroundColor = currentTheme?.appTableView
+        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
     }
 }
 
@@ -143,8 +143,8 @@ class UIThemedSwitch: UISwitch {
     }
     
     private func applyTheme() {
-        onTintColor = currentTheme?.appLabel
-        thumbTintColor = currentTheme?.appTableCell
+        onTintColor = LDETheme.currentTheme?.appLabel
+        thumbTintColor = LDETheme.currentTheme?.appTableCell
     }
     
     @objc private func handleThemeChange() {
@@ -192,7 +192,7 @@ extension UIBarButtonItem {
         let item = self.themed_init()
 
         if #available(iOS 26.0, *) {
-            item.tintColor = currentTheme?.textColor
+            item.tintColor = LDETheme.currentTheme?.textColor
             // FIXME: notif changes dont work as exptected
         }
         return item
