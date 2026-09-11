@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_SYS_GETTASK_H
-#define SURFACE_SYS_GETTASK_H
+#ifndef SURFACE_SYS_TASK_FOR_PID_H
+#define SURFACE_SYS_TASK_FOR_PID_H
 
 #include <LindChain/ProcEnvironment/Surface/surface.h>
 
-DEFINE_SYSCALL_HANDLER(gettask);
+DEFINE_SYSCALL_HANDLER(task_for_pid);
 
-#endif /* SURFACE_SYS_GETTASK_H */
+#endif /* SURFACE_SYS_TASK_FOR_PID_H */
