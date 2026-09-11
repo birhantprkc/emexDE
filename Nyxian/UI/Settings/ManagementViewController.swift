@@ -35,7 +35,7 @@ class NXManagementUISingleFlight {
     }
 }
 
-class ManagementViewController: UIThemedTableViewController {
+class ManagementViewController: NXUITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Management"

@@ -21,7 +21,7 @@
 
 import UIKit
 
-class SettingsViewController: UIThemedTableViewController {
+class SettingsViewController: NXUITableViewController {
     init() {
         super.init(style: .insetGrouped)
     }

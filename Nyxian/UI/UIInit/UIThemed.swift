@@ -22,43 +22,6 @@
 import UIKit
 import ObjectiveC.runtime
 
-@objc class UIThemedTableViewController: UITableViewController {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
-        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
-        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(handleMyNotification(_:)), name: Notification.Name("uiColorChangeNotif"), object: nil)
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        NotificationCenter.default.removeObserver(self)
-    }
-    
-    @objc func handleMyNotification(_ notification: Notification) {
-        self.view.backgroundColor = LDETheme.currentTheme?.appTableView
-        self.tableView.backgroundColor = LDETheme.currentTheme?.appTableView
-        self.tableView.separatorColor = LDETheme.currentTheme?.gutterHairlineColor
-        
-        for cell in tableView.visibleCells {
-            cell.backgroundColor = LDETheme.currentTheme?.appTableCell
-        }
-    }
-}
-
 @objc class UIThemedViewController: UIViewController {
     
     override func viewDidLoad() {
