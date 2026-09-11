@@ -36,8 +36,7 @@ void TrustPresetsInit(void)
     kPEEntitlementsNXT2PresetsDaemonBootstrap = (__bridge CFDictionaryRef)@{
         /* platformization */
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
-        (__bridge NSString*)kNXT2EntitlementPlatformUser: @(0), /* tighter than platform-root since they can only set UID and GID once */
-        (__bridge NSString*)kNXT2EntitlementPlatformGroup: @(0),
+        (__bridge NSString*)kNXT2EntitlementPlatformRoot: @(YES),
         
         /* management */
         (__bridge NSString*)kNXT2EntitlementManagementProcEnvironment: @(YES),  /* needed to open apps for other processes that issue a request */
@@ -49,7 +48,9 @@ void TrustPresetsInit(void)
         
         /* sandbox */
         (__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite: @[
-            @"$(ROOTFS)"    /* must be so bootstrapd stays operational */
+            @"$(ROOTFS)/usr",
+            @"$(ROOTFS)/var",
+            @"$(ROOTFS)/tmp",   /* in the future will be $(ROOTFS)/var/mobile/tmp when NoSandbox is fixed */
         ],
     };
 }

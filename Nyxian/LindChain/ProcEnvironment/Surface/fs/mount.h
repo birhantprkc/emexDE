@@ -36,6 +36,9 @@ typedef CF_OPTIONS(UInt64, FSMountAttr) {
     kFSMountAttrWritePlatform           = 1ull << 4,    /* grants write access in file system sandbox if it is a platform process       TODO: not supported yet */
     kFSMountAttrReadEntitlement         = 1ull << 5,    /* grants read access in file system sandbox if a specific entitlement is met   TODO: not supported yet */
     kFSMountAttrWriteEntitlement        = 1ull << 6,    /* grants write access in file system sandbox if a specific entitlement is met  TODO: not supported yet */
+    
+    /* special attributes */
+    kFSMountAttrUserspaceRebootOnUnlink = 1ull << 7,    /* automatically causes userspace reboot when unlinking                         TODO: not supported yet */
 };
 
 /* TODO: not supported yet */
