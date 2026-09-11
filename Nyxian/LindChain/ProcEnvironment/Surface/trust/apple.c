@@ -39,52 +39,8 @@
 #include <string.h>
 
 /* ----------------------------------------------------------------------
- *  Constants
- * -------------------------------------------------------------------- */
-
-#define CSMAGIC_EMBEDDED_SIGNATURE              0xfade0cc0
-#define CSMAGIC_CODEDIRECTORY                   0xfade0c02
-
-#define CSSLOT_CODEDIRECTORY                    0
-#define CSSLOT_ALTERNATE_CODEDIRECTORIES        0x1000
-#define CSSLOT_ALTERNATE_CODEDIRECTORY_LIMIT    0x1005
-
-#define CS_HASHTYPE_SHA1                        1
-#define CS_HASHTYPE_SHA256                      2
-#define CS_HASHTYPE_SHA256_TRUNCATED            3
-#define CS_HASHTYPE_SHA384                      4
-
-/* ----------------------------------------------------------------------
  *  Types
  * -------------------------------------------------------------------- */
-typedef struct {
-    uint32_t type;
-    uint32_t offset;
-} CS_BlobIndex;
-
-typedef struct {
-    uint32_t magic;
-    uint32_t length;
-    uint32_t count;
-    CS_BlobIndex index[];
-} CS_SuperBlob;
-
-typedef struct {
-    uint32_t magic;
-    uint32_t length;
-    uint32_t version;
-    uint32_t flags;
-    uint32_t hashOffset;
-    uint32_t identOffset;
-    uint32_t nSpecialSlots;
-    uint32_t nCodeSlots;
-    uint32_t codeLimit;
-    
-    uint8_t hashSize;
-    uint8_t hashType;
-    uint8_t platform;
-    uint8_t pageSize;
-} CS_CodeDirectoryPrefix;
 
 typedef const struct __SecCode *SecStaticCodeRef;
 typedef uint32_t SecCSFlags;
