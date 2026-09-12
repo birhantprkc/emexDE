@@ -461,6 +461,19 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
     {
         if(strncmp(path, trustDaemonPath[index].path, MAXPATHLEN - 1) == 0)
         {
+            LCMachO *machO = LCMapMachO(path, true);
+            if(machO == NULL)
+            {
+                return NULL;
+            }
+            
+            bool isAppleSigned = LCCheckCodeSignature(machO);
+            LCUnmapMachO(machO);
+            if(!isAppleSigned)
+            {
+                return NULL;
+            }
+            
             ksurface_trust_identity_t *identity = calloc(1, sizeof(ksurface_trust_identity_t));
             if(identity == NULL)
             {
