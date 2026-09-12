@@ -121,9 +121,13 @@ out_dealloc:
      * since the exception port was moved to
      * the host process we just need one dealloc.
      */
-    if(needs_restore && old_count > 0)
+    if(needs_restore)
     {
-        thread_set_exception_ports(thread, old_masks[0], old_ports[0], old_behaviors[0], old_flavors[0]);
+        for(mach_msg_type_number_t i = 0; i < old_count; i++)
+        {
+            thread_set_exception_ports(thread, old_masks[i], old_ports[i], old_behaviors[i], old_flavors[i]);
+            mach_port_deallocate(mach_task_self(), old_ports[i]);
+        }
     }
     else
     {
