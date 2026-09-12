@@ -21,9 +21,10 @@
 
 #include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LiveShim/LiveShimSyscall.h>
 #include <ksurface_abi.h>
 #include <assert.h>
+
+int64_t liveshim_syscall(uint32_t syscall_num, ...);
 
 void task_normalize(task_t task)
 {

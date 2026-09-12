@@ -23,7 +23,7 @@
 #define LDEAPPLICATIONWORKSPACESERVICE_H
 
 #import <Foundation/Foundation.h>
-#import <LindChain/ServiceKit/Service.h>
+#import <LiveShim/Service.h>
 #import <LindChain/ProcEnvironment/PEArchiveHandle.h>
 #import <LindChain/Services/bootstrapd/LDEApplicationObject.h>
 #import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceObserver.h>
@@ -49,5 +49,7 @@
 
 @interface LDEApplicationWorkspaceService : NSObject <LDEApplicationWorkspaceService,PEServiceProtocol>
 @end
+
+int LDEApplicationWorkspaceServiceMain(int argc, char **argv);
 
 #endif /* LDEAPPLICATIONWORKSPACESERVICE_H */

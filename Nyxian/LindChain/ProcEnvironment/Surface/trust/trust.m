@@ -40,6 +40,7 @@
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/Utils/CFTools.h>
+#import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <ksurface_config.h>
 
 /* ----------------------------------------------------------------------
@@ -445,8 +446,12 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
         },
         {
-            .path = [[NSBundle.mainBundle bundleURL] URLByAppendingPathComponent:@"libexec/execd"].path.UTF8String,
+            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/execd"].path.UTF8String,
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonExec,
+        },
+        {
+            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/bootstrapd"].path.UTF8String,
+            .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
         }
     };
     

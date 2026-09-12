@@ -245,3 +245,9 @@ create_home:
 
 @end
 
+/* temporary */
+int LDEApplicationWorkspaceServiceMain(int argc,
+                                       char **argv)
+{
+    return PEServiceMain(argc, argv, [LDEApplicationWorkspaceService class]);
+}

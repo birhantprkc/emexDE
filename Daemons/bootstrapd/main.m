@@ -19,18 +19,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef LIVESHIM_H
-#define LIVESHIM_H
+#import <Foundation/Foundation.h>
+#include <dlfcn.h>
 
-#include <CoreFoundation/CoreFoundation.h>
+int LDEApplicationWorkspaceServiceMain(int argc, char **argv);
 
-CF_EXPORT double LiveShimVersionNumber;
-CF_EXPORT const unsigned char LiveShimVersionString[];
-
-#include <LiveShim/LiveShimSyscall.h>
-#include <LiveShim/dyld.h>
-#include <LiveShim/patchcache.h>
-#import <LiveShim/Service.h>
-#import <LiveShim/ServiceProtocol.h>
-
-#endif /* LIVESHIM_H */
+int main(int argc, char **argv)
+{
+    /* TODO: add platformization check like in iOS daemons to just fuck off some devs when they wanna play around /j */
+    
+    /* this is a test! */
+    int (*LDEApplicationWorkspaceServiceMain)(int argc, char **argv) = dlsym(RTLD_DEFAULT, "LDEApplicationWorkspaceServiceMain");
+    return LDEApplicationWorkspaceServiceMain(argc, argv);
+}
