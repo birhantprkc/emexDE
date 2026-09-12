@@ -71,6 +71,7 @@
     self.binaryURL = [NSURL fileURLWithPath:[homeDir stringByAppendingPathComponent:@"/usr/bin"]];
     self.homeURL = [NSURL fileURLWithPath:[homeDir stringByAppendingPathComponent:@"/var/mobile"]];
     self.tmpURL = [NSURL fileURLWithPath:[homeDir stringByAppendingPathComponent:@"/var/root/tmp/bootstrapd"]];
+    setenv("TMPDIR", self.tmpURL.path.UTF8String, 1);
     self.bootstrapPlistURL = [NSURL fileURLWithPath:[homeDir stringByAppendingPathComponent:@"/kstrapped.plist"]];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];

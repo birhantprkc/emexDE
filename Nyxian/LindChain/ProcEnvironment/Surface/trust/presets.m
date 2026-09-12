@@ -48,9 +48,8 @@ void TrustPresetsInit(void)
         
         /* sandbox */
         (__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite: @[
-            @"$(ROOTFS)/usr",
-            @"$(ROOTFS)/var",
-            @"$(ROOTFS)/tmp",   /* in the future will be $(ROOTFS)/var/mobile/tmp when NoSandbox is fixed */
+            @"$(ROOTFS)/usr/bin",           /* needs access to fastpath binaries */
+            @"$(ROOTFS)/var",               /* needs access to application bundles and data containers */
         ],
     };
 }
