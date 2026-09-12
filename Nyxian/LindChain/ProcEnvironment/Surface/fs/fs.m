@@ -229,6 +229,11 @@ kern_return_t ksurface_fs_init(void)
             [[NSString stringWithFormat:@"%s/Documents/rootfs/usr/lib", home] UTF8String],
             [[NSString stringWithFormat:@"%s/Documents/rootfs/lib", home] UTF8String],
         },
+        {
+            kFSMountAttrRead,
+            [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"libexec"].UTF8String,
+            [[NSString stringWithFormat:@"%s/Documents/rootfs/usr/libexec", home] UTF8String],
+        },
     };
     
     for(int i = 0; i < sizeof(fstab) / sizeof(FSMountInitRegistry); i++)
