@@ -23,6 +23,7 @@
 #define LDEAPPLICATIONWORKSPACESERVICE_H
 
 #import <Foundation/Foundation.h>
+#if __has_include(<LiveShim/Service.h>)
 #import <LiveShim/Service.h>
 #import <LindChain/ProcEnvironment/PEArchiveHandle.h>
 #import <LindChain/Services/bootstrapd/LDEApplicationObject.h>
@@ -50,6 +51,6 @@
 @interface LDEApplicationWorkspaceService : NSObject <LDEApplicationWorkspaceService,PEServiceProtocol>
 @end
 
-int LDEApplicationWorkspaceServiceMain(int argc, char **argv);
+#endif /* __has_include(<LiveShim/Service.h>) */
 
 #endif /* LDEAPPLICATIONWORKSPACESERVICE_H */
