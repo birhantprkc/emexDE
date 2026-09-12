@@ -22,7 +22,7 @@
 #ifndef LDEAPPLICATIONWORKSPACEOBSERVER_H
 #define LDEAPPLICATIONWORKSPACEOBSERVER_H
 
-#import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationObject.h>
 
 @protocol LDEApplicationWorkspaceObserver <NSObject>
 

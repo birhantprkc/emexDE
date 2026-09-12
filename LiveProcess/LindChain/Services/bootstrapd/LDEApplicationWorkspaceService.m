@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceService.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceService.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceInternal.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <LiveShim/LiveShimSyscall.h>

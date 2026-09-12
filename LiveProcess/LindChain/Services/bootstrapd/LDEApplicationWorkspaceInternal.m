@@ -25,7 +25,7 @@
 #import <LindChain/Utils/Zip.h>
 #import <Security/Security.h>
 #import <LindChain/ProcEnvironment/PEFileTable.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceObserver.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceObserver.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #import <LiveShim/dyld.h>
 

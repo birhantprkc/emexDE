@@ -25,8 +25,8 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/ServiceKit/Service.h>
 #import <LindChain/ProcEnvironment/PEArchiveHandle.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationObject.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceObserver.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationObject.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceObserver.h>
 
 @protocol LDEApplicationWorkspaceService
 

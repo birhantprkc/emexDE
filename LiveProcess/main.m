@@ -30,7 +30,7 @@
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/PEFileTable.h>
 #import <LindChain/ServiceKit/Service.h>
-#import <LindChain/Services/applicationmgmtd/LDEApplicationWorkspaceInternal.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspaceInternal.h>
 #import <ResecureDecoder.h>
 #import <LiveShim/LiveShimSyscall.h>
 #import <LiveShim/dyld.h>
