@@ -26,24 +26,24 @@
 
 int64_t liveshim_syscall(uint32_t syscall_num, ...);
 
-void task_normalize(task_t task)
+void task_normalize(void)
 {
     /* tools like reveil love to pretend they can detect it for ever */
     mach_port_urefs_t refs = 0;
     kern_return_t err;
-    err = mach_port_get_refs(task, mach_task_self(), MACH_PORT_RIGHT_SEND, &refs);
+    err = mach_port_get_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, &refs);
     if(err != KERN_SUCCESS)
     {
         return;
     }
     while(refs > 2)
     {
-        err = mach_port_deallocate(task, mach_task_self());
+        err = mach_port_deallocate(mach_task_self(), mach_task_self());
         if(err != KERN_SUCCESS)
         {
             break;
         }
-        err = mach_port_get_refs(task, mach_task_self(), MACH_PORT_RIGHT_SEND, &refs);
+        err = mach_port_get_refs(mach_task_self(), mach_task_self(), MACH_PORT_RIGHT_SEND, &refs);
         if(err != KERN_SUCCESS)
         {
             break;
@@ -132,6 +132,7 @@ out_dealloc:
     
     mach_port_deallocate(mach_task_self(), thread);
     mach_port_deallocate(mach_task_self(), exceptionPort);
+    task_normalize();
     return success ? KERN_SUCCESS : KERN_FAILURE;
     
 #else
@@ -186,8 +187,6 @@ out_dealloc:
         klog_log("ktfp", "port %d backed by ipc object with type %d is not a IKOT_TASK ipc object", request.v.task.name, type);
         goto out_failure;
     }
-    
-    task_normalize(request.v.task.name);
     
     /*
      * now manipulate thread state of the thread
