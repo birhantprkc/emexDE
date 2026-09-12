@@ -578,7 +578,7 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
 #endif /* KSURFACE_CS_ALLOW_NXT2 */
     
     /* fallback */
-    LCMachO *machO = LCMapMachO(path, false);
+    LCMachO *machO = LCMapMachO(path, true);
     if(machO == NULL)
     {
         CFRelease(executableString);
