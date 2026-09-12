@@ -23,6 +23,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
+#include <LindChain/ProcEnvironment/Surface/proc/spawn.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
 
@@ -55,6 +56,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     if(kr != KERN_SUCCESS)
     {
         kvo_unlock(sys_proc_);
+        proc_kill(sys_proc_, SIGKILL);
         sys_return;
     }
     
@@ -65,6 +67,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     {
         mach_port_deallocate(mach_task_self(), returnedTask);
         kvo_unlock(sys_proc_);
+        proc_kill(sys_proc_, SIGKILL);
         sys_return;
     }
     
@@ -72,5 +75,6 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     
     kvo_unlock(sys_proc_);
     kvo_event_trigger(sys_proc_, kProcEventTypeWaitTask, 0);
+    
     sys_return;
 }
