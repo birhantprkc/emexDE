@@ -22,13 +22,11 @@
 #import <Foundation/Foundation.h>
 #include <dlfcn.h>
 
-int LDEApplicationWorkspaceServiceMain(int argc, char **argv);
-
 int main(int argc, char **argv)
 {
     /* TODO: add platformization check like in iOS daemons to just fuck off some devs when they wanna play around /j */
     
     /* this is a test! */
-    int (*LDEApplicationWorkspaceServiceMain)(int argc, char **argv) = dlsym(RTLD_DEFAULT, "LDEApplicationWorkspaceServiceMain");
-    return LDEApplicationWorkspaceServiceMain(argc, argv);
+    int (*PEServiceMain)(int argc, char **argv, Class class) = dlsym(RTLD_DEFAULT, "PEServiceMain");
+    return PEServiceMain(argc, argv, NSClassFromString(@"LDEApplicationWorkspaceService"));
 }
