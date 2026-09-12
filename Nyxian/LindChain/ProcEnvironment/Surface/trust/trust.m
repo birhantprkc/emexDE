@@ -442,10 +442,6 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
     /* daemon trustpath validation */
     trustDaemonEntry trustDaemonPath[] = {  /* those paths are immutable */
         {
-            .path = "/usr/libexec/bootstrapd",
-            .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
-        },
-        {
             .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/execd"].path.UTF8String,
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonExec,
         },
