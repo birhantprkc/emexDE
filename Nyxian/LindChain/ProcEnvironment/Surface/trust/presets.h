@@ -26,5 +26,6 @@
 
 CF_EXPORT CFDictionaryRef kPEEntitlementsNXT2PresetsKernel;
 CF_EXPORT CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonBootstrap;
+CF_EXPORT CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonExec; /* is the proof of concept */
 
 #endif /* TRUST_PRESENTS_H */

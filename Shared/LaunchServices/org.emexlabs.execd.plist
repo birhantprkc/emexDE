@@ -8,9 +8,5 @@
 	<false/>
 	<key>PEExecutablePath</key>
 	<string>$(BLROOT)/libexec/execd</string>
-	<key>PEUserIdentifier</key>
-	<integer>501</integer>
-	<key>PEGroupIdentifier</key>
-	<integer>501</integer>
 </dict>
 </plist>
