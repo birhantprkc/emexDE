@@ -164,7 +164,7 @@
 		8FF647BA3054D5EE00E1E610 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "";
+			dstPath = libexec;
 			dstSubfolderSpec = 7;
 			files = (
 				8FF647BB3054D5F800E1E610 /* execd in CopyFiles */,

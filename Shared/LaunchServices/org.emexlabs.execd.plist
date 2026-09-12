@@ -7,7 +7,7 @@
 	<key>PEShouldAutorestart</key>
 	<false/>
 	<key>PEExecutablePath</key>
-	<string>$(BLROOT)/execd</string>
+	<string>$(BLROOT)/libexec/execd</string>
 	<key>PEUserIdentifier</key>
 	<integer>501</integer>
 	<key>PEGroupIdentifier</key>
