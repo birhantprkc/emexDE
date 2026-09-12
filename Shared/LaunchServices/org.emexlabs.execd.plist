@@ -5,8 +5,8 @@
 	<key>PEServiceIdentifier</key>
 	<string>org.emexlabs.execd</string>
 	<key>PEShouldAutorestart</key>
-	<false/>
+	<true/>
 	<key>PEExecutablePath</key>
-	<string>$(BLROOT)/libexec/execd</string>
+	<string>$(NXROOT)/boot/libexec/execd</string>
 </dict>
 </plist>

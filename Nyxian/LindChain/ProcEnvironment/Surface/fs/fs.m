@@ -103,8 +103,18 @@ kern_return_t ksurface_fs_init(void)
             "/dev/nounlink",
             [[NSString stringWithFormat:@"%s/Documents/mntfs/etcfs", home] UTF8String],
         },
+        {
+            kFSMountAttrRead | kFSMountAttrClear,
+            "/dev/nounlink",
+            [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec", home] UTF8String],
+        },
         
         /* bind mounts */
+        {
+            kFSMountAttrRead,
+            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/execd.dylib"].path.UTF8String,
+            [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/execd", home] UTF8String],
+        },
         {
             kFSMountAttrRead,
             NSBundle.mainBundle.bundlePath.UTF8String,
