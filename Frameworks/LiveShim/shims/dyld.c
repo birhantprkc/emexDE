@@ -333,7 +333,13 @@ static int hook_stat64(const char *path,
     int ret = orig_dyld_stat64(path, buf);
     if(ret == 0)
     {
-        ino_t fake_ino = fake_inode_for_path(path);
+        char canon[PATH_MAX];
+        if(!realpath(path, canon))
+        {
+            strlcpy(canon, path, sizeof(canon));
+        }
+        
+        ino_t fake_ino = fake_inode_for_path(canon);
         dyld_hook_log("[hook_stat64] [library validation bypass] changing inode:\n");
         dyld_hook_log("    st_ino: %llu -> %llu\n", buf->st_ino, fake_ino);
         buf->st_ino = fake_ino;   /* canonicalizes internally */
