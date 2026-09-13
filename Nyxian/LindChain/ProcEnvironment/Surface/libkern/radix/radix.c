@@ -161,7 +161,7 @@ static void radix_walk_node(radix_node_t *node,
             continue;
         }
         
-        uint64_t ident = ident_prefix | (i << ((RADIX_LEVELS - 1 - level) * RADIX_BITS));
+        uint64_t ident = ident_prefix | ((uint64_t)i << ((RADIX_LEVELS - 1 - level) * RADIX_BITS));
         
         if(level == RADIX_LEVELS - 1)
         {
