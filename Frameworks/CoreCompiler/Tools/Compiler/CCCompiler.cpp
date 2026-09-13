@@ -77,11 +77,15 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     CI->getFrontendOpts().DisableFree = false;
     
     /* fixup cache path*/
-    std::string cachePath = std::string(std::getenv("HOME")) + "/Library/Caches/Clang";
-    std::error_code EC = llvm::sys::fs::create_directories(cachePath);
-    if(!EC)
+    const char *homeEnv = std::getenv("HOME");
+    if(homeEnv)
     {
-        CI->getHeaderSearchOpts().ModuleCachePath = cachePath;
+        std::string cachePath = std::string(homeEnv) + "/Library/Caches/Clang";
+        std::error_code EC = llvm::sys::fs::create_directories(cachePath);
+        if(!EC)
+        {
+            CI->getHeaderSearchOpts().ModuleCachePath = cachePath;
+        }
     }
     
     /* compiling */

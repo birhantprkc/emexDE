@@ -716,10 +716,14 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
          * developers and engineers like me.
          */
         mutableUnit->BaseArgs.push_back("--start-no-unused-arguments");
-        std::string cachePath = std::string(std::getenv("HOME")) + "/Library/Caches/Clang";
-        if(!llvm::sys::fs::create_directories(cachePath))
+        const char *homeEnv = std::getenv("HOME");
+        if(homeEnv)
         {
-            mutableUnit->BaseArgs.push_back("-fmodules-cache-path=" + cachePath);
+            std::string cachePath = std::string(homeEnv) + "/Library/Caches/Clang";
+            if(!llvm::sys::fs::create_directories(cachePath))
+            {
+                mutableUnit->BaseArgs.push_back("-fmodules-cache-path=" + cachePath);
+            }
         }
         
         CFIndex count = CFArrayGetCount(arguments);
