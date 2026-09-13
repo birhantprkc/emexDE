@@ -8,7 +8,7 @@
 	<false/>
 	<key>PEEnabled</key>
 	<false/>
-	<key>PEAllowMultipleInstances</key>
+	<key>PEIsMultiInstanceDaemon</key>
 	<true/>
 	<key>PEExecutablePath</key>
 	<string>$(NXROOT)/boot/libexec/compilerd</string>

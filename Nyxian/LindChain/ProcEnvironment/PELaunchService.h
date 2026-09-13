@@ -27,10 +27,12 @@
 
 @interface PELaunchService : NSObject <PEProcessObserver>
 
-@property (nonatomic,readonly,getter=getProcess) PEProcess *process;
-@property (nonatomic,readonly,getter=getExecutablePath) NSString *executablePath;
-@property (nonatomic,readonly,getter=getServiceIdentifier) NSString *serviceIdentifier;
-@property (nonatomic,readonly,getter=shouldAutorestart) BOOL autoRestart;
+@property (nonatomic,readonly) PEProcess *process;
+@property (nonatomic,readonly) NSString *executablePath;
+@property (nonatomic,readonly) NSString *serviceIdentifier;
+@property (nonatomic,readonly) BOOL autoRestart;
+@property (nonatomic,readonly) BOOL enabled;
+@property (nonatomic,readonly) BOOL isMultiInstanceDaemon;
 
 + (instancetype)launchServiceWithPlistPath:(NSString*)plistPath;
 - (instancetype)initWithPlistPath:(NSString*)plistPath;

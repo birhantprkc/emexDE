@@ -31,11 +31,6 @@
     PEProcess *_process;
     NSXPCListenerEndpoint *_endpoint;
     NSDictionary *_dictionary;
-    
-    /* properties for async access */
-    NSString *_executablePath;
-    NSString *_serviceIdentifier;
-    BOOL _autoRestart;
 }
 
 + (instancetype)launchServiceWithPlistPath:(NSString*)plistPath
@@ -72,13 +67,18 @@
         _executablePath = _dictionary[@"PEExecutablePath"];
         _serviceIdentifier = _dictionary[@"PEServiceIdentifier"];
         _autoRestart = [((NSNumber*)[_dictionary valueForKey:@"PEShouldAutorestart"]) boolValue];
+        _enabled = [((NSNumber*)[_dictionary valueForKey:@"PEEnabled"]) boolValue];
+        _isMultiInstanceDaemon = [((NSNumber*)[_dictionary valueForKey:@"PEIsMultiInstanceDaemon"]) boolValue];
         
         if(_executablePath == NULL || _serviceIdentifier == NULL)
         {
             return nil;
         }
         
-        [self ignition];
+        if(_enabled)
+        {
+            [self ignition];
+        }
     }
     return self;
 }
