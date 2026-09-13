@@ -477,7 +477,7 @@ mach_header_u *LCGetLoadedImageHeader(int i0, const char* name)
     {
         const char* imgName = _dyld_get_image_name(i);
         // cover simulator path aswell
-        if(imgName && strcmp(imgName + (strlen(imgName) - strlen(name)), name) == 0)
+        if(imgName && strncmp(imgName, name, PATH_MAX) == 0)    /* On Darwin no filepath can bypass the PATH_MAX limit so use it Duy and not some weird UB logic */
         {
             return (struct mach_header_64*)_dyld_get_image_header(i);
         }

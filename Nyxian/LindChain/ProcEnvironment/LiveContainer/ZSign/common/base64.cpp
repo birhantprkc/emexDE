@@ -118,11 +118,13 @@ const char* jbase64::decode(const char* src, int src_len, int* pdecode_len)
 	char* pbuf = dec;
 	unsigned char* psrc = (unsigned char*)src;
 	for (i = 0; i < src_len - 4; i += 4) {
-		unsigned long temp = *(unsigned long*)psrc;
+		uint32_t temp;
+        memcpy(&temp, pbuf, 3);
 		int b0 = (get_b64_index((char)B0(temp)) << 2 | get_b64_index((char)B1(temp)) << 2 >> 6) & 0xFF;
 		int b1 = (get_b64_index((char)B1(temp)) << 4 | get_b64_index((char)B2(temp)) << 2 >> 4) & 0xFF;
 		int b2 = (get_b64_index((char)B2(temp)) << 6 | get_b64_index((char)B3(temp)) << 2 >> 2) & 0xFF;
-		*((unsigned long*)pbuf) = b0 | b1 << 8 | b2 << 16;
+        uint32_t packed = (uint32_t)b0 | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16);
+        memcpy(pbuf, &packed, 3);
 		psrc += 4;
 		pbuf += 3;
 	}

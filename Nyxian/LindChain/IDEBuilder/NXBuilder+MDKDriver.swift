@@ -28,7 +28,7 @@ extension NXBuilder: MDKDriverDelegate {
     }
     
     func driver(_ driver: MDKDriver, editJobListForJobList jobs: [MDKJob]) -> [MDKJob]? {
-        if driver.type != .clang {
+        if self.projectDirty || driver.type != .clang {
             return jobs
         }
         
