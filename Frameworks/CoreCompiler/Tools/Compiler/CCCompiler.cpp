@@ -42,11 +42,12 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Support/TargetSelect.h>
+#include <clang/Lex/PreprocessorOptions.h>
 
 using namespace clang;
 using namespace clang::driver;
 
-CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit);
+CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit, std::unique_ptr<clang::FrontendAction> action);
 
 CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
 {
@@ -54,8 +55,8 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     assert(CCJobGetType(job) == kCCJobTypeCompiler);
 
     CFArrayRef argsArray = CCJobCreateArguments(CFGetAllocator(job), job);
-
     llvm::SmallVector<std::string, 64> argStorage = CCArrayToStringVector(argsArray);
+    CFRelease(argsArray);
     llvm::SmallVector<const char *, 64> Args = StringVectorToCStrings(argStorage);
 
     /* setting up clang driver */
@@ -74,6 +75,7 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
      * designed to run in a one hit way, but this is a iOS app so it
      * cannot run in one hit.
      */
+    CI->getPreprocessorOpts().RetainRemappedFileBuffers = true;
     CI->getFrontendOpts().DisableFree = false;
     
     /* fixup cache path*/
@@ -90,13 +92,12 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     
     /* compiling */
     auto Act = std::make_unique<EmitObjAction>();
-
     ASTUnit *ASTUnit = ASTUnit::LoadFromCompilerInvocationAction(
         CI,
         std::make_shared<PCHContainerOperations>(),
         DiagOpts,
         Diags,
-        Act.release(),
+        Act.get(),
         nullptr,
         true,
         "",
@@ -104,5 +105,5 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
         CaptureDiagsKind::All
     );
 
-    return ASTUnit ? CCASTUnitCreateWithASTUnit(CFGetAllocator(job), std::unique_ptr<clang::ASTUnit>(ASTUnit)) : nullptr;
+    return ASTUnit ? CCASTUnitCreateWithASTUnit(CFGetAllocator(job), std::unique_ptr<clang::ASTUnit>(ASTUnit), std::move(Act)) : nullptr;
 }

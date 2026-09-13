@@ -87,6 +87,7 @@ struct __CCASTUnit {
     
     /* clang ast unit property */
     std::unique_ptr<ASTUnit> unit;
+    std::unique_ptr<clang::FrontendAction> action;
     
     /* swift driver properties */
     std::unique_ptr<swift::CompilerInstance> CI;
@@ -110,8 +111,8 @@ static void CCASTUnitFinalize(CFTypeRef cf)
     unit->CI.~unique_ptr();
     unit->primaryBuffer.~unique_ptr();
     unit->consumer.~CapturingConsumer();
-    
     unit->unit.~unique_ptr();
+    unit->action.~unique_ptr();
     unit->BaseArgs.~vector();
     
     if(unit->file != nullptr)
@@ -129,6 +130,7 @@ static void CCASTUnitInit(CFTypeRef cf)
     CCMutableASTUnitRef unit = (CCMutableASTUnitRef)cf;
     new (&unit->BaseArgs) std::vector<std::string>();
     new (&unit->unit) std::unique_ptr<ASTUnit>();
+    new (&unit->action) std::unique_ptr<clang::FrontendAction>();
     new (&unit->CI) std::unique_ptr<swift::CompilerInstance>();
     new (&unit->primaryBuffer) std::unique_ptr<llvm::MemoryBuffer>();
     new (&unit->consumer) CapturingConsumer();
@@ -412,7 +414,8 @@ CCMutableASTUnitRef CCASTUnitCreateMutable(CFAllocatorRef allocator,
 }
 
 CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
-                                        std::unique_ptr<clang::ASTUnit> astUnit)
+                                        std::unique_ptr<clang::ASTUnit> astUnit,
+                                        std::unique_ptr<clang::FrontendAction> action)
 {
     assert(astUnit != nullptr);
 
@@ -439,6 +442,7 @@ CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator,
     
     unit->file = file;
     unit->unit = std::move(astUnit);
+    unit->action = std::move(action);
     
     _CCASTUnitRefillDiagnosticArray(unit);
 
