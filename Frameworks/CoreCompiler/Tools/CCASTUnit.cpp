@@ -268,6 +268,10 @@ Boolean _CCASTUnitRefillDiagnosticArrayClang(CCMutableASTUnitRef mutableUnit)
         
         CCFileSourceLocationRef fileSourceLocation = CCFileSourceLocationCreate(allocator, fileURL, location);
         CCDiagnosticRef result = CCDiagnosticCreate(allocator, type, level, filePath, fileSourceLocation, message);
+        if(fileSourceLocation != NULL)
+        {
+            CFRelease(fileSourceLocation);
+        }
         if(fileURL)
         {
             CFRelease(fileURL);
