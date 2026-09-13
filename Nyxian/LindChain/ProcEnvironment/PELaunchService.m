@@ -122,7 +122,7 @@
     return [_serviceIdentifier isEqualToString:serviceIdentifier];
 }
 
-- (PEProcess*)getProcess
+- (PEProcess*)process
 {
     PEProcess *process = nil;
     os_unfair_lock_lock(&_lock);
@@ -131,24 +131,9 @@
     return process;
 }
 
-- (NSString*)getExecutablePath
-{
-    return _executablePath;
-}
-
-- (NSString*)getServiceIdentifier
-{
-    return _serviceIdentifier;
-}
-
-- (BOOL)shouldAutorestart
-{
-    return _autoRestart;
-}
-
 - (void)process:(PEProcess *)process didExitWithWait4Code:(int)code
 {
-    if(self.shouldAutorestart)
+    if(self.autoRestart)
     {
         [self ignition];
     }
