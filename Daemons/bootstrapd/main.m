@@ -24,6 +24,5 @@
 
 int main(int argc, char **argv)
 {
-    /* this is a test! */
     return PEServiceMain(argc, argv, NSClassFromString(@"LDEApplicationWorkspaceService"));
 }
