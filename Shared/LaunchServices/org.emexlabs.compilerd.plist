@@ -7,7 +7,7 @@
 	<key>PEShouldAutorestart</key>
 	<false/>
 	<key>PEEnabled</key>
-	<false/>
+	<true/>
 	<key>PEIsMultiInstanceDaemon</key>
 	<true/>
 	<key>PEExecutablePath</key>

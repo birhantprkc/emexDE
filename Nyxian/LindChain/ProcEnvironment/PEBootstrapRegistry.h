@@ -23,6 +23,7 @@
 #define PEBOOTSTRAPREGISTRY_H
 
 #import <Foundation/Foundation.h>
+#include <mach/mach.h>
 
 @interface PEBootstrapRegistry : NSObject
 
@@ -35,6 +36,8 @@
 
 - (mach_port_name_t)getMachPortNameWithServiceIdentifier:(NSString*)serviceIdentifier;
 - (void)setMachPortName:(mach_port_name_t)port forServiceIdentifier:(NSString*)serviceIdentifier;
+
+- (mach_port_name_t)waitForMachPortNameWithServiceIdentifier:(NSString*)serviceIdentifier timeout:(NSTimeInterval)timeout;
 
 @end
 

@@ -21,6 +21,7 @@
 
 #import <LindChain/ProcEnvironment/PELaunchServiceInstance.h>
 #import <LindChain/ProcEnvironment/PEProcessManager.h>
+#import <LindChain/ProcEnvironment/PEBootstrapRegistry.h>
 #import <os/lock.h>
 #import <ksurface_config.h>
 
@@ -162,6 +163,21 @@
     {
         [delegate instanceDidExit:self withWaitCode:code];
     }
+}
+
+- (mach_port_name_t)getEndpoint
+{
+    return [[PEBootstrapRegistry shared] waitForMachPortNameWithServiceIdentifier:[self uniqueBootstrapRegistryIdentifier] timeout:2.0];
+}
+
+- (NSXPCListenerEndpoint*)xpcEndpoint
+{
+    mach_port_name_t name = [self getEndpoint];
+    if(name == MACH_PORT_NULL)
+    {
+        return NULL;
+    }
+    return [[PEBootstrapRegistry shared] getEndpointWithServiceIdentifier:[self uniqueBootstrapRegistryIdentifier]];
 }
 
 - (void)dealloc

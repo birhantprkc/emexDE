@@ -60,8 +60,11 @@ void TrustPresetsInit(void)
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
         (__bridge NSString*)kNXT2EntitlementPlatformRoot: @(YES),
         
+        /* launch services */
+        (__bridge NSString*)kNXT2EntitlementLaunchServicesSetEndpoint: @(YES),  /* needed so it can set the unique service */
+        
         /* sandbox */
-        (__bridge NSString*)kNXT2EntitlementSandboxHost: @(YES),    /* allows file access to all of Nyxian, EXTREMELY POWERFUL */
+        (__bridge NSString*)kNXT2EntitlementSandboxHost: @(YES),                /* allows file access to all of Nyxian, EXTREMELY POWERFUL */
     };
     
     kPEEntitlementsNXT2PresetsDaemonExec = (__bridge CFDictionaryRef)@{

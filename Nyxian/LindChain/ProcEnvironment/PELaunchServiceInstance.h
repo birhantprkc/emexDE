@@ -52,4 +52,7 @@ typedef NS_ENUM(NSUInteger, PELaunchServiceInstanceState) {
 - (BOOL)launch;
 - (void)terminate;
 
+- (mach_port_name_t)getEndpoint;
+- (NSXPCListenerEndpoint*)xpcEndpoint;
+
 @end

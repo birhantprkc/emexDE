@@ -23,8 +23,18 @@
 #import <LindChain/ProcEnvironment/Server/Server.h>
 #import <os/lock.h>
 
+@interface PEBootstrapWaiter : NSObject
+@property (nonatomic, copy)   void (^completion)(mach_port_name_t);
+@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, assign) BOOL fired;
+@end
+ 
+@implementation PEBootstrapWaiter
+@end
+
 @implementation PEBootstrapRegistry {
     os_unfair_lock _lock;
+    NSMutableDictionary<NSString*, NSMutableArray<PEBootstrapWaiter*>*> *_waiters;
 }
 
 - (instancetype)init
@@ -33,7 +43,8 @@
     if(self)
     {
         _registry = [[NSMutableDictionary alloc] init];
-        if(_registry == nil)
+        _waiters = [[NSMutableDictionary alloc] init];
+        if(_registry == nil || _waiters == nil)
         {
             return nil;
         }
@@ -82,8 +93,123 @@
    forServiceIdentifier:(NSString*)serviceIdentifier
 {
     os_unfair_lock_lock(&_lock);
-    _registry[serviceIdentifier] = [NSNumber numberWithUnsignedLong:port];
+    NSNumber *previousPort = _registry[serviceIdentifier];
+    if(previousPort != nil)
+    {
+        mach_port_deallocate(mach_task_self(), [previousPort unsignedIntValue]);
+    }
+    _registry[serviceIdentifier] = [NSNumber numberWithUnsignedInt:port];
+    
+    NSArray<PEBootstrapWaiter*> *pending = nil;
+    NSMutableArray<PEBootstrapWaiter*> *list = _waiters[serviceIdentifier];
+    if(list.count > 0)
+    {
+        pending = [list copy];
+        for(PEBootstrapWaiter *waiter in pending)
+        {
+            waiter.fired = YES;
+        }
+        [_waiters removeObjectForKey:serviceIdentifier];
+    }
+    
     os_unfair_lock_unlock(&_lock);
+    
+    for(PEBootstrapWaiter *waiter in pending)
+    {
+        void (^completion)(mach_port_name_t) = waiter.completion;
+        dispatch_async(waiter.queue, ^{
+            completion(port);
+        });
+    }
+}
+
+- (void)waitForServiceIdentifier:(NSString*)serviceIdentifier
+                         timeout:(NSTimeInterval)timeout
+                           queue:(dispatch_queue_t)queue
+                      completion:(void (^)(mach_port_name_t))completion
+{
+    if(serviceIdentifier.length == 0 || completion == nil)
+    {
+        return;
+    }
+    
+    dispatch_queue_t target = queue ?: dispatch_get_main_queue();
+    
+    os_unfair_lock_lock(&_lock);
+    NSNumber *existing = _registry[serviceIdentifier];
+    if(existing != nil)
+    {
+        os_unfair_lock_unlock(&_lock);
+        mach_port_name_t port = (mach_port_name_t)existing.unsignedIntValue;
+        dispatch_async(target, ^{ completion(port); });
+        return;
+    }
+    
+    PEBootstrapWaiter *waiter = [[PEBootstrapWaiter alloc] init];
+    waiter.completion = completion;
+    waiter.queue = target;
+    waiter.fired = NO;
+    
+    NSMutableArray<PEBootstrapWaiter*> *list = _waiters[serviceIdentifier];
+    if(list == nil)
+    {
+        list = [NSMutableArray array];
+        _waiters[serviceIdentifier] = list;
+    }
+    [list addObject:waiter];
+    os_unfair_lock_unlock(&_lock);
+    
+    if(timeout > 0)
+    {
+        __weak typeof(self) weakSelf = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)), dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+            [weakSelf _expireWaiter:waiter forServiceIdentifier:serviceIdentifier];
+        });
+    }
+}
+ 
+- (void)_expireWaiter:(PEBootstrapWaiter*)waiter
+ forServiceIdentifier:(NSString*)serviceIdentifier
+{
+    os_unfair_lock_lock(&_lock);
+    if(waiter.fired)
+    {
+        /* registration beat the timeout =3c */
+        os_unfair_lock_unlock(&_lock);
+        return;
+    }
+    waiter.fired = YES;
+    
+    NSMutableArray<PEBootstrapWaiter*> *list = _waiters[serviceIdentifier];
+    [list removeObjectIdenticalTo:waiter];
+    if(list.count == 0)
+    {
+        [_waiters removeObjectForKey:serviceIdentifier];
+    }
+    os_unfair_lock_unlock(&_lock);
+    
+    void (^completion)(mach_port_name_t) = waiter.completion;
+    dispatch_async(waiter.queue, ^{ completion(MACH_PORT_NULL); });
+}
+ 
+- (mach_port_name_t)waitForMachPortNameWithServiceIdentifier:(NSString*)serviceIdentifier
+                                                     timeout:(NSTimeInterval)timeout
+{
+    __block mach_port_name_t result = MACH_PORT_NULL;
+    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    
+    [self waitForServiceIdentifier:serviceIdentifier timeout:timeout queue:dispatch_get_global_queue(QOS_CLASS_UTILITY, 0) completion:^(mach_port_name_t port) {
+        result = port;
+        dispatch_semaphore_signal(sem);
+    }];
+    
+    dispatch_time_t deadline = (timeout > 0) ? dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout + 1.0) * NSEC_PER_SEC)) : DISPATCH_TIME_FOREVER;
+    if(dispatch_semaphore_wait(sem, deadline) != 0)
+    {
+        return MACH_PORT_NULL;
+    }
+    
+    return result;
 }
 
 @end
