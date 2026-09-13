@@ -24,10 +24,11 @@
 
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/PEProcess.h>
+#import <LindChain/ProcEnvironment/PELaunchServiceInstance.h>
 
-@interface PELaunchService : NSObject <PEProcessObserver>
+@interface PELaunchService : NSObject <PELaunchServiceInstanceDelegate>
 
-@property (nonatomic,readonly) PEProcess *process;
+@property (atomic,readonly,copy) NSMutableArray<PELaunchServiceInstance*> *instances;
 @property (nonatomic,readonly) NSString *executablePath;
 @property (nonatomic,readonly) NSString *serviceIdentifier;
 @property (nonatomic,readonly) BOOL autoRestart;
@@ -37,6 +38,8 @@
 + (instancetype)launchServiceWithPlistPath:(NSString*)plistPath;
 - (instancetype)initWithPlistPath:(NSString*)plistPath;
 - (BOOL)isServiceWithServiceIdentifier:(NSString*)serviceIdentifier;
+
+- (PELaunchServiceInstance*)newInstance;
 
 @end
 

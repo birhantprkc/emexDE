@@ -157,27 +157,38 @@ DEFINE_SYSCALL_HANDLER(pectl_launchservice)
                 PELaunchService *service = [[PELaunchServiceManager shared] serviceForIdentifier:service_nsname];
                 if(service != nil)
                 {
-                    PEProcess *process = service.process;
+                    BOOL isIncluded = NO;
                     
-                    /*
-                     * in-case there is no process it is
-                     * reserved for the service and cannot
-                     * be overriden by a attacker.
-                     */
-                    if(process == nil)
+                    NSArray<PELaunchServiceInstance*> *instaces = [service.instances copy];
+                    for(PELaunchServiceInstance *instance in instaces)
                     {
-                        /* slot is reserved */
-                        sys_return_failure_with_errno(EACCES);
+                        /*
+                         * in-case there is no process it is
+                         * reserved for the service and cannot
+                         * be overriden by a attacker.
+                         */
+                        if(instance.process == nil)
+                        {
+                            /* slot is reserved */
+                            continue;
+                        }
+                        
+                        /*
+                         * making sure that the right process
+                         * registers the endpoint for the
+                         * service domain.
+                         */
+                        if(instance.process.pid != proc_getpid(sys_proc_snapshot_))
+                        {
+                            /* slot is reserved */
+                            continue;
+                        }
+                        
+                        isIncluded = true;
                     }
                     
-                    /*
-                     * making sure that the right process
-                     * registers the endpoint for the
-                     * service domain.
-                     */
-                    if(process.pid != proc_getpid(sys_proc_snapshot_))
+                    if(!isIncluded)
                     {
-                        /* slot is reserved */
                         sys_return_failure_with_errno(EACCES);
                     }
                 }

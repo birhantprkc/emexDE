@@ -26,11 +26,18 @@
 #import <os/lock.h>
 #import <ksurface_config.h>
 
+@interface PELaunchServiceInstance (Private)
+
+- (instancetype)initWithItems:(NSDictionary*)items;
+
+@end
+
 @implementation PELaunchService {
     os_unfair_lock _lock;
-    PEProcess *_process;
     NSXPCListenerEndpoint *_endpoint;
     NSDictionary *_dictionary;
+    NSTimeInterval _lastLaunchTime;
+    NSUInteger _restartCount;
 }
 
 + (instancetype)launchServiceWithPlistPath:(NSString*)plistPath
@@ -43,6 +50,7 @@
     self = [super init];
     if(self)
     {
+        _instances = [[NSMutableArray alloc] init];
         _lock = OS_UNFAIR_LOCK_INIT;
         NXPlist *plist = [[NXPlist alloc] initWithPlistPath:plistPath withVariables:@{
             @"NXROOT": NXBootstrap.shared.rootfsURL.path,
@@ -77,44 +85,13 @@
         
         if(_enabled)
         {
-            [self ignition];
+            if(![self newInstance])
+            {
+                return nil;
+            }
         }
     }
     return self;
-}
-
-- (void)ignition
-{
-    NSDictionary *dictionary = _dictionary;
-    
-#if DEBUG && KSURFACE_KLOG_ENABLE_DAEMONS
-    extern int kfd;
-    NSMutableDictionary *mutableDictionary = [_dictionary mutableCopy];
-    PEFileTable *fileTable = [PEFileTable emptyTable];
-    [fileTable appendFileDescriptor:STDOUT_FILENO withMappingToLoc:STDOUT_FILENO];
-    [fileTable appendFileDescriptor:STDERR_FILENO withMappingToLoc:STDERR_FILENO];
-    [mutableDictionary setObject:fileTable forKey:@"PEFileTable"];
-    dictionary = [mutableDictionary copy];
-#endif /* DEBUG && KSURFACE_KLOG_ENABLE_DAEMONS */
-    
-    /* getting lock */
-    os_unfair_lock_lock(&_lock);
-    pid_t pid = [[PEProcessManager shared] spawnProcessWithItems:dictionary withKernelSurfaceProcess:kernel_proc_];
-    if(pid < 0)
-    {
-        return;
-    }
-    
-    _process = [[PEProcessManager shared] processForProcessIdentifier:pid];
-    if(_process == nil)
-    {
-        return;
-    }
-    
-    /* now assign handlers */
-    [_process addObserver:self];
-    
-    os_unfair_lock_unlock(&_lock);
 }
 
 - (BOOL)isServiceWithServiceIdentifier:(NSString*)serviceIdentifier
@@ -122,28 +99,81 @@
     return [_serviceIdentifier isEqualToString:serviceIdentifier];
 }
 
-- (PEProcess*)process
+- (PELaunchServiceInstance*)newInstance
 {
-    PEProcess *process = nil;
-    os_unfair_lock_lock(&_lock);
-    process = _process;
-    os_unfair_lock_unlock(&_lock);
-    return process;
-}
-
-- (void)process:(PEProcess *)process didExitWithWait4Code:(int)code
-{
-    if(self.autoRestart)
+    NSDictionary *items = _dictionary;
+    
+    NSMutableDictionary *mutable = [_dictionary mutableCopy];
+    
+    NSString *ubid = [[NSUUID UUID] UUIDString];
+    [mutable setObject:ubid forKey:@"PEUBID"];  /* generating unique bootstrap registry identifier */
+    NSMutableDictionary *env = [mutable[@"PEEnvironment"] mutableCopy];
+    if(env == nil)
     {
-        [self ignition];
+        env = [NSMutableDictionary dictionary];
     }
+    NSDictionary *defaults = @{
+        @"PEUBID": ubid,
+    };
+    for(NSString *key in defaults)
+    {
+        if(env[key] == nil)
+        {
+            env[key] = defaults[key];
+        }
+    }
+    mutable[@"PEEnvironment"] = env;
+    
+#if DEBUG && KSURFACE_KLOG_ENABLE_DAEMONS
+    extern int kfd;
+    PEFileTable *fileTable = [PEFileTable emptyTable];
+    [fileTable appendFileDescriptor:kfd withMappingToLoc:STDOUT_FILENO];
+    [fileTable appendFileDescriptor:kfd withMappingToLoc:STDERR_FILENO];
+    mutable[@"PEFileTable"] = fileTable;
+#endif /* DEBUG && KSURFACE_KLOG_ENABLE_DAEMONS */
+    items = [mutable copy];
+    
+    PELaunchServiceInstance *instance = [[PELaunchServiceInstance alloc] initWithItems:items];
+    instance.delegate = self;
+    
+    _lastLaunchTime = NSDate.timeIntervalSinceReferenceDate;
+    [self.instances addObject:instance];
+    
+    if(![instance launch])
+    {
+        [self.instances removeObject:instance];
+        return nil;
+    }
+    return instance;
 }
 
-- (void)dealloc
+- (void)instanceDidExit:(PELaunchServiceInstance *)instance
+           withWaitCode:(int)code
 {
-    [_process removeObserver:self];
-    [_process sendSignal:SIGKILL];
-    _process = nil;
+    [_instances removeObject:instance];
+    if(!self.autoRestart)
+    {
+        return;
+    }
+    
+    NSTimeInterval now = NSDate.timeIntervalSinceReferenceDate;
+    if(now - _lastLaunchTime < 1.0)
+    {
+        _restartCount++;
+    }
+    else
+    {
+        _restartCount = 0;
+    }
+    if(_restartCount > 5)
+    {
+        return;
+    }
+    
+    NSTimeInterval delay = MIN(pow(2.0, _restartCount) * 0.1, 30.0);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self newInstance];
+    });
 }
 
 @end
