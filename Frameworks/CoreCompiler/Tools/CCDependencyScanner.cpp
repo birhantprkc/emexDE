@@ -162,11 +162,13 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
         return nullptr;
     }
     
+    std::string filePathStr(filePathCStr);
+    CFRelease(filePath);
+    
     DependencyScanningTool tool(dependencyScanner->service);
     
     std::vector<std::string> Args = dependencyScanner->BaseArgs;
-    Args.push_back(filePathCStr);
-    CFRelease(filePath);
+    Args.push_back(filePathStr.c_str());
     
     llvm::DenseSet<ModuleID> alreadySeen;
     auto lookupModuleOutput = [](const ModuleDeps &MD, ModuleOutputKind kind) -> std::string

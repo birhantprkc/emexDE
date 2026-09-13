@@ -556,17 +556,21 @@ Boolean _CCASTUnitReparseClang(CCMutableASTUnitRef mutableUnit)
                                                          /*ModuleFormat=*/std::nullopt,
                                                          nullptr);
     }
-    else
+    else if(mutableUnit->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
     {
-        if(mutableUnit->unit->Reparse(std::make_shared<PCHContainerOperations>(), remapRef))
+        /*
+         * failed reparse, gonna have to
+         * parse from 0.
+         */
+        mutableUnit->unit.reset();
+        remaps.clear();
+        if(data != nullptr)
         {
-            /*
-             * failed reparse, gonna have to
-             * parse from 0.
-             */
-            mutableUnit->unit.reset();
-            goto reparse_from_nothing;
+            llvm::StringRef contentRef((const char*)CFDataGetBytePtr(data), CFDataGetLength(data));
+            remaps.push_back(ASTUnit::RemappedFile(filePath, llvm::MemoryBuffer::getMemBufferCopy(contentRef, filePath).release()));
         }
+        remapRef = remaps;
+        goto reparse_from_nothing;
     }
     
     if((mutableUnit->unit != nullptr) && !_CCASTUnitRefillDiagnosticArray(mutableUnit))
