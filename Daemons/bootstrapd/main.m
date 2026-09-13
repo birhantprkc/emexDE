@@ -20,13 +20,10 @@
 */
 
 #import <Foundation/Foundation.h>
-#include <dlfcn.h>
+#import <LiveShim/Service.h>
 
 int main(int argc, char **argv)
 {
-    /* now we match host envp */
-    
     /* this is a test! */
-    int (*PEServiceMain)(int argc, char **argv, Class class) = dlsym(RTLD_DEFAULT, "PEServiceMain");
     return PEServiceMain(argc, argv, NSClassFromString(@"LDEApplicationWorkspaceService"));
 }

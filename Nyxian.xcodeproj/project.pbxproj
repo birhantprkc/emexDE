@@ -39,6 +39,7 @@
 		8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF647C63054E61900E1E610 /* bootstrapd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF64813305678ED00E1E610 /* compilerd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF6480E3056786A00E1E610 /* compilerd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF648243056934700E1E610 /* MobileDevelopmentKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 860D91752FAE1F95000D321B /* MobileDevelopmentKit.framework */; };
+		8FF64C243056A46000E1E610 /* LiveShim.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */; };
 		AF9919582DC9175A00DDF895 /* TreeSitterObjc in Frameworks */ = {isa = PBXBuildFile; productRef = AF9919572DC9175A00DDF895 /* TreeSitterObjc */; };
 		AF99195B2DC9176900DDF895 /* TreeSitterC in Frameworks */ = {isa = PBXBuildFile; productRef = AF99195A2DC9176900DDF895 /* TreeSitterC */; };
 		AFF4D5D92DC9390B00B1B5F9 /* Shared in Resources */ = {isa = PBXBuildFile; fileRef = AF99171F2DC8EA3C00DDF895 /* Shared */; };
@@ -108,6 +109,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 860D91742FAE1F95000D321B;
 			remoteInfo = MobileDevelopmentKit;
+		};
+		8FF64C263056A46000E1E610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8FB3BADA302FFBAA00DB3ABC;
+			remoteInfo = LiveShim;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -730,6 +738,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FF64C243056A46000E1E610 /* LiveShim.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -996,6 +1005,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				8FF64C273056A46000E1E610 /* PBXTargetDependency */,
 			);
 			name = bootstrapd;
 			packageProductDependencies = (
@@ -1306,6 +1316,11 @@
 			isa = PBXTargetDependency;
 			target = 860D91742FAE1F95000D321B /* MobileDevelopmentKit */;
 			targetProxy = 8FF648263056934700E1E610 /* PBXContainerItemProxy */;
+		};
+		8FF64C273056A46000E1E610 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8FB3BADA302FFBAA00DB3ABC /* LiveShim */;
+			targetProxy = 8FF64C263056A46000E1E610 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
