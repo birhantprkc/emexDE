@@ -70,12 +70,14 @@ const char* jbase64::encode(const char* src, int src_len)
 	char* p64 = enc;
 	unsigned char* pcursor = (unsigned char*)src;
 	for (i = 0; i < src_len - 3; i += 3) {
-		unsigned long temp = *(unsigned long*)pcursor;
+        uint32_t temp;
+        memcpy(&temp, pcursor, 4);
 		int b0 = get_b64_char((B0(temp) >> 2) & 0x3F);
 		int b1 = get_b64_char((B0(temp) << 6 >> 2 | B1(temp) >> 4) & 0x3F);
 		int b2 = get_b64_char((B1(temp) << 4 >> 2 | B2(temp) >> 6) & 0x3F);
 		int b3 = get_b64_char((B2(temp) << 2 >> 2) & 0x3F);
-		*((unsigned long*)p64) = b0 | b1 << 8 | b2 << 16 | b3 << 24;
+        uint32_t packed = (uint32_t)b0 | ((uint32_t)b1 << 8) | ((uint32_t)b2 << 16) | ((uint32_t)b3 << 24);
+        memcpy(p64, &packed, 4);
 		p64 += 4;
 		pcursor += 3;
 	}
@@ -119,7 +121,7 @@ const char* jbase64::decode(const char* src, int src_len, int* pdecode_len)
 	unsigned char* psrc = (unsigned char*)src;
 	for (i = 0; i < src_len - 4; i += 4) {
 		uint32_t temp;
-        memcpy(&temp, pbuf, 3);
+        memcpy(&temp, psrc, 3);
 		int b0 = (get_b64_index((char)B0(temp)) << 2 | get_b64_index((char)B1(temp)) << 2 >> 6) & 0xFF;
 		int b1 = (get_b64_index((char)B1(temp)) << 4 | get_b64_index((char)B2(temp)) << 2 >> 4) & 0xFF;
 		int b2 = (get_b64_index((char)B2(temp)) << 6 | get_b64_index((char)B3(temp)) << 2 >> 2) & 0xFF;
