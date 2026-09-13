@@ -75,6 +75,7 @@ NXT2Entitlement const kNXT2EntitlementLaunchServicesSetEndpointAllowList = CFSTR
 NXT2Entitlement const kNXT2EntitlementSandboxFileRead = CFSTR("org.emexlabs.nyxian.sandbox.file.read");
 NXT2Entitlement const kNXT2EntitlementSandboxFileReadWrite = CFSTR("org.emexlabs.nyxian.sandbox.file.read-write");
 NXT2Entitlement const kNXT2EntitlementSandboxNoContainer = CFSTR("org.emexlabs.nyxian.sandbox.no-container");
+NXT2Entitlement const kNXT2EntitlementSandboxHost = CFSTR("org.emexlabs.nyxian.sandbox.host");
 
 /* ksurface */
 NXT2Entitlement const kNXT2EntitlementKsurfaceKEXTLoading = CFSTR("org.emexlabs.nyxian.ksurface.kernelextension.loading");

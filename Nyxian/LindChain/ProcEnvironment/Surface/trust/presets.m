@@ -25,6 +25,7 @@
 CFDictionaryRef kPEEntitlementsNXT2PresetsKernel;
 CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonBootstrap;
 CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonExec;
+CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonCompiler;
 
 __attribute__((constructor))
 void TrustPresetsInit(void)
@@ -52,6 +53,15 @@ void TrustPresetsInit(void)
             @"$(ROOTFS)/usr/bin",           /* needs access to fastpath binaries */
             @"$(ROOTFS)/var",               /* needs access to application bundles and data containers */
         ],
+    };
+    
+    kPEEntitlementsNXT2PresetsDaemonCompiler = (__bridge CFDictionaryRef)@{
+        /* platformization */
+        (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
+        (__bridge NSString*)kNXT2EntitlementPlatformRoot: @(YES),
+        
+        /* sandbox */
+        (__bridge NSString*)kNXT2EntitlementSandboxHost: @(YES),    /* allows file access to all of Nyxian, EXTREMELY POWERFUL */
     };
     
     kPEEntitlementsNXT2PresetsDaemonExec = (__bridge CFDictionaryRef)@{

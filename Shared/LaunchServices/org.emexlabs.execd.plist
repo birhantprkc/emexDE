@@ -6,6 +6,8 @@
 	<string>org.emexlabs.execd</string>
 	<key>PEShouldAutorestart</key>
 	<true/>
+	<key>PEEnabled</key>
+	<true/>
 	<key>PEExecutablePath</key>
 	<string>$(NXROOT)/boot/libexec/execd</string>
 </dict>

@@ -140,6 +140,7 @@ extern NXT2Entitlement const kNXT2EntitlementLaunchServicesSetEndpointAllowList;
 extern NXT2Entitlement const kNXT2EntitlementSandboxFileRead;                       /* has to be CFArray filled with CFString */
 extern NXT2Entitlement const kNXT2EntitlementSandboxFileReadWrite;                  /* has to be CFArray filled with CFString */
 extern NXT2Entitlement const kNXT2EntitlementSandboxNoContainer;                    /* unfinished, container path here needs to default to $(ROOTFS)/var/mobile */
+extern NXT2Entitlement const kNXT2EntitlementSandboxHost;                           /* EXTREMELY POWERFUL ENTITLEMENT, GIVES CHILD AS MUCH FILE ACCESS AS HOST */
 
 /* ksurface */
 extern NXT2Entitlement const kNXT2EntitlementKsurfaceKEXTLoading;

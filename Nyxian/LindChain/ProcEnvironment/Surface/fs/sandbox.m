@@ -495,3 +495,26 @@ CFArrayRef ksurface_fs_sandbox_copy_sandbox_extensions(const char *path,
     os_unfair_lock_unlock(&g_lock);
     return sandboxFileExtensions;
 }
+
+CFDataRef ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(const char *path,
+                                                                       FSMountPermissionFlags wanted)
+{
+    if(path == NULL || path[0] != '/')
+    {
+        return NULL;
+    }
+    if(wanted == kFSMountPermissionNone)
+    {
+        return NULL;
+    }
+    
+    const char *cls = (wanted == kFSMountPermissionReadWrite) ? kFSExtClassReadWrite : kFSExtClassRead;
+    char *tok = sandbox_extension_issue_file(cls, path, 0);
+    if(tok == NULL)
+    {
+        klog_log("ksurface:fs:sandbox", "issue failed: %s", path);
+        return NULL;
+    }
+    
+    return CFDataCreate(kCFAllocatorDefault, (const UInt8 *)tok, strlen(tok) + 1);
+}

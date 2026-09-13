@@ -116,6 +116,7 @@ static CFDictionaryRef trust_identity_validate_entitlements(CFStringRef executab
         { kNXT2EntitlementSandboxFileRead,              CFArrayGetTypeID()   },
         { kNXT2EntitlementSandboxFileReadWrite,         CFArrayGetTypeID()   },
         { kNXT2EntitlementSandboxNoContainer,           CFBooleanGetTypeID() },
+        { kNXT2EntitlementSandboxHost,                  CFBooleanGetTypeID() },
         
         /* ksurface */
         { kNXT2EntitlementKsurfaceKEXTLoading,          CFBooleanGetTypeID() },
@@ -308,6 +309,36 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
         {
             [filePermissions addObjectsFromArray:extensions];
         }
+        if(CFDictionaryGetValue(entitlements, kNXT2EntitlementSandboxHost) == kCFBooleanTrue)
+        {
+            NSArray<NSString*> *paths = PEResolveEntitlementPaths(@"$(ROOTFS)/../*", vars);
+            for(NSString *path in paths)
+            {
+                NSString *actualPath = PECanonicalizePath(path);
+                if(actualPath)
+                {
+                    NSData *extension = (__bridge_transfer NSData*)ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(actualPath.UTF8String, kFSMountPermissionReadWrite);
+                    if(extension != NULL)
+                    {
+                        [filePermissions addObject:extension];
+                    }
+                }
+            }
+            
+            NSArray<NSString*> *roPaths = PEResolveEntitlementPaths(@"$(ROOTFS)/../", vars);
+            for(NSString *path in roPaths)
+            {
+                NSString *actualPath = PECanonicalizePath(path);
+                if(actualPath)
+                {
+                    NSData *extension = (__bridge_transfer NSData*)ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(actualPath.UTF8String, kFSMountPermissionRead);
+                    if(extension != NULL)
+                    {
+                        [filePermissions addObject:extension];
+                    }
+                }
+            }
+        }
         return (__bridge_retained CFArrayRef)filePermissions;
     }
 }
@@ -448,6 +479,10 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
         {
             .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/bootstrapd"].path.UTF8String,
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
+        },
+        {
+            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/compilerd"].path.UTF8String,
+            .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonCompiler,
         }
     };
     

@@ -176,6 +176,7 @@ NSAttributedString *KSurfaceNXT2CreateEntitlementSummary(NSDictionary *entitleme
         { kNXT2EntitlementLaunchServicesGetEndpointAllowList, KSNXT2SectionServices, KSNXT2ValuePathArray, KSNXT2SeverityNote, NO, CFSTR("Can look up service endpoints: %@") },
         { kNXT2EntitlementLaunchServicesSetEndpointAllowList, KSNXT2SectionServices, KSNXT2ValuePathArray, KSNXT2SeverityWarn, NO, CFSTR("Can redirect service service endpoints: %@") },
         { kNXT2EntitlementKsurfaceKEXTLoading, KSNXT2SectionTrust, KSNXT2ValueBool, KSNXT2SeverityCrit, NO, CFSTR("Can run code in Nyxians address space and can pose a huge security risk and threat to your data as well as primitives of other apps you use, use this app only if you truly know what it does and what you do.") },
+        { kNXT2EntitlementSandboxHost, KSNXT2SectionFilesystem, KSNXT2ValueBool, KSNXT2SeverityCrit, NO, CFSTR("Can read and write everything ksurface can, this is a SERIOUS ENTITLEMENT cause it means nothing holds it in place, not even the vmount's.") },
     };
 
     static const size_t kKSNXT2DescriptorCount = sizeof(kKSNXT2Descriptors) / sizeof(kKSNXT2Descriptors[0]);
