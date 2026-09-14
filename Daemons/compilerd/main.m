@@ -21,8 +21,54 @@
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MobileDevelopmentKit.h>
+#import <LiveShim/Service.h>
+#import <LiveShim/ServiceProtocol.h>
 
-int main(void)
+static NSString *ubid = nil;
+
+@protocol NXCompilationServiceProtocol <NSObject>
+
+- (void)executeJob:(MDKJob*)job withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply;
+
+@end
+
+@interface NXCompilationService : NSObject <NXCompilationServiceProtocol,PEServiceProtocol>
+@end
+
+@implementation NXCompilationService
+
+- (void)executeJob:(MDKJob*)job
+         withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply
+{
+    NSArray<MDKDiagnostic*> *diagnostic = nil;
+    NSString *mainSource = nil;
+    BOOL success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
+    reply(success, diagnostic, mainSource);
+}
+
+- (void)clientDidConnectWithConnection:(NSXPCConnection *)client
+{
+    return;
+}
+
++ (Protocol *)observerProtocol
+{
+    return nil;
+}
+
++ (NSString *)servcieIdentifier
+{
+    return ubid;
+}
+
++ (Protocol *)serviceProtocol
+{
+    return @protocol(NXCompilationServiceProtocol);
+}
+
+@end
+
+int main(int argc, char **argv)
 {
     /* checking permissions */
     if(getuid() != 0 ||
@@ -78,15 +124,12 @@ int main(void)
         return 1;
     }
     
-    NSString *ubid = [NSString stringWithCString:uniqueBootstrapRegistryIdentifier encoding:NSUTF8StringEncoding];
+    ubid = [NSString stringWithCString:uniqueBootstrapRegistryIdentifier encoding:NSUTF8StringEncoding];
     if(ubid == NULL)
     {
         return 1;
     }
     
     /* ready for compilation service =3 */
-    /* like I said for better memory management */
-    
-    CFRunLoopRun();
-    return 0;
+    return PEServiceMain(argc, argv, [NXCompilationService class]);
 }
