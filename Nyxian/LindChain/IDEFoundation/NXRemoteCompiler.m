@@ -23,28 +23,92 @@
 #import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
 #import <Nyxian-Swift.h>
 
-@implementation NXRemoteCompiler
+@interface NXRemoteCompiler () <PEProcessObserver>
 
-+ (BOOL)executeJob:(MDKJob*)job
-   withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics
-    withMainSource:(NSString**)mainSource
+@end
+
+@implementation NXRemoteCompiler {
+    PELaunchServiceInstance *_instance;
+    NSXPCConnection *_connection;
+    os_unfair_lock _lock;
+}
+
++ (BOOL)isAvailable
+{
+    return !NXApplicationState.extensionLessMode;
+}
+
++ (instancetype)newRemoteCompiler
 {
     if(![self isAvailable])
     {
-        if(mainSource)
-        {
-            *mainSource = job.inputFileURLs[0].path;
-        }
-        if(diagnostics)
-        {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Remote compilation service is not available."]];
-        }
-        return NO;
+        return nil;
     }
     
-    /* need new launch service instance */
-    PELaunchService *service = [[PELaunchServiceManager shared] serviceForIdentifier:@"org.emexlabs.compilerd"];
-    if(service == NULL)
+    NXRemoteCompiler *remoteCompiler = [[super alloc] init];
+    if(remoteCompiler)
+    {
+        /* need new launch service instance */
+        PELaunchService *service = [[PELaunchServiceManager shared] serviceForIdentifier:@"org.emexlabs.compilerd"];
+        if(service == NULL)
+        {
+            return nil;
+        }
+        
+        remoteCompiler->_instance = [service newInstance];
+        if(remoteCompiler->_instance == NULL)
+        {
+            return nil;
+        }
+        
+        NSXPCListenerEndpoint *endpoint = [remoteCompiler->_instance xpcEndpoint];
+        if(endpoint == NULL)
+        {
+            [remoteCompiler->_instance terminate];
+            return nil;
+        }
+        
+        remoteCompiler->_connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
+        if(remoteCompiler->_connection == NULL)
+        {
+            [remoteCompiler->_instance terminate];
+            return nil;
+        }
+        
+        __weak typeof(remoteCompiler) weakRemoteCompiler = remoteCompiler;
+        remoteCompiler->_connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
+        remoteCompiler->_connection.invalidationHandler = ^{
+            __strong typeof(remoteCompiler) strongRemoteCompiler = weakRemoteCompiler;
+            if(strongRemoteCompiler)
+            {
+                [strongRemoteCompiler->_instance terminate];
+            }
+        };
+        remoteCompiler->_connection.interruptionHandler = ^{
+            __strong typeof(remoteCompiler) strongRemoteCompiler = weakRemoteCompiler;
+            if(strongRemoteCompiler)
+            {
+                [strongRemoteCompiler->_instance terminate];
+            }
+        };
+        NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
+        NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
+        [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:1 ofReply:YES];
+        remoteCompiler->_connection.remoteObjectInterface = iface;
+        [remoteCompiler->_connection resume];
+        
+        remoteCompiler->_lock = OS_UNFAIR_LOCK_INIT;
+    }
+    [remoteCompiler->_instance.process addObserver:remoteCompiler];
+    return remoteCompiler;
+}
+
+- (BOOL)executeJob:(MDKJob*)job
+   withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics
+    withMainSource:(NSString**)mainSource
+{
+    os_unfair_lock_lock(&_lock);
+    if(_instance == nil)
     {
         if(mainSource)
         {
@@ -52,89 +116,28 @@
         }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Remote compilation service is not available."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't get remote compilation daemon instance."]];
         }
+        os_unfair_lock_unlock(&_lock);
         return NO;
     }
-    
-    PELaunchServiceInstance *compilerInstance = [service newInstance];
-    if(compilerInstance == NULL)
-    {
-        if(mainSource)
-        {
-            *mainSource = job.inputFileURLs[0].path;
-        }
-        if(diagnostics)
-        {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't create remote compilation service instance."]];
-        }
-        return NO;
-    }
-    
-    /* now we got it now we need to get it's endpoint */
-    NSXPCListenerEndpoint *endpoint = [compilerInstance xpcEndpoint];
-    if(endpoint == NULL)
-    {
-        if(mainSource)
-        {
-            *mainSource = job.inputFileURLs[0].path;
-        }
-        if(diagnostics)
-        {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't get remote compilation service's NSXPC endpoint."]];
-        }
-        [compilerInstance terminate];
-        return NO;
-    }
-    
-    NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
-    if(connection == NULL)
-    {
-        if(mainSource)
-        {
-            *mainSource = job.inputFileURLs[0].path;
-        }
-        if(diagnostics)
-        {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't establish connection with remote compilation service instance."]];
-        }
-        [compilerInstance terminate];
-        return NO;
-    }
+    os_unfair_lock_unlock(&_lock);
     
     __block BOOL failed = NO;
     dispatch_semaphore_t sema = dispatch_semaphore_create(0);
-    
-    /* creating brand new connection */
-    connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
-    connection.invalidationHandler = ^{
-        failed = YES;
-        dispatch_semaphore_signal(sema); };
-    connection.interruptionHandler = ^{
-        failed = YES;
-        dispatch_semaphore_signal(sema);
-    };
-    NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
-    NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
-    [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:1 ofReply:YES];
-    connection.remoteObjectInterface = iface;
-    [connection resume];
-    
     __block BOOL result = NO;
     __block NSArray<MDKDiagnostic*> *resultDiagnostic;
     __block NSString *resultMainSource;
     
-    id proxy = [connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
         /* semaphores remember the signal, it doesnt have to catch them in time */
         failed = YES;
-        dispatch_semaphore_signal(sema);
     }];
     
     if(proxy == NULL)
     {
         /* semaphores remember the signal, it doesnt have to catch them in time */
         failed = YES;
-        dispatch_semaphore_signal(sema);
     }
     else
     {
@@ -157,7 +160,9 @@
         {
             *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
         }
-        [compilerInstance terminate];
+        os_unfair_lock_lock(&_lock);
+        [_instance terminate];
+        os_unfair_lock_unlock(&_lock);
         return NO;
     }
     
@@ -170,13 +175,22 @@
         *mainSource = resultMainSource;
     }
     
-    [compilerInstance terminate];
     return result;
 }
 
-+ (BOOL)isAvailable
+- (void)process:(PEProcess *)process didExitWithWait4Code:(int)code
 {
-    return !NXApplicationState.extensionLessMode;
+    os_unfair_lock_lock(&_lock);
+    _instance = NULL;
+    os_unfair_lock_unlock(&_lock);
+}
+
+- (void)dealloc
+{
+    os_unfair_lock_lock(&_lock);
+    [_instance.process removeObserver:self];
+    [_instance terminate];
+    os_unfair_lock_unlock(&_lock);
 }
 
 @end

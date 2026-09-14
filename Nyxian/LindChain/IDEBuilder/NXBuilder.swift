@@ -30,6 +30,7 @@ final class NXBuilder: NSObject {
     
     private(set) var dependencyScanner: MDKDependencyScanner
     private(set) var phaseRunner: NXPhaseRunner
+    private(set) var remoteCompiler: NXRemoteCompiler? = nil
     
     private(set) var  incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
     private(set) var  useRemoteServiceIfAvailable: Bool = UserDefaults.standard.object(forKey: "LDERemoteCompileService") as? Bool ?? true
@@ -79,6 +80,8 @@ final class NXBuilder: NSObject {
         
         phaseEngine.delegate = self
         self.phaseRunner.delegate = self
+        
+        remoteCompiler = NXRemoteCompiler.new()
     }
     
     func headsup(buildType: NXBuilder.BuildType) throws {

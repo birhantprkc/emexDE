@@ -117,9 +117,6 @@ int main(int argc, char **argv)
         return 1;
     }
     
-    /* making sure we do not free */
-    setenv("CCForceDisableFree", "1", 1);
-    
     /* getting unique bootstrap identifier for port */
     const char *uniqueBootstrapRegistryIdentifier = getenv("PEUBID");
     if(uniqueBootstrapRegistryIdentifier == NULL)

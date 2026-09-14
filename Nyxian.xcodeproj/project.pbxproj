@@ -583,7 +583,7 @@
 		8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "MobileDevelopmentService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				compilerd/main.m,
+				MobileDevelopmentService/main.m,
 			);
 			target = 8FF648073056786A00E1E610 /* MobileDevelopmentService */;
 		};

@@ -33,8 +33,10 @@
 
 @interface NXRemoteCompiler : NSObject
 
-+ (BOOL)executeJob:(MDKJob*)job withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics withMainSource:(NSString**)mainSource;
 + (BOOL)isAvailable;
++ (instancetype)newRemoteCompiler;
+
+- (BOOL)executeJob:(MDKJob*)job withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics withMainSource:(NSString**)mainSource;
 
 @end
 
