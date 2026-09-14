@@ -66,4 +66,28 @@
     return (__bridge NSString*)CCDiagnosticGetMessage((__bridge void *)self);
 }
 
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    [coder encodeObject:@(self.type) forKey:@"type"];
+    [coder encodeObject:@(self.level) forKey:@"level"];
+    [coder encodeObject:self.mainSource forKey:@"mainSource"];
+    [coder encodeObject:self.fileSourceLocation forKey:@"fileSourceLocation"];
+    [coder encodeObject:self.message forKey:@"message"];
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    CCDiagnosticType type = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"type"]).unsignedCharValue;
+    CCDiagnosticLevel level = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"level"]).unsignedCharValue;
+    NSString *mainSource = [coder decodeObjectOfClass:[NSString class] forKey:@"mainSource"];
+    MDKFileSourceLocation *fileSourceLocation = [coder decodeObjectOfClass:[MDKFileSourceLocation class] forKey:@"fileSourceLocation"];
+    NSString *message = [coder decodeObjectOfClass:[NSString class] forKey:@"message"];
+    return [MDKDiagnostic diagnosticWithType:type level:level mainSource:mainSource fileSourceLocation:fileSourceLocation message:message];
+}
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
 @end

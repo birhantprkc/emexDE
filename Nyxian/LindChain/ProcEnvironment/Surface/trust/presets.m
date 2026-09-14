@@ -33,12 +33,18 @@ void TrustPresetsInit(void)
     kPEEntitlementsNXT2PresetsKernel = (__bridge CFDictionaryRef)@{
         /* platformization */
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),   /* needed so trust layer allows creation of other platform identities */
+        
+        /* debugging */
+        (__bridge NSString*)kNXT2EntitlementGetTaskAllow: @(NO),
     };
     
     kPEEntitlementsNXT2PresetsDaemonBootstrap = (__bridge CFDictionaryRef)@{
         /* platformization */
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
         (__bridge NSString*)kNXT2EntitlementPlatformRoot: @(YES),
+        
+        /* debugging */
+        (__bridge NSString*)kNXT2EntitlementGetTaskAllow: @(NO),
         
         /* management */
         (__bridge NSString*)kNXT2EntitlementManagementProcEnvironment: @(YES),  /* needed to open apps for other processes that issue a request */
@@ -60,6 +66,9 @@ void TrustPresetsInit(void)
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
         (__bridge NSString*)kNXT2EntitlementPlatformRoot: @(YES),
         
+        /* debugging */
+        (__bridge NSString*)kNXT2EntitlementGetTaskAllow: @(NO),
+        
         /* launch services */
         (__bridge NSString*)kNXT2EntitlementLaunchServicesSetEndpoint: @(YES),  /* needed so it can set the unique service */
         
@@ -72,5 +81,8 @@ void TrustPresetsInit(void)
         (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
         (__bridge NSString*)kNXT2EntitlementPlatformUser: @(1),     /* it is just a proof of concept */
         (__bridge NSString*)kNXT2EntitlementPlatformGroup: @(1),
+        
+        /* debugging */
+        (__bridge NSString*)kNXT2EntitlementGetTaskAllow: @(NO),
     };
 }

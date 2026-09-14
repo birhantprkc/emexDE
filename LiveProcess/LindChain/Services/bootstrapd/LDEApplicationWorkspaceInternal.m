@@ -330,7 +330,6 @@
     
     /* checking against container  */
     NSString *uuid = [[bundle.bundleURL URLByDeletingLastPathComponent] lastPathComponent];
-    
     if(uuid == nil)
     {
         return nil;

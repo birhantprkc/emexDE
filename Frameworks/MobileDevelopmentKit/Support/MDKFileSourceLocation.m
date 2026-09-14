@@ -47,4 +47,33 @@
     return CCFileSourceLocationGetLocation((__bridge void *)self);
 }
 
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    [coder encodeObject:self.fileURL forKey:@"fileURL"];
+    [coder encodeObject:@(self.location.isValid) forKey:@"location.isValid"];
+    [coder encodeObject:@(self.location.line) forKey:@"location.line"];
+    [coder encodeObject:@(self.location.column) forKey:@"location.column"];
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    NSURL *fileURL = [coder decodeObjectOfClass:[NSURL class] forKey:@"fileURL"];
+    BOOL isValid = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"location.isValid"]).boolValue;
+    if(isValid)
+    {
+        CFIndex line = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"location.line"]).intValue;
+        CFIndex column = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"location.column"]).intValue;
+        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:CCSourceLocationMake(line, column)];
+    }
+    else
+    {
+        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:CCSourceLocationZero];
+    }
+}
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
 @end

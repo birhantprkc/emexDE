@@ -98,4 +98,26 @@
     return success;
 }
 
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    [coder encodeObject:@(self.type) forKey:@"type"];
+    [coder encodeObject:self.baseArguments forKey:@"baseArguments"];
+    [coder encodeObject:self.inputFileURLs forKey:@"inputFileURLs"];
+    [coder encodeObject:self.outputFileURL forKey:@"outputFileURL"];
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    CCJobType type = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"type"]).unsignedCharValue;
+    NSArray<NSString*> *baseArguments = [coder decodeObjectOfClasses:[NSSet setWithArray:@[[NSArray class],[NSString class]]] forKey:@"baseArguments"];
+    NSArray<NSURL*> *inputFileURLs = [coder decodeObjectOfClasses:[NSSet setWithArray:@[[NSArray class],[NSURL class]]] forKey:@"inputFileURLs"];
+    NSURL *outputFileURL = [coder decodeObjectOfClass:[NSURL class] forKey:@"outputFileURL"];
+    return [MDKJob jobWithType:type withArguments:baseArguments withInputFileURLs:inputFileURLs withOutputFileURL:outputFileURL];
+}
+
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
 @end

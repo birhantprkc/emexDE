@@ -20,9 +20,24 @@
 */
 
 #import <Foundation/Foundation.h>
+#import <MobileDevelopmentKit/MobileDevelopmentKit.h>
 
 int main(void)
 {
+    /* checking permissions */
+    if(getuid() != 0 ||
+       getgid() != 0)
+    {
+        if(setreuid(0, 0) != 0)
+        {
+            return 1;
+        }
+        if(setregid(0, 0) != 0)
+        {
+            return 1;
+        }
+    }
+    
     /* getting nxroot */
     const char *virtualRootPathCStr = getenv("NXROOT");
     if(virtualRootPathCStr == NULL)
@@ -70,6 +85,7 @@ int main(void)
     }
     
     /* ready for compilation service =3 */
+    /* like I said for better memory management */
     
     CFRunLoopRun();
     return 0;

@@ -29,7 +29,7 @@
 #import <MobileDevelopmentKit/MDKDiagnostic.h>
 #import <CoreCompiler/CCJob.h>
 
-@interface MDKJob : MDKCFType
+@interface MDKJob : MDKCFType <NSSecureCoding>
 
 @property (nonatomic, readonly) CCJobType type;
 @property (nonatomic, readonly) NSArray<NSString*> *baseArguments;

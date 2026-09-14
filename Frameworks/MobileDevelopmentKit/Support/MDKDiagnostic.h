@@ -30,7 +30,7 @@
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKFileSourceLocation.h>
 
-@interface MDKDiagnostic : MDKCFType
+@interface MDKDiagnostic : MDKCFType <NSSecureCoding>
 
 @property (nonatomic, readonly) CCDiagnosticType type;
 @property (nonatomic, readonly) CCDiagnosticLevel level;

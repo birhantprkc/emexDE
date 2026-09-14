@@ -28,7 +28,7 @@
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <CoreCompiler/CCFileSourceLocation.h>
 
-@interface MDKFileSourceLocation : MDKCFType
+@interface MDKFileSourceLocation : MDKCFType <NSSecureCoding>
 
 @property (nonatomic, readonly) NSURL *fileURL;
 @property (nonatomic, readonly) CCSourceLocation location;
