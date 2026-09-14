@@ -36,11 +36,11 @@ class ToolChainViewController: NXUITableViewController {
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return 4
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return (section == 2) ? 2 : 1
+        return (section == 3) ? 2 : 1
     }
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -48,8 +48,10 @@ class ToolChainViewController: NXUITableViewController {
         case 0:
             return "An incremental build compiles only the parts of the code that have changed, reducing build times by avoiding a full rebuild of the entire project."
         case 1:
-            return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
+            return "Using a remote service means that Nyxian does not compile the code directly, it hands it over to a remote daemon, which means that if LLVM crashes it will not take Nyxian with it and also it would gurantee that the memory is destroyed after compilation and no broken LLVM state is still present."
         case 2:
+            return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
+        case 3:
             return "This clears caches that were created for performance."
         default:
             return nil
@@ -60,7 +62,7 @@ class ToolChainViewController: NXUITableViewController {
         switch section {
         case 0:
             return "Features"
-        case 2:
+        case 3:
             return "Actions"
         default:
             return nil
@@ -76,6 +78,10 @@ class ToolChainViewController: NXUITableViewController {
             (cell as! ToggleTableCell).configure(title: "Incremental Build", key: "LDEIncrementalBuild", defaultValue: true)
             break
         case 1:
+            cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
+            (cell as! ToggleTableCell).configure(title: "Use Remote Compilation Service", key: "LDERemoteCompileService", defaultValue: true)
+            break
+        case 2:
             let optimCpuCount: Int = (Int)(CCGetMaximumPerformanceCores())
             cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
@@ -97,7 +103,7 @@ class ToolChainViewController: NXUITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if(indexPath.section == 2) {
+        if(indexPath.section == 3) {
             // TODO: use the indication popup for cache clearing
             switch(indexPath.row) {
             case 0:

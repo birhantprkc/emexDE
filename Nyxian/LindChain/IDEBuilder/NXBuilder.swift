@@ -31,7 +31,8 @@ final class NXBuilder: NSObject {
     private(set) var dependencyScanner: MDKDependencyScanner
     private(set) var phaseRunner: NXPhaseRunner
     
-    private let incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
+    private(set) var  incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
+    private(set) var  useRemoteServiceIfAvailable: Bool = UserDefaults.standard.object(forKey: "LDERemoteCompileService") as? Bool ?? true
     private let argsString: String
     
     static var builds: Bool = false
