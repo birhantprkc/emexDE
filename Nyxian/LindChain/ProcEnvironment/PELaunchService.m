@@ -133,6 +133,7 @@
 #endif /* DEBUG && KSURFACE_KLOG_ENABLE_DAEMONS */
     items = [mutable copy];
     
+    os_unfair_lock_lock(&_lock);
     PELaunchServiceInstance *instance = [[PELaunchServiceInstance alloc] initWithItems:items];
     instance.delegate = self;
     
@@ -142,17 +143,21 @@
     if(![instance launch])
     {
         [self.instances removeObject:instance];
+        os_unfair_lock_unlock(&_lock);
         return nil;
     }
+    os_unfair_lock_unlock(&_lock);
     return instance;
 }
 
 - (void)instanceDidExit:(PELaunchServiceInstance *)instance
            withWaitCode:(int)code
 {
+    os_unfair_lock_lock(&_lock);
     [_instances removeObject:instance];
     if(!self.autoRestart)
     {
+        os_unfair_lock_unlock(&_lock);
         return;
     }
     
@@ -167,8 +172,10 @@
     }
     if(_restartCount > 5)
     {
+        os_unfair_lock_unlock(&_lock);
         return;
     }
+    os_unfair_lock_unlock(&_lock);
     
     NSTimeInterval delay = MIN(pow(2.0, _restartCount) * 0.1, 30.0);
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{

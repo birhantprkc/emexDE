@@ -31,9 +31,13 @@
 {
     if(![self isAvailable])
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Remote compilation service is not available."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Remote compilation service is not available."]];
         }
         return NO;
     }
@@ -42,9 +46,13 @@
     PELaunchService *service = [[PELaunchServiceManager shared] serviceForIdentifier:@"org.emexlabs.compilerd"];
     if(service == NULL)
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Remote compilation service is not available."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Remote compilation service is not available."]];
         }
         return NO;
     }
@@ -52,9 +60,13 @@
     PELaunchServiceInstance *compilerInstance = [service newInstance];
     if(compilerInstance == NULL)
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't create remote compilation service instance."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't create remote compilation service instance."]];
         }
         return NO;
     }
@@ -63,9 +75,13 @@
     NSXPCListenerEndpoint *endpoint = [compilerInstance xpcEndpoint];
     if(endpoint == NULL)
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't get remote compilation service's NSXPC endpoint."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't get remote compilation service's NSXPC endpoint."]];
         }
         [compilerInstance terminate];
         return NO;
@@ -74,6 +90,10 @@
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
     if(connection == NULL)
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
             *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't establish connection with remote compilation service instance."]];
@@ -129,9 +149,13 @@
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     if(failed)
     {
+        if(mainSource)
+        {
+            *mainSource = job.inputFileURLs[0].path;
+        }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
         }
         [compilerInstance terminate];
         return NO;
