@@ -202,7 +202,7 @@ CFDictionaryRef ExtractNXT2OutOfAppleCSEntitlements(CFDictionaryRef appleCSEntit
         CFDictionaryAddValue(newNXT2Entitlements, kNXT2EntitlementProcessSpawnSignedOnly, kCFBooleanTrue);
         
         /* they can read rootfs */
-        CFArrayAppendValue(roPaths, CFSTR("$(ROOTFS)"));
+        CFArrayAppendValue(roPaths, CFSTR("$(NXROOT)"));
     }
     
     CFArrayRef absoluteRwPaths = CFDictionaryGetValue(appleCSEntitlements, CFSTR("com.apple.security.exception.files.absolute-path.read-write"));
@@ -217,7 +217,7 @@ CFDictionaryRef ExtractNXT2OutOfAppleCSEntitlements(CFDictionaryRef appleCSEntit
                 CFMutableStringRef pathStr = CFStringCreateMutable(kCFAllocatorDefault, 0);
                 if(pathStr != NULL)
                 {
-                    CFStringAppend(pathStr, CFSTR("$(ROOTFS)"));
+                    CFStringAppend(pathStr, CFSTR("$(NXROOT)"));
                     CFStringAppend(pathStr, absoluteRwPath);
                     CFArrayAppendValue(rwPaths, pathStr);
                     CFRelease(pathStr);
@@ -238,7 +238,7 @@ CFDictionaryRef ExtractNXT2OutOfAppleCSEntitlements(CFDictionaryRef appleCSEntit
                 CFMutableStringRef pathStr = CFStringCreateMutable(kCFAllocatorDefault, 0);
                 if(pathStr != NULL)
                 {
-                    CFStringAppend(pathStr, CFSTR("$(ROOTFS)"));
+                    CFStringAppend(pathStr, CFSTR("$(NXROOT)"));
                     CFStringAppend(pathStr, absoluteRoPath);
                     CFArrayAppendValue(roPaths, pathStr);
                     CFRelease(pathStr);

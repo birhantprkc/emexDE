@@ -56,8 +56,10 @@ void TrustPresetsInit(void)
         
         /* sandbox */
         (__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite: @[
-            @"$(ROOTFS)/usr/bin",           /* needs access to fastpath binaries */
-            @"$(ROOTFS)/var",               /* needs access to application bundles and data containers */
+            @"$(NXROOT)/usr/bin",               /* needs access to fastpath binaries */
+            @"$(NXROOT)/var/containers",        /* needs access to application bundles */
+            @"$(NXROOT)/var/mobile/Containers", /* needs access to application data containers */
+            @"$(NXROOT)/var/root",              /* needs access to tmp of root home */
         ],
     };
     

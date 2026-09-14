@@ -116,9 +116,7 @@ BOOL PEURLIsContainedIn(NSURL *candidate,
 
 - (NSURL*)rootfsURL
 {
-    NSURL *rootfsURL = [self.rootURL URLByAppendingPathComponent:@"rootfs"];
-    [[NSFileManager defaultManager] createDirectoryAtURL:rootfsURL withIntermediateDirectories:NO attributes:nil error:nil];
-    return rootfsURL;
+    return [self.rootURL URLByAppendingPathComponent:@"rootfs"];
 }
 
 - (UInt64)version
@@ -374,6 +372,8 @@ BOOL PEURLIsContainedIn(NSURL *candidate,
                 self.version = 28;
             }
         }
+        
+        [[NSFileManager defaultManager] createDirectoryAtURL:self.swiftModuleCacheURL withIntermediateDirectories:NO attributes:nil error:nil];
         
         NSLog(@"done");
     });
