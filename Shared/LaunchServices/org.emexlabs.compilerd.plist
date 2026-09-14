@@ -11,6 +11,6 @@
 	<key>PEIsMultiInstanceDaemon</key>
 	<true/>
 	<key>PEExecutablePath</key>
-	<string>$(NXROOT)/boot/libexec/compilerd</string>
+	<string>$(NXROOT)/boot/libexec/MobileDevelopmentService</string>
 </dict>
 </plist>

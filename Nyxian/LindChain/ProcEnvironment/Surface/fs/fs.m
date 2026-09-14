@@ -122,8 +122,8 @@ kern_return_t ksurface_fs_init(void)
         },
         {
             kFSMountAttrRead,
-            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/compilerd.dylib"].path.UTF8String,
-            [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/compilerd", home] UTF8String],
+            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/MobileDevelopmentService.dylib"].path.UTF8String,
+            [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/MobileDevelopmentService", home] UTF8String],
         },
         {
             kFSMountAttrRead,

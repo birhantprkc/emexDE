@@ -37,7 +37,7 @@
 		8FF32E2D3036F8DC00C46FE4 /* libHWHook.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */; };
 		8FF647BB3054D5F800E1E610 /* execd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF647A73054D55800E1E610 /* execd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF647C63054E61900E1E610 /* bootstrapd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		8FF64813305678ED00E1E610 /* compilerd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF6480E3056786A00E1E610 /* compilerd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		8FF64813305678ED00E1E610 /* MobileDevelopmentService.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF648243056934700E1E610 /* MobileDevelopmentKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 860D91752FAE1F95000D321B /* MobileDevelopmentKit.framework */; };
 		8FF64C243056A46000E1E610 /* LiveShim.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */; };
 		8FF6611C3058418A00E1E610 /* LiveShim.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */; };
@@ -195,7 +195,7 @@
 			files = (
 				8FF647BB3054D5F800E1E610 /* execd.dylib in CopyFiles */,
 				8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */,
-				8FF64813305678ED00E1E610 /* compilerd.dylib in CopyFiles */,
+				8FF64813305678ED00E1E610 /* MobileDevelopmentService.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -261,7 +261,7 @@
 		8FF346DD3039AA7000C46FE4 /* ksurface_abi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_abi.h; sourceTree = "<group>"; };
 		8FF647A73054D55800E1E610 /* execd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = execd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF647C63054E61900E1E610 /* bootstrapd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = bootstrapd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		8FF6480E3056786A00E1E610 /* compilerd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = compilerd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = MobileDevelopmentService.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF99171F2DC8EA3C00DDF895 /* Shared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shared; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -580,12 +580,12 @@
 			);
 			target = 8FF647BF3054E61900E1E610 /* bootstrapd */;
 		};
-		8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "compilerd" target */ = {
+		8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "MobileDevelopmentService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				compilerd/main.m,
 			);
-			target = 8FF648073056786A00E1E610 /* compilerd */;
+			target = 8FF648073056786A00E1E610 /* MobileDevelopmentService */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -667,8 +667,8 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				8FF647B73054D57C00E1E610 /* Exceptions for "Daemons" folder in "execd" target */,
-				8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "compilerd" target */,
 				8FF647CA3054E67000E1E610 /* Exceptions for "Daemons" folder in "bootstrapd" target */,
+				8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "MobileDevelopmentService" target */,
 			);
 			path = Daemons;
 			sourceTree = "<group>";
@@ -827,7 +827,7 @@
 				8FF32DED3036F59E00C46FE4 /* libHWHook.a */,
 				8FF647A73054D55800E1E610 /* execd.dylib */,
 				8FF647C63054E61900E1E610 /* bootstrapd.dylib */,
-				8FF6480E3056786A00E1E610 /* compilerd.dylib */,
+				8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1023,9 +1023,9 @@
 			productReference = 8FF647C63054E61900E1E610 /* bootstrapd.dylib */;
 			productType = "com.apple.product-type.library.static";
 		};
-		8FF648073056786A00E1E610 /* compilerd */ = {
+		8FF648073056786A00E1E610 /* MobileDevelopmentService */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 8FF6480B3056786A00E1E610 /* Build configuration list for PBXNativeTarget "compilerd" */;
+			buildConfigurationList = 8FF6480B3056786A00E1E610 /* Build configuration list for PBXNativeTarget "MobileDevelopmentService" */;
 			buildPhases = (
 				8FF648083056786A00E1E610 /* Sources */,
 				8FF648093056786A00E1E610 /* Frameworks */,
@@ -1037,11 +1037,11 @@
 				8FF648273056934700E1E610 /* PBXTargetDependency */,
 				8FF6611F3058418A00E1E610 /* PBXTargetDependency */,
 			);
-			name = compilerd;
+			name = MobileDevelopmentService;
 			packageProductDependencies = (
 			);
 			productName = execd;
-			productReference = 8FF6480E3056786A00E1E610 /* compilerd.dylib */;
+			productReference = 8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */;
 			productType = "com.apple.product-type.library.static";
 		};
 		AF9916D82DC8C42200DDF895 /* Nyxian */ = {
@@ -1157,8 +1157,8 @@
 				AF9916D82DC8C42200DDF895 /* Nyxian */,
 				79BF97F62E6291EE00C60D4C /* LiveProcess */,
 				8FF647A63054D55800E1E610 /* execd */,
-				8FF648073056786A00E1E610 /* compilerd */,
 				8FF647BF3054E61900E1E610 /* bootstrapd */,
+				8FF648073056786A00E1E610 /* MobileDevelopmentService */,
 				860D91742FAE1F95000D321B /* MobileDevelopmentKit */,
 				86DCC2592FA5209600973169 /* CoreCompiler */,
 				8FB3BADA302FFBAA00DB3ABC /* LiveShim */,
@@ -1864,7 +1864,7 @@
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
-				EXECUTABLE_NAME = compilerd.dylib;
+				EXECUTABLE_NAME = MobileDevelopmentService.dylib;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../bootloader/Frameworks";
 				MACH_O_TYPE = mh_dylib;
@@ -1885,7 +1885,7 @@
 				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = L4A6CKH3TV;
-				EXECUTABLE_NAME = compilerd.dylib;
+				EXECUTABLE_NAME = MobileDevelopmentService.dylib;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../bootloader/Frameworks";
 				MACH_O_TYPE = mh_dylib;
@@ -2346,7 +2346,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		8FF6480B3056786A00E1E610 /* Build configuration list for PBXNativeTarget "compilerd" */ = {
+		8FF6480B3056786A00E1E610 /* Build configuration list for PBXNativeTarget "MobileDevelopmentService" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				8FF6480C3056786A00E1E610 /* Debug */,

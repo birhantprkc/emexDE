@@ -474,7 +474,7 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
         },
         {
-            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/compilerd"].path.UTF8String,
+            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/MobileDevelopmentService"].path.UTF8String,
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonCompiler,
         }
     };

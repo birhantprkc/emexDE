@@ -48,7 +48,7 @@ class ToolChainViewController: NXUITableViewController {
         case 0:
             return "An incremental build compiles only the parts of the code that have changed, reducing build times by avoiding a full rebuild of the entire project."
         case 1:
-            return "Using a remote daemon means that Nyxian does not compile the code directly, it hands it over to a remote daemon, which means that if LLVM crashes it will not take Nyxian with it and also it would gurantee that the memory is destroyed after compilation and no broken LLVM state is still present."
+            return "Using a remote daemon process means that Nyxian does not compile the code directly, it hands it over to a remote daemon process that still runs on your device, which means that if LLVM crashes it will not take Nyxian with it and also it would gurantee that the memory is destroyed after compilation and no broken LLVM state is still present."
         case 2:
             return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
         case 3:
