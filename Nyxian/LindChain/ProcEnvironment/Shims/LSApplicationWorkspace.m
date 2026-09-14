@@ -68,7 +68,6 @@
 @property (nonatomic, readonly) id correspondingApplicationRecord;
 @property (nonatomic, readonly) NSArray *counterpartIdentifiers;
 @property (nonatomic, readonly) id cslprf_safeCorrespondingApplicationRecord;
-@property (readonly, copy) NSString *debugDescription; /* unknown property attribute: ? */
 @property (getter=isDeletable, nonatomic, readonly) bool deletable;
 @property (readonly, copy) NSString *description;
 @property (getter=isDeviceBasedVPP, nonatomic, readonly) bool deviceBasedVPP;
@@ -94,7 +93,6 @@
 @property (nonatomic, readonly) bool hasMIDBasedSINF;
 @property (nonatomic, readonly) bool hasParallelPlaceholder;
 @property (nonatomic, readonly) bool hasSettingsBundle;
-@property (readonly) unsigned long long hash;
 @property (nonatomic, readonly) bool hf_isInstalledForLaunching;
 @property (nonatomic, readonly) bool iconIsPrerendered;
 @property (nonatomic, readonly) bool iconUsesAssetCatalog;

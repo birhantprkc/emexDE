@@ -91,7 +91,7 @@ DEFINE_SYSCALL_HANDLER(pectl_launchservice)
                     sys_return_failure_with_errno(EACCES);
                 }
                 
-                kr = syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
+                kr = syscall_payload_create(NULL, sizeof(mach_port_t), (mach_vm_address_t*)out_ports);
                 if(kr != KERN_SUCCESS)
                 {
                     mach_port_deallocate(mach_task_self(), port);

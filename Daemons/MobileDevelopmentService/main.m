@@ -40,10 +40,12 @@ static NSString *ubid = nil;
 - (void)executeJob:(MDKJob*)job
          withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply
 {
-    NSArray<MDKDiagnostic*> *diagnostic = nil;
-    NSString *mainSource = nil;
-    BOOL success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
-    reply(success, diagnostic, mainSource);
+    MDKPthreadDispatch(^{
+        NSArray<MDKDiagnostic*> *diagnostic = nil;
+        NSString *mainSource = nil;
+        BOOL success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
+        reply(success, diagnostic, mainSource);
+    });
 }
 
 - (void)clientDidConnectWithConnection:(NSXPCConnection *)client
