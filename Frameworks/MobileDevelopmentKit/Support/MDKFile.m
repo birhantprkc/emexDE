@@ -75,6 +75,22 @@
     return (MDKMutableFile *)obj;
 }
 
++ (BOOL)supportsSecureCoding
+{
+    return YES;
+}
+
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    [coder encodeObject:self.fileURL forKey:@"fileURL"];
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    NSURL *fileURL = [coder decodeObjectOfClass:[NSURL class] forKey:@"fileURL"];
+    return [MDKFile fileWithURL:fileURL];
+}
+
 @end
 
 @implementation MDKMutableFile
@@ -105,6 +121,19 @@
 - (void)setUnsavedData:(NSData*)unsavedData
 {
     CCFileSetUnsavedData((__bridge void *)self, (__bridge CFDataRef)unsavedData);
+}
+
+- (void)encodeWithCoder:(nonnull NSCoder *)coder
+{
+    [coder encodeObject:self.fileURL forKey:@"fileURL"];
+    [coder encodeObject:self.unsavedData forKey:@"unsavedData"];
+}
+
+- (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
+{
+    NSURL *fileURL = [coder decodeObjectOfClass:[NSURL class] forKey:@"fileURL"];
+    NSData *unsavedData = [coder decodeObjectOfClass:[NSData class] forKey:@"unsavedData"];
+    return [MDKMutableFile fileWithURL:fileURL withUnsavedData:unsavedData];
 }
 
 @end

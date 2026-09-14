@@ -29,7 +29,7 @@
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <CoreCompiler/CCFile.h>
 
-@interface MDKFile : MDKCFType <NSCopying,NSMutableCopying>
+@interface MDKFile : MDKCFType <NSSecureCoding,NSCopying,NSMutableCopying>
 
 @property (nonatomic, readonly) NSURL *fileURL;
 @property (nonatomic, readonly) NSData *unsavedData;
