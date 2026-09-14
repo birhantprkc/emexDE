@@ -49,6 +49,19 @@ using namespace clang::driver;
 
 CC_CXX_EXPORT CCASTUnitRef CCASTUnitCreateWithASTUnit(CFAllocatorRef allocator, std::unique_ptr<clang::ASTUnit> astUnit, std::unique_ptr<clang::FrontendAction> action);
 
+static void CCCompilerInvocationEnableFree(CompilerInvocation *CI)
+{
+    /*
+     * enabling free
+     *
+     * this is very important to prevent memory leak, clang is usually
+     * designed to run in a one hit way, but this is a iOS app so it
+     * cannot run in one hit.
+     */
+    CI->getPreprocessorOpts().RetainRemappedFileBuffers = true;
+    CI->getFrontendOpts().DisableFree = false;
+}
+
 CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
 {
     assert(job != nullptr);
@@ -68,21 +81,25 @@ CCASTUnitRef CCCompilerJobExecute(CCJobRef job)
     auto CI = std::make_shared<CompilerInvocation>();
     CompilerInvocation::CreateFromArgs(*CI, Args, *Diags);
 
-    /*
-     * enabling free
-     *
-     * this is very important to prevent memory leak, clang is usually
-     * designed to run in a one hit way, but this is a iOS app so it
-     * cannot run in one hit.
-     */
-    CI->getPreprocessorOpts().RetainRemappedFileBuffers = true;
-    CI->getFrontendOpts().DisableFree = false;
+    const char *forceDisableFree = std::getenv("CCForceDisableFree");
+    if(forceDisableFree == NULL)
+    {
+        CCCompilerInvocationEnableFree(CI.get());
+    }
+    else
+    {
+        std::string forceDisableFreeStr = std::string(forceDisableFree);
+        if(forceDisableFreeStr != "1")
+        {
+            CCCompilerInvocationEnableFree(CI.get());
+        }
+    }
     
     /* fixup cache path*/
     const char *homeEnv = std::getenv("HOME");
     if(homeEnv)
     {
-        std::string cachePath = std::string(homeEnv) + "/Library/Caches/Clang";
+        std::string cachePath = std::string(homeEnv) + "/Documents/Cache/Clang";
         std::error_code EC = llvm::sys::fs::create_directories(cachePath);
         if(!EC)
         {

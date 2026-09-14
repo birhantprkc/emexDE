@@ -723,7 +723,7 @@ void CCASTUnitSetArguments(CCMutableASTUnitRef mutableUnit,
         const char *homeEnv = std::getenv("HOME");
         if(homeEnv)
         {
-            std::string cachePath = std::string(homeEnv) + "/Library/Caches/Clang";
+            std::string cachePath = std::string(homeEnv) + "/Documents/Cache/Clang";
             if(!llvm::sys::fs::create_directories(cachePath))
             {
                 mutableUnit->BaseArgs.push_back("-fmodules-cache-path=" + cachePath);

@@ -139,7 +139,6 @@
         return;
     }
     
-    [process removeObserver:self];
     [process sendSignal:SIGKILL];
 }
 
@@ -149,6 +148,11 @@
     if(_state != PELaunchServiceInstanceStateRunning)
     {
         os_unfair_lock_unlock(&_lock);
+        id<PELaunchServiceInstanceDelegate> delegate = self.delegate;
+        if([delegate respondsToSelector:@selector(instanceDidExit:withWaitCode:)])
+        {
+            [delegate instanceDidExit:self withWaitCode:code];
+        }
         return;
     }
     _state = PELaunchServiceInstanceStateExited;

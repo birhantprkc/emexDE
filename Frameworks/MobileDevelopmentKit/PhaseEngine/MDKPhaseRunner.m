@@ -45,7 +45,15 @@
 {
     NSArray<MDKDiagnostic*> *diagnostic = nil;
     NSString *mainSource = nil;
-    BOOL success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
+    BOOL success = NO;
+    if([_delegate respondsToSelector:@selector(runner:phase:executeJob:withOutDiagnostics:withOutMainSource:)])
+    {
+        success = [_delegate runner:self phase:phase executeJob:job withOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
+    }
+    else
+    {
+        success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
+    }
     
     /*
      * when delegation is passed then we

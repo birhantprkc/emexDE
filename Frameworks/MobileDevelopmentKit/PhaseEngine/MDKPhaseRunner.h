@@ -33,6 +33,7 @@
 @protocol MDKPhaseRunnerDelegate <NSObject>
 
 @optional
+- (BOOL)runner:(MDKPhaseRunner * _Nonnull)runner phase:(MDKPhase * _Nonnull)phase executeJob:(MDKJob * _Nonnull)job withOutDiagnostics:(NSArray<MDKDiagnostic*> * _Nonnull* _Nullable)diagnostics withOutMainSource:(NSString * _Nonnull* _Nullable)mainSource;
 - (void)runner:(MDKPhaseRunner * _Nonnull)runner phase:(MDKPhase * _Nonnull)phase finishedRunningJob:(MDKJob * _Nonnull)job withResultingDiagnostics:(NSArray<MDKDiagnostic*> * _Nullable)diagnostics withMainSource:(NSString * _Nullable)mainSource wasSuccessful:(BOOL)success;
 - (CFIndex)runner:(MDKPhaseRunner * _Nonnull)runner multithreadingThreadCountForPhase:(MDKPhase * _Nonnull)phase;
 

@@ -23,6 +23,32 @@ import MobileDevelopmentKit
 
 extension NXBuilder: MDKPhaseRunnerDelegate {
     func runner(_ runner: MDKPhaseRunner,
+                phase: MDKPhase, execute job: MDKJob,
+                withOutDiagnostics diagnostics: AutoreleasingUnsafeMutablePointer<NSArray>?,
+                withOutMainSource mainSource: AutoreleasingUnsafeMutablePointer<NSString>?) -> Bool {
+        var localDiags: NSArray?
+        var localSource: NSString?
+        
+        let ok: Bool
+        if NXRemoteCompiler.isAvailable() &&
+            job.type != .swiftCompiler &&
+            job.type != .swiftDriver {
+            ok = NXRemoteCompiler.execute(job, with: &localDiags, withMainSource: &localSource)
+        } else {
+            ok = job.execute(withOutDiagnostics: &localDiags, withOutMainSource: &localSource)
+        }
+
+        if let diags = localDiags {
+            diagnostics?.pointee = diags
+        }
+        if let source = localSource {
+            mainSource?.pointee = source
+        }
+
+        return ok
+    }
+    
+    func runner(_ runner: MDKPhaseRunner,
                 multithreadingThreadCountFor phase: MDKPhase) -> CFIndex {
         let userSelectedValue: NSNumber? = UserDefaults.standard.object(forKey: "cputhreads") as? NSNumber
         let userSelected = userSelectedValue?.intValue ?? CCGetMaximumPerformanceCores()

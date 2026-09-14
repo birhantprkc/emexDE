@@ -31,6 +31,10 @@
 {
     if(![self isAvailable])
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Remote compilation service is not available."]];
+        }
         return NO;
     }
     
@@ -38,12 +42,20 @@
     PELaunchService *service = [[PELaunchServiceManager shared] serviceForIdentifier:@"org.emexlabs.compilerd"];
     if(service == NULL)
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Remote compilation service is not available."]];
+        }
         return NO;
     }
     
     PELaunchServiceInstance *compilerInstance = [service newInstance];
     if(compilerInstance == NULL)
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't create remote compilation service instance."]];
+        }
         return NO;
     }
     
@@ -51,24 +63,46 @@
     NSXPCListenerEndpoint *endpoint = [compilerInstance xpcEndpoint];
     if(endpoint == NULL)
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't get remote compilation service's NSXPC endpoint."]];
+        }
+        [compilerInstance terminate];
         return NO;
     }
     
     NSXPCConnection *connection = [[NSXPCConnection alloc] initWithListenerEndpoint:endpoint];
     if(connection == NULL)
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't establish connection with remote compilation service instance."]];
+        }
+        [compilerInstance terminate];
         return NO;
     }
     
+    __block BOOL failed = NO;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    
+    /* creating brand new connection */
     connection.remoteObjectInterface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
-    /* TODO: add disconnect handlers obviously  */
+    connection.invalidationHandler = ^{
+        failed = YES;
+        dispatch_semaphore_signal(sema); };
+    connection.interruptionHandler = ^{
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    };
+    NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
+    NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
+    [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:1 ofReply:YES];
+    connection.remoteObjectInterface = iface;
     [connection resume];
     
     __block BOOL result = NO;
     __block NSArray<MDKDiagnostic*> *resultDiagnostic;
     __block NSString *resultMainSource;
-    __block BOOL failed = NO;
-    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
     
     id proxy = [connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
         /* semaphores remember the signal, it doesnt have to catch them in time */
@@ -88,12 +122,18 @@
             result = successRet;
             resultDiagnostic = diagnosticsRet;
             resultMainSource = mainSourceRet;
+            dispatch_semaphore_signal(sema);
         }];
     }
     
     dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
     if(failed)
     {
+        if(diagnostics)
+        {
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:nil fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
+        }
+        [compilerInstance terminate];
         return NO;
     }
     
@@ -106,6 +146,7 @@
         *mainSource = resultMainSource;
     }
     
+    [compilerInstance terminate];
     return result;
 }
 

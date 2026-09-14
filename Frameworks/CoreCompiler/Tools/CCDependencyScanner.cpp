@@ -98,7 +98,7 @@ CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef allocator,
     const char *homeEnv = std::getenv("HOME");
     if(homeEnv)
     {
-        dependencyScanner->BaseArgs.push_back("-fmodules-cache-path=" + std::string(homeEnv) + "/Library/Caches/Clang");
+        dependencyScanner->BaseArgs.push_back("-fmodules-cache-path=" + std::string(homeEnv) + "/Documents/Cache/Clang");
     }
     CFIndex count = CFArrayGetCount(arguments);
     for(CFIndex i = 0; i < count; i++)
