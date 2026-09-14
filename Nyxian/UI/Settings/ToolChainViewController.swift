@@ -48,7 +48,7 @@ class ToolChainViewController: NXUITableViewController {
         case 0:
             return "An incremental build compiles only the parts of the code that have changed, reducing build times by avoiding a full rebuild of the entire project."
         case 1:
-            return "Using a remote service means that Nyxian does not compile the code directly, it hands it over to a remote daemon, which means that if LLVM crashes it will not take Nyxian with it and also it would gurantee that the memory is destroyed after compilation and no broken LLVM state is still present."
+            return "Using a remote daemon means that Nyxian does not compile the code directly, it hands it over to a remote daemon, which means that if LLVM crashes it will not take Nyxian with it and also it would gurantee that the memory is destroyed after compilation and no broken LLVM state is still present."
         case 2:
             return "Threading in compilation refers to the compiler's ability to perform tasks in parallel like parsing, code generation, and optimization across multiple CPU threads to speed up the build process."
         case 3:
@@ -79,11 +79,11 @@ class ToolChainViewController: NXUITableViewController {
             break
         case 1:
             cell = tableView.dequeueReusableCell(withIdentifier: ToggleTableCell.reuseIdentifier, for: indexPath) as! ToggleTableCell
-            (cell as! ToggleTableCell).configure(title: "Use Remote Compilation Service", key: "LDERemoteCompileService", defaultValue: true)
+            (cell as! ToggleTableCell).configure(title: "Remote Compilation Daemon", key: "LDERemoteCompileService", defaultValue: true)
             break
         case 2:
             let optimCpuCount: Int = (Int)(CCGetMaximumPerformanceCores())
-            cell = StepperTableCell(title: "Use Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
+            cell = StepperTableCell(title: "Threads", key: "cputhreads", defaultValue: optimCpuCount, minValue: 1, maxValue: optimCpuCount)
             break
         default:
             switch(indexPath.row) {
