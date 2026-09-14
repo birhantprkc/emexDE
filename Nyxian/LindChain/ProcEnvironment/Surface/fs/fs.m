@@ -162,11 +162,6 @@ kern_return_t ksurface_fs_init(void)
         },
         {
             kFSMountAttrRead,
-            [[NSBundle.mainBundle.bundlePath stringByAppendingString:@"/Shared/LaunchServices/org.emexlabs.execd.plist"] UTF8String],
-            [[NSString stringWithFormat:@"%s/Documents/mntfs/lsfs/org.emexlabs.execd.plist", home] UTF8String],
-        },
-        {
-            kFSMountAttrRead,
             [[NSBundle.mainBundle.bundlePath stringByAppendingString:@"/Shared/LaunchServices/org.emexlabs.compilerd.plist"] UTF8String],
             [[NSString stringWithFormat:@"%s/Documents/mntfs/lsfs/org.emexlabs.compilerd.plist", home] UTF8String],
         },

@@ -35,7 +35,6 @@
 		8FECB2472FFD34D500049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB2462FFD34D500049BB0 /* Runestone */; };
 		8FECB24D2FFD367A00049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB24C2FFD367A00049BB0 /* Runestone */; };
 		8FF32E2D3036F8DC00C46FE4 /* libHWHook.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */; };
-		8FF647BB3054D5F800E1E610 /* execd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF647A73054D55800E1E610 /* execd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF647C63054E61900E1E610 /* bootstrapd.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF64813305678ED00E1E610 /* MobileDevelopmentService.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FF648243056934700E1E610 /* MobileDevelopmentKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 860D91752FAE1F95000D321B /* MobileDevelopmentKit.framework */; };
@@ -178,22 +177,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		8FF647A53054D55800E1E610 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "include/$(PRODUCT_NAME)";
-			dstSubfolderSpec = 16;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		8FF647BA3054D5EE00E1E610 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = Frameworks;
 			dstSubfolderSpec = 7;
 			files = (
-				8FF647BB3054D5F800E1E610 /* execd.dylib in CopyFiles */,
 				8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */,
 				8FF64813305678ED00E1E610 /* MobileDevelopmentService.dylib in CopyFiles */,
 			);
@@ -206,16 +195,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8FF647F53054EAEE00E1E610 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		8FF6480A3056786A00E1E610 /* CopyFiles */ = {
@@ -259,7 +238,6 @@
 		8FB3C1EA3031450500DB3ABC /* ksurface_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_config.h; sourceTree = "<group>"; };
 		8FF32DED3036F59E00C46FE4 /* libHWHook.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHWHook.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF346DD3039AA7000C46FE4 /* ksurface_abi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_abi.h; sourceTree = "<group>"; };
-		8FF647A73054D55800E1E610 /* execd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = execd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF647C63054E61900E1E610 /* bootstrapd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = bootstrapd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = MobileDevelopmentService.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF99171F2DC8EA3C00DDF895 /* Shared */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shared; sourceTree = "<group>"; };
@@ -566,13 +544,6 @@
 			);
 			target = 8FF32DEC3036F59E00C46FE4 /* HWHook */;
 		};
-		8FF647B73054D57C00E1E610 /* Exceptions for "Daemons" folder in "execd" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				execd/main.m,
-			);
-			target = 8FF647A63054D55800E1E610 /* execd */;
-		};
 		8FF647CA3054E67000E1E610 /* Exceptions for "Daemons" folder in "bootstrapd" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -666,7 +637,6 @@
 		8FF647B13054D56000E1E610 /* Daemons */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				8FF647B73054D57C00E1E610 /* Exceptions for "Daemons" folder in "execd" target */,
 				8FF647CA3054E67000E1E610 /* Exceptions for "Daemons" folder in "bootstrapd" target */,
 				8FF64812305678DA00E1E610 /* Exceptions for "Daemons" folder in "MobileDevelopmentService" target */,
 			);
@@ -729,13 +699,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		8FF32DEA3036F59E00C46FE4 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8FF647A43054D55800E1E610 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -825,7 +788,6 @@
 				860D91752FAE1F95000D321B /* MobileDevelopmentKit.framework */,
 				8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */,
 				8FF32DED3036F59E00C46FE4 /* libHWHook.a */,
-				8FF647A73054D55800E1E610 /* execd.dylib */,
 				8FF647C63054E61900E1E610 /* bootstrapd.dylib */,
 				8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */,
 			);
@@ -983,26 +945,6 @@
 			productReference = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		8FF647A63054D55800E1E610 /* execd */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8FF647AE3054D55800E1E610 /* Build configuration list for PBXNativeTarget "execd" */;
-			buildPhases = (
-				8FF647A33054D55800E1E610 /* Sources */,
-				8FF647A43054D55800E1E610 /* Frameworks */,
-				8FF647A53054D55800E1E610 /* CopyFiles */,
-				8FF647F53054EAEE00E1E610 /* Embed Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = execd;
-			packageProductDependencies = (
-			);
-			productName = execd;
-			productReference = 8FF647A73054D55800E1E610 /* execd.dylib */;
-			productType = "com.apple.product-type.library.static";
-		};
 		8FF647BF3054E61900E1E610 /* bootstrapd */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8FF647C33054E61900E1E610 /* Build configuration list for PBXNativeTarget "bootstrapd" */;
@@ -1122,9 +1064,6 @@
 					8FF32DEC3036F59E00C46FE4 = {
 						CreatedOnToolsVersion = 27.0;
 					};
-					8FF647A63054D55800E1E610 = {
-						CreatedOnToolsVersion = 27.0;
-					};
 					AF9916D82DC8C42200DDF895 = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -1156,7 +1095,6 @@
 			targets = (
 				AF9916D82DC8C42200DDF895 /* Nyxian */,
 				79BF97F62E6291EE00C60D4C /* LiveProcess */,
-				8FF647A63054D55800E1E610 /* execd */,
 				8FF647BF3054E61900E1E610 /* bootstrapd */,
 				8FF648073056786A00E1E610 /* MobileDevelopmentService */,
 				860D91742FAE1F95000D321B /* MobileDevelopmentKit */,
@@ -1244,13 +1182,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		8FF32DE93036F59E00C46FE4 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		8FF647A33054D55800E1E610 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1774,48 +1705,6 @@
 			};
 			name = Release;
 		};
-		8FF647AF3054D55800E1E610 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGNING_ALLOWED = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = L4A6CKH3TV;
-				EXECUTABLE_NAME = execd.dylib;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../bootloader/Frameworks";
-				MACH_O_TYPE = mh_dylib;
-				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		8FF647B03054D55800E1E610 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGNING_ALLOWED = YES;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = L4A6CKH3TV;
-				EXECUTABLE_NAME = execd.dylib;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../bootloader/Frameworks";
-				MACH_O_TYPE = mh_dylib;
-				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		8FF647C43054E61900E1E610 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -2324,15 +2213,6 @@
 			buildConfigurations = (
 				8FF32DF53036F59E00C46FE4 /* Debug */,
 				8FF32DF63036F59E00C46FE4 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8FF647AE3054D55800E1E610 /* Build configuration list for PBXNativeTarget "execd" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8FF647AF3054D55800E1E610 /* Debug */,
-				8FF647B03054D55800E1E610 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
