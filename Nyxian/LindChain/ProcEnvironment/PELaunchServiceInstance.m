@@ -186,6 +186,7 @@
 
 - (void)dealloc
 {
+    [[PEBootstrapRegistry shared] removeMachPortForServiceIdentifier:[self uniqueBootstrapRegistryIdentifier]];
     [self terminate];
 }
 

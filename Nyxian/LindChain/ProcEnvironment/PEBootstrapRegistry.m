@@ -212,4 +212,20 @@
     return result;
 }
 
+- (void)removeMachPortForServiceIdentifier:(NSString*)serviceIdentifier
+{
+    os_unfair_lock_lock(&_lock);
+    NSNumber *number = _registry[serviceIdentifier];
+    if(number == NULL)
+    {
+        os_unfair_lock_unlock(&_lock);
+        return;
+    }
+    
+    mach_port_name_t port = [number unsignedIntValue];
+    mach_port_deallocate(mach_task_self(), port);
+    [_registry removeObjectForKey:serviceIdentifier];
+    os_unfair_lock_unlock(&_lock);
+}
+
 @end

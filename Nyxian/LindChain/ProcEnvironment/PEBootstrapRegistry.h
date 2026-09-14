@@ -38,6 +38,7 @@
 - (void)setMachPortName:(mach_port_name_t)port forServiceIdentifier:(NSString*)serviceIdentifier;
 
 - (mach_port_name_t)waitForMachPortNameWithServiceIdentifier:(NSString*)serviceIdentifier timeout:(NSTimeInterval)timeout;
+- (void)removeMachPortForServiceIdentifier:(NSString*)serviceIdentifier;
 
 @end
 
