@@ -242,6 +242,51 @@ static NSString *PECanonicalizePath(NSString *path)
     return [NSString stringWithUTF8String:resolved];
 }
 
+static void trust_identity_append_file_permissions(NSMutableArray<NSData*> *filePermissions,
+                                                   NSString *rawPath,
+                                                   NSDictionary *pathVariables,
+                                                   FSMountPermissionFlags permission,
+                                                   BOOL over_sbfs_layer)
+{
+    NSArray<NSString*> *paths = PEResolveEntitlementPaths(rawPath, pathVariables);
+    for(NSString *path in paths)
+    {
+        NSString *actualPath = PECanonicalizePath(path);
+        if(actualPath)
+        {
+            if(over_sbfs_layer)
+            {
+                NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions(actualPath.UTF8String, permission);
+                if(extensions != nil)
+                {
+                    [filePermissions addObjectsFromArray:extensions];
+                }
+            }
+            else
+            {
+                /* that means no mount permission layer! */
+                NSData *extension = (__bridge_transfer NSData*)ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(actualPath.UTF8String, permission);
+                if(extension != nil)
+                {
+                    [filePermissions addObject:extension];
+                }
+            }
+        }
+    }
+}
+
+static void trust_identity_append_file_permissions_for_paths(NSMutableArray<NSData*> *filePermissions,
+                                                             NSArray<NSString*> *rawPaths,
+                                                             NSDictionary *pathVariables,
+                                                             FSMountPermissionFlags permission,
+                                                             BOOL over_sbfs_layer)
+{
+    for(NSString *rawPath in rawPaths)
+    {
+        trust_identity_append_file_permissions(filePermissions, rawPath, pathVariables, permission, over_sbfs_layer);
+    }
+}
+
 static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableString,
                                                        CFDictionaryRef entitlements)
 {
@@ -251,7 +296,8 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
         
         /* prepare variables */
         NSMutableDictionary *vars = [@{
-            @"ROOTFS": NXBootstrap.shared.rootfsURL.path,
+            @"ROOTFS": NXBootstrap.shared.rootfsURL.path,   /* actually deprecated because it will be replaced by NXROOT like the env variable */
+            @"NXROOT": NXBootstrap.shared.rootfsURL.path,
             @"EXECUTABLE": (__bridge NSString*)executableString,
         } mutableCopy];
         
@@ -265,79 +311,26 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
         }
         
         NSDictionary *nsEntitlements = (__bridge NSDictionary*)entitlements;
-        NSArray<NSString*> *readFilePermissions = nsEntitlements[(__bridge NSString*)kNXT2EntitlementSandboxFileRead];
-        NSArray<NSString*> *readWriteFilePermissions = nsEntitlements[(__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite];
-        for(NSString *readWriteFilePermission in readWriteFilePermissions)
-        {
-            NSArray<NSString*> *paths = PEResolveEntitlementPaths(readWriteFilePermission, vars);
-            for(NSString *path in paths)
-            {
-                NSString *actualPath = PECanonicalizePath(path);
-                if(actualPath)
-                {
-                    NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions(actualPath.UTF8String, kFSMountPermissionReadWrite);
-                    if(extensions != nil)
-                    {
-                        [filePermissions addObjectsFromArray:extensions];
-                    }
-                }
-            }
-        }
-        for(NSString *readFilePermission in readFilePermissions)
-        {
-            NSArray<NSString*> *paths = PEResolveEntitlementPaths(readFilePermission, vars);
-            for(NSString *path in paths)
-            {
-                NSString *actualPath = PECanonicalizePath(path);
-                if(actualPath)
-                {
-                    NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions(actualPath.UTF8String, kFSMountPermissionRead);
-                    if(extensions != nil)
-                    {
-                        [filePermissions addObjectsFromArray:extensions];
-                    }
-                }
-            }
-        }
-        NSArray<NSData*> *extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/rtpatch"] path] UTF8String], kFSMountPermissionRead);
-        if(extensions != nil)
-        {
-            [filePermissions addObjectsFromArray:extensions];
-        }
-        extensions = (__bridge_transfer NSArray<NSData*>*)ksurface_fs_sandbox_copy_sandbox_extensions([[[NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"/boot/patchfinder.bin"] path] UTF8String], kFSMountPermissionRead);
-        if(extensions != nil)
-        {
-            [filePermissions addObjectsFromArray:extensions];
-        }
+        
+        /* append file permissions from entitlements */
+        trust_identity_append_file_permissions_for_paths(filePermissions, nsEntitlements[(__bridge NSString*)kNXT2EntitlementSandboxFileRead], vars, kFSMountPermissionRead, true);
+        trust_identity_append_file_permissions_for_paths(filePermissions, nsEntitlements[(__bridge NSString*)kNXT2EntitlementSandboxFileReadWrite], vars, kFSMountPermissionReadWrite, true);
+        
+        /* append extra file permissions that are on by default */
+        trust_identity_append_file_permissions_for_paths(filePermissions, @[
+            @"$(NXROOT)/boot/rtpatch",
+            @"$(NXROOT)/boot/patchfinder.bin"
+        ], vars, kFSMountPermissionRead, true);
+        
+        /* handling the most powerful entitlement known to ksurface */
         if(CFDictionaryGetValue(entitlements, kNXT2EntitlementSandboxHost) == kCFBooleanTrue)
         {
-            NSArray<NSString*> *paths = PEResolveEntitlementPaths(@"$(ROOTFS)/../*", vars);
-            for(NSString *path in paths)
-            {
-                NSString *actualPath = PECanonicalizePath(path);
-                if(actualPath)
-                {
-                    NSData *extension = (__bridge_transfer NSData*)ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(actualPath.UTF8String, kFSMountPermissionReadWrite);
-                    if(extension != NULL)
-                    {
-                        [filePermissions addObject:extension];
-                    }
-                }
-            }
-            
-            NSArray<NSString*> *roPaths = PEResolveEntitlementPaths(@"$(ROOTFS)/../", vars);
-            for(NSString *path in roPaths)
-            {
-                NSString *actualPath = PECanonicalizePath(path);
-                if(actualPath)
-                {
-                    NSData *extension = (__bridge_transfer NSData*)ksurface_fs_sandbox_copy_sandbox_extension_for_arbitary_path(actualPath.UTF8String, kFSMountPermissionRead);
-                    if(extension != NULL)
-                    {
-                        [filePermissions addObject:extension];
-                    }
-                }
-            }
+            trust_identity_append_file_permissions(filePermissions, @"$(NXROOT)/../../*", vars, kFSMountPermissionRead, false); /* making host data container sub paths readable */
+            trust_identity_append_file_permissions_for_paths(filePermissions, @[
+                @"$(NXROOT)/../*",          /* full documents path rw in container of host */
+                @"$(NXROOT)/../Library/*",  /* full library path rw in container of host */
+                @"$(NXROOT)/../tmp",        /* full tmp RW */
+            ], vars, kFSMountPermissionReadWrite, false);
         }
         return (__bridge_retained CFArrayRef)filePermissions;
     }

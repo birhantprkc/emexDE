@@ -23,5 +23,54 @@
 
 int main(void)
 {
+    /* getting nxroot */
+    const char *virtualRootPathCStr = getenv("NXROOT");
+    if(virtualRootPathCStr == NULL)
+    {
+        return 1;
+    }
+    
+    NSString *virtualRootPath = [NSString stringWithCString:virtualRootPathCStr encoding:NSUTF8StringEncoding];
+    if(virtualRootPath == NULL)
+    {
+        return 1;
+    }
+    
+    NSString *nyxianRootPath = virtualRootPath.stringByDeletingLastPathComponent.stringByDeletingLastPathComponent;
+    if(nyxianRootPath == NULL)
+    {
+        return 1;
+    }
+    
+    NSString *nyxianTmpDir = [nyxianRootPath stringByAppendingPathComponent:@"tmp"];
+    if(nyxianTmpDir == NULL)
+    {
+        return 1;
+    }
+    
+    /* setting env up */
+    if(setenv("HOME", nyxianRootPath.UTF8String, 1) != 0 ||
+       setenv("CFFIXED_USER_HOME", nyxianRootPath.UTF8String, 1) != 0 ||
+       setenv("TMPDIR", nyxianTmpDir.UTF8String, 1) != 0)
+    {
+        return 1;
+    }
+    
+    /* getting unique bootstrap identifier for port */
+    const char *uniqueBootstrapRegistryIdentifier = getenv("PEUBID");
+    if(uniqueBootstrapRegistryIdentifier == NULL)
+    {
+        return 1;
+    }
+    
+    NSString *ubid = [NSString stringWithCString:uniqueBootstrapRegistryIdentifier encoding:NSUTF8StringEncoding];
+    if(ubid == NULL)
+    {
+        return 1;
+    }
+    
+    /* ready for compilation service =3 */
+    
     CFRunLoopRun();
+    return 0;
 }
