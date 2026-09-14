@@ -31,9 +31,7 @@ extension NXBuilder: MDKPhaseRunnerDelegate {
         
         let ok: Bool
         if self.useRemoteServiceIfAvailable,
-            let remoteCompiler = self.remoteCompiler,
-            job.type != .swiftCompiler,
-            job.type != .swiftDriver {
+            let remoteCompiler = self.remoteCompiler {
             ok = remoteCompiler.execute(job, with: &localDiags, withMainSource: &localSource)
         } else {
             ok = job.execute(withOutDiagnostics: &localDiags, withOutMainSource: &localSource)
