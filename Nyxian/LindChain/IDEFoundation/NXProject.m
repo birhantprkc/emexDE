@@ -31,7 +31,7 @@
 {
     return @[
         @"-target",
-        @"apple-arm64-ios26.5",
+        @"apple-arm64-ios27.0",
         @"-isysroot",
         NXBootstrap.shared.sdkURL.path,
         @"-resource-dir",
@@ -252,7 +252,7 @@
         @"NXDisplayName": name,
         @"NXOrganizationPrefix": organizationIdentifierValue,
         @"NXBundleIdentifier": bundleIdentifierValue,
-        @"NXDeploymentTarget": version.versionString ?: @"26.5",
+        @"NXDeploymentTarget": version.versionString ?: @"27.0",
         @"NXClangFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
         @"NXLinkerFlags": @[],
         @"NXSwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),

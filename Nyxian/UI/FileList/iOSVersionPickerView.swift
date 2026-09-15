@@ -40,8 +40,9 @@ fileprivate var _NXOSVersionSupportedBuildVersions: [String] = []
                let supportedVersion = sdk.supportedVersions {
                 return supportedVersion
             }
-            if let fallback = MDKOSVersion(versionString: "26.5") {
-                return [fallback]
+            if let fallbackMin = MDKOSVersion(versionString: "15.0"),
+               let fallbackMax = MDKOSVersion(versionString: "27.0"){
+                return [fallbackMin, fallbackMax]
             }
             return []
         }
@@ -60,7 +61,7 @@ fileprivate var _NXOSVersionSupportedBuildVersions: [String] = []
                 return _NXOSVersionSupportedBuildVersions
             }
             
-            return ["26.5"]
+            return ["15.0", "27.0"]
         }
     }
 }

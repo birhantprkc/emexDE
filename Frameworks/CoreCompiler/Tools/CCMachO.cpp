@@ -103,6 +103,9 @@
 #undef CPU_SUBTYPE_POWERPC_7450
 #undef CPU_SUBTYPE_POWERPC_970
 #undef CPU_SUBTYPE_MC98601
+#undef CPU_SUBTYPE_ARM_V8M_MAIN
+#undef CPU_SUBTYPE_ARM_V8M_BASE
+#undef CPU_SUBTYPE_ARM_V8_1M_MAIN
 
 #include <llvm/BinaryFormat/MachO.h>
 #include <llvm/MC/TargetRegistry.h>

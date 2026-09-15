@@ -105,7 +105,6 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.register(ProjectTableCell.self, forCellReuseIdentifier: ProjectTableCell.reuseIdentifier)
-        LDEApplicationWorkspace.shared().ping()
         self.title = "KEXTs"
         
         if KEXTManagementViewController.kextConfigChanged {
