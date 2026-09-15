@@ -22,20 +22,20 @@
 
 #import <LindChain/ProcEnvironment/Surface/trust/entitlement.h>
 #import <LindChain/ProcEnvironment/Surface/proc/spawn.h>
+#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/Surface/proc/insert.h>
 #import <LindChain/ProcEnvironment/Surface/proc/def.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Surface/proc/remove.h>
 #import <LindChain/ProcEnvironment/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/PEUserspaceManager.h>
 #include <ksurface_config.h>
 
-kern_return_t proc_spawn(ksurface_proc_t *parent,
-                         ksurface_proc_t **child,
-                         pid_t child_pid,
-                         int child_pidv,
-                         ksurface_trust_identity_t *identity)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_spawn, (ksurface_proc_t *parent,
+                                                     ksurface_proc_t **child,
+                                                     pid_t child_pid,
+                                                     int child_pidv,
+                                                     ksurface_trust_identity_t *identity), {
     assert(parent != NULL && child != NULL && identity != NULL);
     
     ksurface_proc_t *child_new = kvo_copy(parent);
@@ -158,7 +158,7 @@ kern_return_t proc_spawn(ksurface_proc_t *parent,
     
     /* child stays retained for the caller */
     return KERN_SUCCESS;
-}
+});
 
 kern_return_t proc_kill(ksurface_proc_t *child,
                         int sig)

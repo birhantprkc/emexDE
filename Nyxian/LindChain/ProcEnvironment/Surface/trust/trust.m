@@ -288,9 +288,8 @@ static void trust_identity_append_file_permissions_for_paths(NSMutableArray<NSDa
     }
 }
 
-static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableString,
-                                                       CFDictionaryRef entitlements)
-{
+LIBKERN_DEFINE_PATCHABLE(CFArrayRef, trust_identity_give_file_permissions, (CFStringRef executableString,
+                                                                            CFDictionaryRef entitlements),{
     @autoreleasepool
     {
         NSMutableArray<NSData*> *filePermissions = [[NSMutableArray alloc] init];
@@ -335,7 +334,7 @@ static CFArrayRef trust_identity_give_file_permissions(CFStringRef executableStr
         }
         return (__bridge_retained CFArrayRef)filePermissions;
     }
-}
+});
 
 PEEntitlementFlags trust_identity_entitlement_flags_from_entitlements(CFDictionaryRef entitlements)
 {
