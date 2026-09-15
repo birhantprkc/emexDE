@@ -20,6 +20,7 @@
 */
 
 #import <LindChain/ProcEnvironment/Surface/trust/summary.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #import <UIKit/UIKit.h>
 #include <pwd.h>
 #include <grp.h>
@@ -148,8 +149,7 @@ typedef struct {
     __unsafe_unretained NSString *text;
 } KSNXT2Line;
 
-NSAttributedString *KSurfaceNXT2CreateEntitlementSummary(NSDictionary *entitlements)
-{
+LIBKERN_DEFINE_PATCHABLE(NSAttributedString*, KSurfaceNXT2CreateEntitlementSummary, (NSDictionary *entitlements),{
     const KSNXT2Descriptor kKSNXT2Descriptors[] = {
         { kNXT2EntitlementPlatform, KSNXT2SectionIdentity, KSNXT2ValueBool, KSNXT2SeverityWarn, NO, CFSTR("Runs as a platform process and is exempt from some restrictions.") },
         { kNXT2EntitlementPlatformRoot, KSNXT2SectionIdentity, KSNXT2ValueBool, KSNXT2SeverityCrit, NO, CFSTR("Runs with root privileges.") },
@@ -406,4 +406,4 @@ NSAttributedString *KSurfaceNXT2CreateEntitlementSummary(NSDictionary *entitleme
     }
     
     return [attributedString copy];
-}
+});

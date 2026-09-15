@@ -21,14 +21,14 @@
 
 #include <LindChain/ProcEnvironment/Surface/proc/permit.h>
 #include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <assert.h>
 #include <errno.h>
 
-bool proc_snapshot_primitive_over_proc_allowed(ksurface_proc_snapshot_t *proc,
-                                               ksurface_proc_t *targetProc,
-                                               PEEntitlementFlags entitlementsNeeded,
-                                               PEEntitlementFlags targetEntitlementsNeeded)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, proc_snapshot_primitive_over_proc_allowed, (ksurface_proc_snapshot_t *proc,
+                                                                           ksurface_proc_t *targetProc,
+                                                                           PEEntitlementFlags entitlementsNeeded,
+                                                                           PEEntitlementFlags targetEntitlementsNeeded), {
     assert(proc != NULL);
     
     /*
@@ -136,7 +136,7 @@ out_euid_check:
 out_yes:
     kvo_unlock(targetProc);
     return true;
-}
+});
 
 bool proc_primitive_over_proc_allowed(ksurface_proc_t *proc,
                                       ksurface_proc_t *targetProc,

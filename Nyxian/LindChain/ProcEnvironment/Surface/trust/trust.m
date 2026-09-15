@@ -455,8 +455,7 @@ static bool trust_resign_with_fd(int *fd,
     return true;
 }
 
-ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
-{
+LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t *, trust_identity_create_from_path, (const char *path),{
     if(path == NULL)
     {
         errno = EINVAL;
@@ -668,11 +667,10 @@ ksurface_trust_identity_t *trust_identity_create_from_path(const char *path)
     
     CFRelease(executableString);
     return identity;
-}
+});
 
-ksurface_trust_identity_t *trust_identity_create_from_path_with_parent_identity(const char *path,
-                                                                                ksurface_trust_identity_t *parentIdentity)
-{
+LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t*, trust_identity_create_from_path_with_parent_identity, (const char *path,
+                                                                                                            ksurface_trust_identity_t *parentIdentity),{
     /* first we create the child's identity */
     ksurface_trust_identity_t *childIdentity = trust_identity_create_from_path(path);
     if(childIdentity == NULL)
@@ -832,7 +830,7 @@ ksurface_trust_identity_t *trust_identity_create_from_path_with_parent_identity(
     childIdentity->entitlements = childNewEntitlements;
     
     return childIdentity;
-}
+});
 
 void trust_identity_destroy(ksurface_trust_identity_t *identity)
 {

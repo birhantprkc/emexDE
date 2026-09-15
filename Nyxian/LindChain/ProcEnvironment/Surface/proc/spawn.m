@@ -160,9 +160,8 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_spawn, (ksurface_proc_t *parent,
     return KERN_SUCCESS;
 });
 
-kern_return_t proc_kill(ksurface_proc_t *child,
-                        int sig)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_kill, (ksurface_proc_t *child,
+                                                    int sig), {
     if(child == NULL)
     {
         return KERN_INVALID_ADDRESS;
@@ -203,7 +202,7 @@ kern_return_t proc_kill(ksurface_proc_t *child,
     
     [process sendSignal:sig];
     return KERN_SUCCESS;
-}
+});
 
 kern_return_t proc_reap(ksurface_proc_t *proc)
 {

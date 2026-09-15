@@ -81,7 +81,7 @@ void NUDGuestHooksInit(void)
 
 - (id)hook_initWithDomain:(CFStringRef)domain user:(CFStringRef)user byHost:(bool)host containerPath:(CFStringRef)containerPath containingPreferences:(id)arg5
 {
-    static NSArray* appleIdentifierPrefixes = @[
+    NSArray* appleIdentifierPrefixes = @[
         @"com.apple.",
         @"group.com.apple.",
         @"systemgroup.com.apple."
