@@ -41,7 +41,7 @@
 
 @end
 
-@interface MDKMutableFile : MDKFile
+@interface MDKMutableFile : MDKFile <NSSecureCoding>
 
 @property (nonatomic, readwrite) NSURL *fileURL;
 @property (nonatomic, readwrite) NSData *unsavedData;

@@ -28,6 +28,8 @@
 @protocol NXCompilationServiceProtocol <NSObject>
 
 - (void)executeJob:(MDKJob*)job withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply;
+- (void)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments withReply:(void (^)(BOOL success))reply;
+- (void)headersForFile:(MDKFile*)file withReply:(void (^)(NSArray<MDKFile*> *files))reply;
 
 @end
 
@@ -37,6 +39,8 @@
 + (instancetype)newRemoteCompiler;
 
 - (BOOL)executeJob:(MDKJob*)job withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics withMainSource:(NSString**)mainSource;
+- (BOOL)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments;
+- (NSArray<MDKFile*>*)headersForFile:(MDKFile*)file;
 
 @end
 

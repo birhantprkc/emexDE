@@ -50,6 +50,8 @@ final class NXBuilder: NSObject {
         self.database.reuseDatabase()
         
         self.dependencyScanner = MDKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        remoteCompiler = NXRemoteCompiler.new()
+        remoteCompiler?.setupDependencyScanner(withArguments: self.project.projectConfig.compilerFlags)
         
         let phaseEngine: NXPhaseEngine
         do {
@@ -80,8 +82,6 @@ final class NXBuilder: NSObject {
         
         phaseEngine.delegate = self
         self.phaseRunner.delegate = self
-        
-        remoteCompiler = NXRemoteCompiler.new()
     }
     
     func headsup(buildType: NXBuilder.BuildType) throws {

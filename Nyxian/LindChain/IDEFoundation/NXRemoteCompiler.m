@@ -92,14 +92,17 @@
             }
         };
         NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
-        NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
+        NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKFile class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
+        [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:0 ofReply:NO];
         [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:1 ofReply:YES];
+        [iface setClasses:classes forSelector:@selector(headersForFile:withReply:) argumentIndex:0 ofReply:NO];
+        [iface setClasses:classes forSelector:@selector(headersForFile:withReply:) argumentIndex:0 ofReply:YES];
         remoteCompiler->_connection.remoteObjectInterface = iface;
         [remoteCompiler->_connection resume];
         
         remoteCompiler->_lock = OS_UNFAIR_LOCK_INIT;
+        [remoteCompiler->_instance.process addObserver:remoteCompiler];
     }
-    [remoteCompiler->_instance.process addObserver:remoteCompiler];
     return remoteCompiler;
 }
 
@@ -132,12 +135,14 @@
     id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
         /* semaphores remember the signal, it doesnt have to catch them in time */
         failed = YES;
+        dispatch_semaphore_signal(sema);
     }];
     
     if(proxy == NULL)
     {
         /* semaphores remember the signal, it doesnt have to catch them in time */
         failed = YES;
+        dispatch_semaphore_signal(sema);
     }
     else
     {
@@ -173,6 +178,98 @@
     if(mainSource)
     {
         *mainSource = resultMainSource;
+    }
+    
+    return result;
+}
+
+- (BOOL)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments
+{
+    os_unfair_lock_lock(&_lock);
+    if(_instance == nil)
+    {
+        os_unfair_lock_unlock(&_lock);
+        return NO;
+    }
+    os_unfair_lock_unlock(&_lock);
+    
+    __block BOOL failed = NO;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    __block BOOL result = NO;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy setupDependencyScannerWithArguments:arguments withReply:^(BOOL success){
+            result = success;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    if(failed)
+    {
+        os_unfair_lock_lock(&_lock);
+        [_instance terminate];
+        os_unfair_lock_unlock(&_lock);
+        return NO;
+    }
+    
+    return result;
+}
+
+- (NSArray<MDKFile*>*)headersForFile:(MDKFile*)file
+{
+    os_unfair_lock_lock(&_lock);
+    if(_instance == nil)
+    {
+        os_unfair_lock_unlock(&_lock);
+        return nil;
+    }
+    os_unfair_lock_unlock(&_lock);
+    
+    __block BOOL failed = NO;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    __block NSArray<MDKFile*> *result = nil;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy headersForFile:file withReply:^(NSArray<MDKFile*> *files){
+            result = files;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    if(failed)
+    {
+        os_unfair_lock_lock(&_lock);
+        [_instance terminate];
+        os_unfair_lock_unlock(&_lock);
+        return nil;
     }
     
     return result;

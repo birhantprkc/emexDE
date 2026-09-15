@@ -25,10 +25,13 @@
 #import <LiveShim/ServiceProtocol.h>
 
 static NSString *ubid = nil;
+static MDKDependencyScanner *dependencyScanner = nil;
 
 @protocol NXCompilationServiceProtocol <NSObject>
 
 - (void)executeJob:(MDKJob*)job withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply;
+- (void)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments withReply:(void (^)(BOOL success))reply;
+- (void)headersForFile:(MDKFile*)file withReply:(void (^)(NSArray<MDKFile*> *files))reply;
 
 @end
 
@@ -46,6 +49,24 @@ static NSString *ubid = nil;
         BOOL success = [job executeJobWithOutDiagnostics:&diagnostic withOutMainSource:&mainSource];
         reply(success, diagnostic, mainSource);
     });
+}
+
+- (void)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments
+                                  withReply:(void (^)(BOOL success))reply
+{
+    dependencyScanner = [MDKDependencyScanner dependencyScannerWithArguments:arguments];
+    if(dependencyScanner == nil)
+    {
+        reply(NO);
+        return;
+    }
+    reply(YES);
+}
+
+- (void)headersForFile:(MDKFile*)file
+             withReply:(void (^)(NSArray<MDKFile*> *files))reply
+{
+    reply([dependencyScanner headerFilesForFile:file]);
 }
 
 - (void)clientDidConnectWithConnection:(NSXPCConnection *)client
@@ -113,8 +134,7 @@ int main(int argc, char **argv)
     
     /* setting env up */
     if(setenv("HOME", nyxianRootPath.UTF8String, 1) != 0 ||
-       setenv("CFFIXED_USER_HOME", nyxianRootPath.UTF8String, 1) != 0 ||
-       setenv("TMPDIR", nyxianTmpDir.UTF8String, 1) != 0)
+       setenv("CFFIXED_USER_HOME", nyxianRootPath.UTF8String, 1) != 0)
     {
         return 1;
     }
