@@ -20,6 +20,7 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/kxld/reseal.h>
+#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
 
 bool KXResealDataConst(kxld_image_info_t *image_info)
 {
@@ -34,7 +35,7 @@ bool KXResealDataConst(kxld_image_info_t *image_info)
             if(!(sc->initprot & VM_PROT_WRITE) && strncmp(sc->segname, "__DATA_CONST", 16) == 0)
             {
                 void *addr = (void *)((uintptr_t)image_info->slide + sc->vmaddr);
-                if(mprotect(addr, sc->vmsize, PROT_READ) != 0)
+                if(kxld_vtable->mprotect(addr, sc->vmsize, PROT_READ) != 0)
                 {
                     fprintf(stderr, "reseal __DATA_CONST failed: %s\n", strerror(errno));
                     return false;

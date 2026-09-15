@@ -31,6 +31,7 @@
 #include <LindChain/ProcEnvironment/Surface/kxld/init.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/objc.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #include <LindChain/ProcEnvironment/Utils/kpanic.h>
@@ -95,14 +96,14 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* map machO */
-    LCMachO *machO = LCMapMachOFromFDRO(dup(fd));
+    LCMachO *machO = kxld_vtable->LCMapMachOFromFDRO(dup(fd));
     if(machO == NULL)
     {
         goto out_failure;
     }
     
     /* checking if the kernel says(double meaning x3) this is signed */
-    if(!KXValidateCodeSignature(machO))
+    if(!kxld_vtable->KXValidateCodeSignature(machO))
     {
         LCUnmapMachO(machO);
         goto out_failure;
@@ -122,8 +123,8 @@ kern_return_t kxopen_with_fd(int fd,
         goto out_failure;
     }
     
-    bool success = KXMapMachOExecutable(machO, mode, image_info);
-    LCUnmapMachO(machO);
+    bool success = kxld_vtable->KXMapMachOExecutable(machO, mode, image_info);
+    kxld_vtable->LCUnmapMachO(machO);
     if(!success)
     {
         /* sets errno */
@@ -131,7 +132,7 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* we gotta get kmod first */
-    if(!KXLocateKmod(image_info))
+    if(!kxld_vtable->KXLocateKmod(image_info))
     {
         goto out_failure_destroy;
     }
@@ -141,7 +142,7 @@ kern_return_t kxopen_with_fd(int fd,
     {
         {
             kxld_image_info_t *depImageInfo;
-            kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
+            kern_return_t kr = kxld_vtable->KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
             if(kr != KERN_SUCCESS)
             {
                 goto revert;
@@ -168,7 +169,7 @@ kern_return_t kxopen_with_fd(int fd,
             for(; i >= 0; i--)
             {
                 kxld_image_info_t *depImageInfo;
-                kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
+                kern_return_t kr = kxld_vtable->KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
                 if(kr != KERN_SUCCESS)
                 {
                     ksurface_panic("failed to find previously resolvable dependency that was reference incremented.");
@@ -187,13 +188,13 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* fixing up kmod and the blobs offsets */
-    if(!KXApplyFixups(image_info))
+    if(!kxld_vtable->KXApplyFixups(image_info))
     {
         goto out_failure_destroy;
     }
     
     /* still very unmappable */
-    kern_return_t kr = KXRegisterKext(image_info);
+    kern_return_t kr = kxld_vtable->KXRegisterKext(image_info);
     if(kr != KERN_SUCCESS)
     {
         kvo_release(image_info);
@@ -202,24 +203,24 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* now the spicy port with the symbol exports */
-    if(!KXRegisterKextExports(image_info))
+    if(!kxld_vtable->KXRegisterKextExports(image_info))
     {
         goto out_failure_destroy;
     }
     
-    if(!KXRegisterObjCImage(image_info))
+    if(!kxld_vtable->KXRegisterObjCImage(image_info))
     {
         goto out_failure_destroy;
     }
     
     /* now resealing */
-    if(!KXResealDataConst(image_info))
+    if(!kxld_vtable->KXResealDataConst(image_info))
     {
         goto out_failure_destroy;
     }
     
 #if KSURFACE_KEXT_ALLOW_CONSTRUCTORS
-    if(!KXRunInitializers(image_info))
+    if(!kxld_vtable->KXRunInitializers(image_info))
     {
         goto out_failure_destroy;
     }
@@ -287,7 +288,7 @@ kern_return_t kxclose(kxld_image_info_t *claimed_image_info)
     
     /* finding kext object */
     kxld_image_info_t *image_info = NULL;
-    if(KXGetRegisteredKextForIdentifier(claimed_image_info->mod->identifier, &image_info) != KERN_SUCCESS)
+    if(kxld_vtable->KXGetRegisteredKextForIdentifier(claimed_image_info->mod->identifier, &image_info) != KERN_SUCCESS)
     {
         klog_log("kextloader", "couldn't find kext for identifier '%s'", claimed_image_info->mod->identifier);
         return KERN_NOT_FOUND;
