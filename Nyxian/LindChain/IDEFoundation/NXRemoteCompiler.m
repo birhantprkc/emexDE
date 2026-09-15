@@ -23,6 +23,37 @@
 #import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
 #import <Nyxian-Swift.h>
 
+@implementation NXRemoteDependencyScanner {
+    NXRemoteCompiler *_remoteCompiler;
+}
+
++ (instancetype)dependencyScannerWithRemoteCompiler:(NXRemoteCompiler*)compiler
+{
+    if(compiler == nil)
+    {
+        return nil;
+    }
+    
+    NXRemoteDependencyScanner *scanner = [[self alloc] init];
+    if(scanner)
+    {
+        scanner->_remoteCompiler = compiler;
+    }
+    return scanner;
+}
+
+- (NSArray<MDKFile*>*)headerFilesForFile:(MDKFile*)file
+{
+    return [_remoteCompiler headersForFile:file];
+}
+
++ (Class)class
+{
+    return [MDKDependencyScanner class];
+}
+
+@end
+
 @interface NXRemoteCompiler () <PEProcessObserver>
 
 @end
@@ -273,6 +304,11 @@
     }
     
     return result;
+}
+
+- (MDKDependencyScanner*)dependencyScanner
+{
+    return (MDKDependencyScanner*)[NXRemoteDependencyScanner dependencyScannerWithRemoteCompiler:self];
 }
 
 - (void)process:(PEProcess *)process didExitWithWait4Code:(int)code

@@ -33,6 +33,16 @@
 
 @end
 
+@class NXRemoteCompiler;
+
+@interface NXRemoteDependencyScanner : NSObject
+
++ (instancetype)dependencyScannerWithRemoteCompiler:(NXRemoteCompiler*)compiler;
+
+- (NSArray<MDKFile*>*)headerFilesForFile:(MDKFile*)file;
+
+@end
+
 @interface NXRemoteCompiler : NSObject
 
 + (BOOL)isAvailable;
@@ -41,6 +51,7 @@
 - (BOOL)executeJob:(MDKJob*)job withDiagnostics:(NSArray<MDKDiagnostic*>**)diagnostics withMainSource:(NSString**)mainSource;
 - (BOOL)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments;
 - (NSArray<MDKFile*>*)headersForFile:(MDKFile*)file;
+- (MDKDependencyScanner*)dependencyScanner;
 
 @end
 

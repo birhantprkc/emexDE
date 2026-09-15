@@ -81,8 +81,7 @@ extension NXBuilder: MDKDriverDelegate {
                     
                     // Checking if the header files included by the source code are newer than the object file
                     let inputFile: MDKFile = MDKFile(url: inputFileURL)
-                    //guard let headers = self.dependencyScanner.headerFiles(for: inputFile) else {
-                    guard let headers = self.remoteCompiler?.headers(for: inputFile) else {
+                    guard let headers = self.dependencyScanner.headerFiles(for: inputFile) else {
                         self.database.removeFileDebug(ofPath: inputFile.fileURL.path)
                         os_unfair_lock_lock(&osUnfairLock)
                         newJobs.append(job)

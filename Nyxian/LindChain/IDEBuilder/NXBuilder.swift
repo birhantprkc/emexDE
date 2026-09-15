@@ -49,9 +49,16 @@ final class NXBuilder: NSObject {
         self.database = DebugDatabase.getDatabase(ofPath: "\(self.project.cacheURL.path)/debug.json")
         self.database.reuseDatabase()
         
-        self.dependencyScanner = MDKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
-        remoteCompiler = NXRemoteCompiler.new()
-        remoteCompiler?.setupDependencyScanner(withArguments: self.project.projectConfig.compilerFlags)
+        if useRemoteServiceIfAvailable {
+            remoteCompiler = NXRemoteCompiler.new()
+        }
+        
+        if remoteCompiler?.setupDependencyScanner(withArguments: self.project.projectConfig.compilerFlags) ?? false,
+           let remoteDependencyScanner = remoteCompiler?.dependencyScanner() {
+            self.dependencyScanner = remoteDependencyScanner
+        } else {
+            self.dependencyScanner = MDKDependencyScanner(arguments: self.project.projectConfig.compilerFlags)
+        }
         
         let phaseEngine: NXPhaseEngine
         do {
