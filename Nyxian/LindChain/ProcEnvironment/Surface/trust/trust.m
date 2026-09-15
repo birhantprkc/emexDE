@@ -41,6 +41,7 @@
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/Utils/CFTools.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #import <ksurface_config.h>
 
 /* ----------------------------------------------------------------------
@@ -73,8 +74,8 @@ typedef struct {
     CFTypeID expected_type;
 } entitlement_schema_entry;
 
-static CFDictionaryRef trust_identity_validate_entitlements(CFStringRef executablePath,
-                                                            CFDictionaryRef entitlements)
+LIBKERN_DEFINE_PATCHABLE(CFDictionaryRef, trust_identity_validate_entitlements, (CFStringRef executablePath,
+                                                                                 CFDictionaryRef entitlements),
 {
     if(entitlements == NULL)
     {
@@ -193,7 +194,7 @@ static CFDictionaryRef trust_identity_validate_entitlements(CFStringRef executab
     }
     
     return clean;
-}
+});
 
 static NSArray<NSString *> *PEResolveEntitlementPaths(NSString *pathTemplate,
                                                       NSDictionary<NSString *, NSString *> *vars)
