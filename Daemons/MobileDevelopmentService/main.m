@@ -66,7 +66,9 @@ static MDKDependencyScanner *dependencyScanner = nil;
 - (void)headersForFile:(MDKFile*)file
              withReply:(void (^)(NSArray<MDKFile*> *files))reply
 {
-    reply([dependencyScanner headerFilesForFile:file]);
+    MDKPthreadDispatch(^{
+        reply([dependencyScanner headerFilesForFile:file]);
+    });
 }
 
 - (void)clientDidConnectWithConnection:(NSXPCConnection *)client
