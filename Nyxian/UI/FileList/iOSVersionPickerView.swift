@@ -65,8 +65,7 @@ fileprivate var _NXOSVersionSupportedBuildVersions: [String] = []
     }
 }
 
-class IOSVersionPickerViewController: UIThemedViewController, UIPickerViewDelegate, UIPickerViewDataSource {
-
+class IOSVersionPickerViewController: NXUIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     var selectedVersion: String
     var onVersionSelected: ((String) -> Void)?
 

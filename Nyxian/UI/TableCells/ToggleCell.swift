@@ -27,8 +27,8 @@ class ToggleTableCell: UITableViewCell {
     
     var callback: (Bool) -> Void = { _ in }
     
-    private(set) var toggle: UISwitch = {
-        let toggle = UISwitch()
+    private(set) var toggle: NXUISwitch = {
+        let toggle = NXUISwitch()
         return toggle
     }()
     
@@ -52,12 +52,6 @@ class ToggleTableCell: UITableViewCell {
         selectionStyle = .none
         toggle.addTarget(self, action: #selector(toggleChanged(_:)), for: .valueChanged)
         accessoryView = toggle
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(handleThemeChange), name: Notification.Name("uiColorChangeNotif"), object: nil)
-        
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, previousTraitCollection: UITraitCollection) in
-            self.applyTheme()
-        }
     }
     
     required init?(coder: NSCoder) {
@@ -85,22 +79,9 @@ class ToggleTableCell: UITableViewCell {
         toggle.isOn = false
     }
     
-    private func applyTheme() {
-        toggle.onTintColor = LDETheme.currentTheme?.appLabel
-        toggle.thumbTintColor = LDETheme.currentTheme?.appTableCell
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        applyTheme()
-    }
     
     @objc private func toggleChanged(_ sender: UISwitch) {
         value = sender.isOn
         callback(sender.isOn)
-    }
-    
-    @objc private func handleThemeChange() {
-        applyTheme()
     }
 }

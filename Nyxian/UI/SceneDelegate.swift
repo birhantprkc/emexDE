@@ -255,7 +255,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
             return;
         }
         
-        let themedTabViewController: UIThemedTabViewController = UIThemedTabViewController()
+        let themedTabViewController: NXUITabBarController = NXUITabBarController()
         
         let contentViewController: ContentViewController = ContentViewController()
         let settingsViewController: NXSettingsTableViewController = NXSettingsTableViewController()

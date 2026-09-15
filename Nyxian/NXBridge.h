@@ -24,7 +24,10 @@
 
 /* Objective-C UI Headers */
 #import <UI/XCodeButton.h>
+#import <UI/UIInit/NXUIViewController.h>
 #import <UI/UIInit/NXUITableViewController.h>
+#import <UI/UIInit/NXUITabBarController.h>
+#import <UI/UIInit/NXUISwitch.h>
 #import <UI/Settings/NXSettingsTableViewController.h>
 
 /* Apple Private API Headers */
