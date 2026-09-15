@@ -430,7 +430,7 @@ class FileListViewController: NXUITableViewController, UIDocumentPickerDelegate 
                     nav.modalPresentationStyle = .formSheet
                     self.present(nav, animated: true)
                 } catch {
-                    NotificationServer.NotifyUser(level: .error, notification: "Error Opening File Info View: \(error.localizedDescription)")
+                    NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Error Opening File Info View: \(error.localizedDescription)", withDelay: 0.0)
                 }
             }
             
@@ -545,7 +545,7 @@ class FileListViewController: NXUITableViewController, UIDocumentPickerDelegate 
                         self.entries.append(FileListEntry.getEntry(ofPath: folder.path))
                         self.tableView.reloadData()
                     } else {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to unzip \(fileListEntry.path)")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to unzip \(fileListEntry.path)", withDelay: 0.0)
                     }
                 }
             } else {

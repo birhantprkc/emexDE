@@ -39,6 +39,7 @@
 #import <LindChain/IDEFoundation/NXUtils.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/IDEFoundation/NXRemoteCompiler.h>
+#import <LindChain/IDEFoundation/NXAlertDiagnosticPresenter.h>
 #import <LindChain/IDEBuilder/LDEFilesFinder.h>
 #import <LindChain/IDEBuilder/NXPhaseEngine.h>
 #import <LindChain/IDEBuilder/NXPhaseRunner.h>

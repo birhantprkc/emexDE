@@ -20,12 +20,13 @@
 */
 
 #import <LindChain/IDEFoundation/NXBootstrap.h>
+#import <LindChain/IDEFoundation/NXAlertDiagnosticPresenter.h>
 #import <LindChain/Utils/Zip.h>
 #import <LindChain/Downloader/fdownload.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/relax.h>
 #import <MobileDevelopmentKit/MDKThreadPool.h>
+#import <LindChain/ProcEnvironment/Surface/trust/keychain.h>
 #import <UI/XCodeButton.h>
-#import <Nyxian-Swift.h>
 
 BOOL PEURLIsContainedIn(NSURL *candidate,
                         NSURL *root)
@@ -161,7 +162,8 @@ BOOL PEURLIsContainedIn(NSURL *candidate,
     report_error:
         {
             NSLog(@"bootstrapping sadly failed :c");
-            [NotificationServer NotifyUserWithLevel:NotifLevelError notification:[NSString stringWithFormat:@"Bootstrapping failed: %@", error.localizedDescription] delay:1.0];
+            
+            [NXAlertDiagnosticPresenter notifyUserWithLevel:NXAlertDiagnosticPresenterLevelError withMessage:[NSString stringWithFormat:@"Bootstrapping failed: %@", error.localizedDescription] withDelay:1.0];
             self.version = 0;
             [self clearURL:self.rootURL];
             return;

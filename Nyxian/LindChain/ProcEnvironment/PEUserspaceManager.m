@@ -117,7 +117,7 @@
         NSString *message = [string copy];
         if(message.length > 0)
         {
-            [NotificationServer NotifyUserWithLevel:NotifLevelError notification:message delay:1.0];
+            [NXAlertDiagnosticPresenter notifyUserWithLevel:NXAlertDiagnosticPresenterLevelError withMessage:message withDelay:1.0];
         }
     }
     else

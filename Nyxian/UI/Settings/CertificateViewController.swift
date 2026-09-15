@@ -143,20 +143,20 @@ class CertificateImporter: NXUITableViewController, UITextFieldDelegate {
                             }
                             return
                         }
-                        NotificationServer.NotifyUser(level: .error, notification: someWords ?? "A Unknown issue has happened importing the certificate, please report this issue. (error = \(status))")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: someWords ?? "A Unknown issue has happened importing the certificate, please report this issue. (error = \(status))", withDelay: 0.0)
                         DispatchQueue.main.async {
                             self.navigationItem.setRightBarButton(self.importButton, animated: true)
                         }
                     }
                 } else {
                     guard let self = self else { return }
-                    NotificationServer.NotifyUser(level: .error, notification: "Select a certificate first.")
+                    NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Select a certificate first.", withDelay: 0.0)
                     DispatchQueue.main.async {
                         self.navigationItem.setRightBarButton(self.importButton, animated: true)
                     }
                 }
             } catch {
-                NotificationServer.NotifyUser(level: .error, notification: "Something went wrong importing the certificate! (\(error.localizedDescription))")
+                NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Something went wrong importing the certificate! (\(error.localizedDescription))", withDelay: 0.0)
             }
         }
     }

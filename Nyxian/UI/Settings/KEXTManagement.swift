@@ -232,7 +232,7 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
                 
                 guard let appBundlePathComponent = contents.first(where: { ($0 as NSString).pathExtension == "kext" }) else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install kext: no .kext bundle found")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install kext: no .kext bundle found", withDelay: 0.0)
                     }
                     return
                 }
@@ -241,14 +241,14 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
                 
                 guard let bundle = Bundle(path: appBundleFullPath) else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install kext: invalid bundle path")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install kext: invalid bundle path", withDelay: 0.0)
                     }
                     return
                 }
                 
                 guard let executablePath = bundle.executablePath else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install kext: invalid executable path")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install kext: invalid executable path", withDelay: 0.0)
                     }
                     return
                 }
@@ -314,7 +314,7 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
                                     if ret != 0 {
                                         DispatchQueue.main.async {
                                             alert.dismiss(animated: true) {
-                                                NotificationServer.NotifyUser(level: .error, notification: "Failed to install kext: \(String(cString: mach_error_string(ret)))")
+                                                NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install kext: \(String(cString: mach_error_string(ret)))", withDelay: 0.0)
                                             }
                                         }
                                     }
@@ -346,7 +346,7 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
                                 } else {
                                     DispatchQueue.main.async {
                                         alert.dismiss(animated: true) {
-                                            NotificationServer.NotifyUser(level: .error, notification: "Failed to install kext.")
+                                            NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install kext.", withDelay: 0.0)
                                         }
                                     }
                                 }
@@ -388,7 +388,7 @@ class KEXTManagementViewController: NXUITableViewController, UITextFieldDelegate
                 }
                 
             } catch {
-                NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
+                NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install application: \(error.localizedDescription)", withDelay: 0.0)
             }
         }
     }

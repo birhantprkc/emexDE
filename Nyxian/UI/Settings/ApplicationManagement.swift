@@ -137,7 +137,7 @@ class ApplicationManagementViewController: NXUITableViewController, UITextFieldD
         let application = self.applications[indexPath.row]
         let processIdentifier: pid_t = PEProcessManager.shared().spawnProcess(withBundleIdentifier: application.bundleIdentifier, withItems: [:], withKernelSurfaceProcess: nil, doRestartIfRunning: false)
         if processIdentifier < 0 {
-            NotificationServer.NotifyUser(level: .error, notification: "\"\(application.localizedName ?? "Unknown")\" Is No Longer Available")
+            NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "\"\(application.localizedName ?? "Unknown")\" Is No Longer Available", withDelay: 0.0)
         }
     }
     
@@ -180,7 +180,7 @@ class ApplicationManagementViewController: NXUITableViewController, UITextFieldD
                 
                 guard let appBundlePathComponent = contents.first(where: { ($0 as NSString).pathExtension == "app" }) else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: no .app bundle found")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install application: no .app bundle found", withDelay: 0.0)
                     }
                     return
                 }
@@ -189,14 +189,14 @@ class ApplicationManagementViewController: NXUITableViewController, UITextFieldD
                 
                 guard let bundle = Bundle(path: appBundleFullPath) else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid bundle path")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install application: invalid bundle path", withDelay: 0.0)
                     }
                     return
                 }
                 
                 guard let executablePath = bundle.executablePath else {
                     alert.dismiss(animated: true) {
-                        NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: invalid executable path")
+                        NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install application: invalid executable path", withDelay: 0.0)
                     }
                     return
                 }
@@ -290,14 +290,14 @@ class ApplicationManagementViewController: NXUITableViewController, UITextFieldD
                                         } else {
                                             DispatchQueue.main.async {
                                                 alert.dismiss(animated: true) {
-                                                    NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
+                                                    NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to sign or install application.", withDelay: 0.0)
                                                 }
                                             }
                                         }
                                     } else {
                                         DispatchQueue.main.async {
                                             alert.dismiss(animated: true) {
-                                                NotificationServer.NotifyUser(level: .error, notification: "Failed to sign or install application.")
+                                                NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to sign or install application.", withDelay: 0.0)
                                             }
                                         }
                                     }
@@ -340,7 +340,7 @@ class ApplicationManagementViewController: NXUITableViewController, UITextFieldD
                 }
                 
             } catch {
-                NotificationServer.NotifyUser(level: .error, notification: "Failed to install application: \(error.localizedDescription)")
+                NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to install application: \(error.localizedDescription)", withDelay: 0.0)
             }
         }
     }

@@ -217,7 +217,7 @@ import UIKit
     private func createProject(from optionsModel: ProjectTemplateOptionsModel) -> Bool {
         let name = optionsModel.productName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else {
-            NotificationServer.NotifyUser(level: .error, notification: "Product name is required")
+            NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Product name is required", withDelay: 0.0)
             return false
         }
         
@@ -232,7 +232,7 @@ import UIKit
             withLanguageKind: optionsModel.selectedLanguage,
             withInterfaceKind: optionsModel.selectedInterface) else
         {
-            NotificationServer.NotifyUser(level: .error, notification: "Failed to create project")
+            NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: "Failed to create project", withDelay: 0.0)
             return false
         }
         
@@ -395,7 +395,7 @@ import UIKit
                 addProject(project)
             }
         } catch {
-            NotificationServer.NotifyUser(level: .error, notification: error.localizedDescription)
+            NXAlertDiagnosticPresenter.notifyUser(with: .error, withMessage: error.localizedDescription, withDelay: 0.0)
         }
     }
     
