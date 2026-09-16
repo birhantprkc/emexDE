@@ -55,6 +55,26 @@
 #define KMOD_VERSION_MINOR(v) ((v >> 8) & 0xFF)
 #define KMOD_VERSION_PATCH(v) (v & 0xFF)
 
+#define KMOD_VERSION_EQ(v, major, minor, patch) ((uint32_t)(v) == KMOD_VERSION((major), (minor), (patch)))
+#define KMOD_VERSION_NE(v, major, minor, patch) ((uint32_t)(v) != KMOD_VERSION((major), (minor), (patch)))
+#define KMOD_VERSION_LT(v, major, minor, patch) ((uint32_t)(v) < KMOD_VERSION((major), (minor), (patch)))
+#define KMOD_VERSION_LE(v, major, minor, patch) ((uint32_t)(v) <= KMOD_VERSION((major), (minor), (patch)))
+#define KMOD_VERSION_GT(v, major, minor, patch) ((uint32_t)(v) > KMOD_VERSION((major), (minor), (patch)))
+#define KMOD_VERSION_GE(v, major, minor, patch) ((uint32_t)(v) >= KMOD_VERSION((major), (minor), (patch)))
+
+
+#define KMOD_VERSION_AT_LEAST(v, major, minor, patch) KMOD_VERSION_GE((v), (major), (minor), (patch))
+#define KMOD_VERSION_AT_MOST(v, major, minor, patch) KMOD_VERSION_LE((v), (major), (minor), (patch))
+
+#define KMOD_VERSION_IN_RANGE(v, \
+                              min_major, min_minor, min_patch, \
+                              max_major, max_minor, max_patch) \
+    (KMOD_VERSION_GE((v), (min_major), (min_minor), (min_patch)) && \
+     KMOD_VERSION_LE((v), (max_major), (max_minor), (max_patch)))
+
+
+#define KMOD_ABI_VERSION_SUPPORTED(abi) ((uint32_t)(abi) == KSURFACE_KMOD_ABI_VERSION)
+
 #define EXPORT_KSURFACE_MODULE(...) \
     __attribute__((used, section("__DATA,__ksurfacemod"))) \
     const kinfo_mod_t ksurface_kext_info = __VA_ARGS__;
