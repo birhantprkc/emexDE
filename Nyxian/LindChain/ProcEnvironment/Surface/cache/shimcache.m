@@ -141,6 +141,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void))
     [driverFlags addObject:@"-shared"];
     [driverFlags addObject:@"-ObjC"];
     [driverFlags addObject:@"-fobjc-arc"];
+    [driverFlags addObject:@"-fmodules"];
     [driverFlags addObject:@"-Wl,-undefined,dynamic_lookup"];
     
     MDKDriver *driver = [MDKDriver driverWithArguments:driverFlags withType:kCCDriverTypeClang];
