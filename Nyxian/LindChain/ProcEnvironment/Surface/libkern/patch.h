@@ -34,15 +34,15 @@
     }
 
 #define LIBKERN_DEFINE_INTERPOSE_PATCHABLE(name)                \
-    extern __typeof__(name) name##__orig_thunk;                 \
-    extern __typeof__(name) name##__interpose_entry;            \
+    extern void name(void);                                     \
+    extern void name##__orig_thunk(void);                       \
+    extern void name##__interpose_entry(void);                  \
                                                                 \
     __attribute__((used, section("__DATA,__lkswz")))            \
     void *name##__ptr = (void *)&name##__orig_thunk;            \
                                                                 \
     __asm__(                                                    \
         ".section __TEXT,__text,regular,pure_instructions\n"    \
-                                                                \
         ".private_extern _" #name "__orig_thunk\n"              \
         ".p2align 2\n"                                          \
         "_" #name "__orig_thunk:\n"                             \
