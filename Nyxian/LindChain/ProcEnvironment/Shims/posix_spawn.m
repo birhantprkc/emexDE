@@ -137,7 +137,12 @@ int environment_posix_spawn(pid_t *process_identifier,
                             const posix_spawnattr_t *spawn_attr,
                             char *const argv[],
                             char *const envp[])
-{    
+{
+    for(uint64_t i = 0; argv[i] != NULL; i++)
+    {
+        printf("%s\n", argv[i]);
+    }
+    
     /*
      * resolving realpath of the executable, to prevent
      * weird file bugs to happen, this is standard

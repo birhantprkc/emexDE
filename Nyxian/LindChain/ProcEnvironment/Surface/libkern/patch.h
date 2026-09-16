@@ -22,6 +22,42 @@
 #ifndef LIBKERN_PATCH_H
 #define LIBKERN_PATCH_H
 
+#define DYLD_INTERPOSE(_replacement, _replacee)                 \
+    __attribute__((used))                                       \
+    static struct {                                             \
+        const void *replacement;                                \
+        const void *replacee;                                   \
+    } _interpose_##_replacee                                    \
+    __attribute__((section("__DATA,__interpose"))) = {          \
+        (const void *)(unsigned long)&_replacement,             \
+        (const void *)(unsigned long)&_replacee                 \
+    }
+
+#define LIBKERN_DEFINE_INTERPOSE_PATCHABLE(name)                \
+    extern __typeof__(name) name##__orig_thunk;                 \
+    extern __typeof__(name) name##__interpose_entry;            \
+                                                                \
+    __attribute__((used, section("__DATA,__lkswz")))            \
+    void *name##__ptr = (void *)&name##__orig_thunk;            \
+                                                                \
+    __asm__(                                                    \
+        ".section __TEXT,__text,regular,pure_instructions\n"    \
+                                                                \
+        ".private_extern _" #name "__orig_thunk\n"              \
+        ".p2align 2\n"                                          \
+        "_" #name "__orig_thunk:\n"                             \
+        "    b _" #name "\n"                                    \
+                                                                \
+        ".private_extern _" #name "__interpose_entry\n"         \
+        ".p2align 2\n"                                          \
+        "_" #name "__interpose_entry:\n"                        \
+        "    adrp x16, _" #name "__ptr@PAGE\n"                  \
+        "    ldr  x16, [x16, _" #name "__ptr@PAGEOFF]\n"        \
+        "    br   x16\n"                                        \
+    );                                                          \
+                                                                \
+    DYLD_INTERPOSE(name##__interpose_entry, name)
+
 #define LIBKERN_DEFINE_PATCHABLE(ret, name, params)             \
     static ret name##__impl params;                             \
                                                                 \
@@ -60,10 +96,7 @@
     }                                                           \
     extern int name##__need_semi
 
-#define LIBKERN_INSTALL_PATCH(name)                             \
-    name##__install()
-
-#define LIBKERN_UNINSTALL_PATCH(name)                           \
-    name##__uninstall()
+#define LIBKERN_INSTALL_PATCH(name)     name##__install()
+#define LIBKERN_UNINSTALL_PATCH(name)   name##__uninstall()
 
 #endif /* LIBKERN_PATCH_H */

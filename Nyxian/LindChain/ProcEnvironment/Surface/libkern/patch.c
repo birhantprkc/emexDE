@@ -19,15 +19,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/libkern/relax.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <mach/mach.h>
+#include <LindChain/Private/mach/mach_vm.h>
 
-void relax(void)
-{
-#if defined(__x86_64__) || defined(__i386__)
-    __asm__ volatile("pause");
-#elif defined(__aarch64__)
-    __asm__ volatile("yield");
-#else
-    // fallback: nothing
-#endif
-}
+/* mmap API */
+LIBKERN_DEFINE_INTERPOSE_PATCHABLE(mmap);
+LIBKERN_DEFINE_INTERPOSE_PATCHABLE(munmap);
+LIBKERN_DEFINE_INTERPOSE_PATCHABLE(mprotect);
