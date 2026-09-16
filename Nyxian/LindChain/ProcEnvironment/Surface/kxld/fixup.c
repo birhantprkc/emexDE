@@ -372,7 +372,8 @@ static bool KXApplyChainedFixups(kxld_image_info_t *image_info,
     return true;
 }
 
-LIBKERN_DEFINE_PATCHABLE(bool, KXApplyFixups, (kxld_image_info_t *image_info),{
+LIBKERN_DEFINE_PATCHABLE(bool, KXApplyFixups, (kxld_image_info_t *image_info))
+{
     const struct linkedit_data_command *chainedFixupsCmd = NULL;
     const struct dyld_info_command *dyldInfoCmd = NULL;
     
@@ -421,4 +422,4 @@ LIBKERN_DEFINE_PATCHABLE(bool, KXApplyFixups, (kxld_image_info_t *image_info),{
     
     /* fixups done */
     return true;
-});
+}

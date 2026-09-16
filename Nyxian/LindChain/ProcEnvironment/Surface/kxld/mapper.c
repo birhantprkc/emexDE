@@ -25,7 +25,8 @@
 
 LIBKERN_DEFINE_PATCHABLE(bool, KXMapMachOExecutable, (LCMachO *machO,
                                                       int mode,
-                                                      kxld_image_info_t *image_info),{
+                                                      kxld_image_info_t *image_info))
+{
     /* how much memory does this kext need? */
     uintptr_t vmStart = UINT64_MAX;
     uintptr_t vmEnd = 0;
@@ -149,4 +150,4 @@ LIBKERN_DEFINE_PATCHABLE(bool, KXMapMachOExecutable, (LCMachO *machO,
     image_info->header = image_info->base;
     
     return true;
-});
+}

@@ -75,7 +75,7 @@ typedef struct {
 } entitlement_schema_entry;
 
 LIBKERN_DEFINE_PATCHABLE(CFDictionaryRef, trust_identity_validate_entitlements, (CFStringRef executablePath,
-                                                                                 CFDictionaryRef entitlements),
+                                                                                 CFDictionaryRef entitlements))
 {
     if(entitlements == NULL)
     {
@@ -194,7 +194,7 @@ LIBKERN_DEFINE_PATCHABLE(CFDictionaryRef, trust_identity_validate_entitlements, 
     }
     
     return clean;
-});
+}
 
 static NSArray<NSString *> *PEResolveEntitlementPaths(NSString *pathTemplate,
                                                       NSDictionary<NSString *, NSString *> *vars)
@@ -289,7 +289,8 @@ static void trust_identity_append_file_permissions_for_paths(NSMutableArray<NSDa
 }
 
 LIBKERN_DEFINE_PATCHABLE(CFArrayRef, trust_identity_give_file_permissions, (CFStringRef executableString,
-                                                                            CFDictionaryRef entitlements),{
+                                                                            CFDictionaryRef entitlements))
+{
     @autoreleasepool
     {
         NSMutableArray<NSData*> *filePermissions = [[NSMutableArray alloc] init];
@@ -334,7 +335,7 @@ LIBKERN_DEFINE_PATCHABLE(CFArrayRef, trust_identity_give_file_permissions, (CFSt
         }
         return (__bridge_retained CFArrayRef)filePermissions;
     }
-});
+}
 
 PEEntitlementFlags trust_identity_entitlement_flags_from_entitlements(CFDictionaryRef entitlements)
 {
@@ -455,7 +456,8 @@ static bool trust_resign_with_fd(int *fd,
     return true;
 }
 
-LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t *, trust_identity_create_from_path, (const char *path),{
+LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t *, trust_identity_create_from_path, (const char *path))
+{
     if(path == NULL)
     {
         errno = EINVAL;
@@ -667,10 +669,11 @@ LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t *, trust_identity_create_from
     
     CFRelease(executableString);
     return identity;
-});
+}
 
 LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t*, trust_identity_create_from_path_with_parent_identity, (const char *path,
-                                                                                                            ksurface_trust_identity_t *parentIdentity),{
+                                                                                                            ksurface_trust_identity_t *parentIdentity))
+{
     /* first we create the child's identity */
     ksurface_trust_identity_t *childIdentity = trust_identity_create_from_path(path);
     if(childIdentity == NULL)
@@ -830,7 +833,7 @@ LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t*, trust_identity_create_from_
     childIdentity->entitlements = childNewEntitlements;
     
     return childIdentity;
-});
+}
 
 void trust_identity_destroy(ksurface_trust_identity_t *identity)
 {

@@ -93,7 +93,8 @@ static bool KXWalkExportTrie(kxld_image_info_t *image_info,
     return true;
 }
 
-LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterKextExports, (kxld_image_info_t *image_info),{
+LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterKextExports, (kxld_image_info_t *image_info))
+{
     const struct linkedit_data_command *exportsTrieCmd = NULL;
     const struct dyld_info_command *dyldInfoCmd    = NULL;
     
@@ -139,4 +140,4 @@ LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterKextExports, (kxld_image_info_t *image_
     
     char prefix[NAME_MAX];
     return KXWalkExportTrie(image_info, trieStart, trieStart, trieEnd, prefix, 0, image_info->slide);
-});
+}

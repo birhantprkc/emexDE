@@ -83,7 +83,8 @@ kern_return_t proc_for_pid_with_pidv(pid_t pid,
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *proc,
                                                              task_special_port_t flavour,
-                                                             task_t *task), {
+                                                             task_t *task))
+{
     assert(proc != NULL && task != NULL);
     
     /*
@@ -194,7 +195,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *pr
     *task = tmp_task;
     
     return KERN_SUCCESS;
-});
+}
 
 kern_return_t proc_task_for_pid(pid_t pid,
                                 task_special_port_t flavour,

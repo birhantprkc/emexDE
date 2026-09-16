@@ -50,7 +50,8 @@
 static bool g_kxld_sealed = false;
 static os_unfair_lock g_kxld_lock = OS_UNFAIR_LOCK_INIT;
 
-LIBKERN_DEFINE_PATCHABLE(void *, ksurface_kext_thread, (void *ii),{
+LIBKERN_DEFINE_PATCHABLE(void *, ksurface_kext_thread, (void *ii))
+{
     /* invoking kextension start */
     kxld_image_info_t *image_info = (kxld_image_info_t*)ii;
     klog_log("kextloader:thread", "spinning up kext '%s'", image_info->mod->identifier);
@@ -61,11 +62,12 @@ LIBKERN_DEFINE_PATCHABLE(void *, ksurface_kext_thread, (void *ii),{
         kvo_release(image_info);
     }
     return NULL;
-});
+}
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen, (const char *path,
                                                  int mode,
-                                                 kxld_image_info_t **export_info),{
+                                                 kxld_image_info_t **export_info))
+{
     int fd = open(path, O_RDWR);
     if(fd < 0)
     {
@@ -75,12 +77,12 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen, (const char *path,
     kern_return_t kr = kxopen_with_fd(fd, mode, export_info);
     close(fd);
     return kr;
-});
-
+}
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen_with_fd, (int fd,
                                                          int mode,
-                                                         kxld_image_info_t **export_info),{
+                                                         kxld_image_info_t **export_info))
+{
     if(fd < 0)
     {
         return KERN_INVALID_ARGUMENT;
@@ -272,9 +274,10 @@ out_failure_destroy:
 out_failure:
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_FAILURE;
-});
+}
 
-LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxclose, (kxld_image_info_t *claimed_image_info),{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxclose, (kxld_image_info_t *claimed_image_info))
+{
     os_unfair_lock_lock(&g_kxld_lock);
     if(g_kxld_sealed)
     {
@@ -305,9 +308,10 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxclose, (kxld_image_info_t *claimed_ima
     klog_log("kextloader", "successfully unloaded kext '%s'", image_info->mod->identifier);
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_SUCCESS;
-});
+}
 
-LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxld_seal, (void),{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxld_seal, (void))
+{
     os_unfair_lock_lock(&g_kxld_lock);
     if(g_kxld_sealed)
     {
@@ -317,4 +321,4 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxld_seal, (void),{
     g_kxld_sealed = true;
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_SUCCESS;
-});
+}

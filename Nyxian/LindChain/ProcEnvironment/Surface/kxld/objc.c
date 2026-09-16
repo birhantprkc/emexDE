@@ -50,7 +50,8 @@ static bool KXImageHasObjC(kxld_image_info_t *image_info)
 
 typedef void (*objc_map_images_t)(unsigned count, const char * const paths[], const struct mach_header * const mhdrs[]);
 
-LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterObjCImage, (kxld_image_info_t *image_info),{
+LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterObjCImage, (kxld_image_info_t *image_info))
+{
     static objc_map_images_t objc_map = NULL;
     static bool probed = false;
     if(!probed)
@@ -73,4 +74,4 @@ LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterObjCImage, (kxld_image_info_t *image_in
     
     objc_map(1, paths, mhdrs);
     return true;
-});
+}

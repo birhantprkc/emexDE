@@ -39,7 +39,7 @@ static shimcache_segment_t *g_shimcache_seg;
 static int g_shimcache_seg_cnt = 0;
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_append_code, (CCFileType fileType,
-                                                                         const char *code),
+                                                                         const char *code))
 {
     os_unfair_lock_lock(&g_shimcache_lock);
     
@@ -69,9 +69,10 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_append_code, (CCFileT
     
     os_unfair_lock_unlock(&g_shimcache_lock);
     return KERN_SUCCESS;
-});
+}
 
-LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void),{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void))
+{
     os_unfair_lock_lock(&g_shimcache_lock);
     NSURL *shimcacheBuildURL = [[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Library/Shimcache.builder"];
     [[NSFileManager defaultManager] removeItemAtURL:shimcacheBuildURL error:nil];
@@ -231,4 +232,4 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void),{
     
     os_unfair_lock_unlock(&g_shimcache_lock);
     return KERN_SUCCESS;
-});
+}

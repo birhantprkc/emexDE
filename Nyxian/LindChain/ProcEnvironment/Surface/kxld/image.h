@@ -62,7 +62,6 @@
 #define KMOD_VERSION_GT(v, major, minor, patch) ((uint32_t)(v) > KMOD_VERSION((major), (minor), (patch)))
 #define KMOD_VERSION_GE(v, major, minor, patch) ((uint32_t)(v) >= KMOD_VERSION((major), (minor), (patch)))
 
-
 #define KMOD_VERSION_AT_LEAST(v, major, minor, patch) KMOD_VERSION_GE((v), (major), (minor), (patch))
 #define KMOD_VERSION_AT_MOST(v, major, minor, patch) KMOD_VERSION_LE((v), (major), (minor), (patch))
 

@@ -127,7 +127,8 @@ const uint8_t *ksurface_locate_modinfo(const uint8_t *base,
     return NULL;
 }
 
-LIBKERN_DEFINE_PATCHABLE(bool, KXLocateKmod, (kxld_image_info_t *image_info),{
+LIBKERN_DEFINE_PATCHABLE(bool, KXLocateKmod, (kxld_image_info_t *image_info))
+{
     uint64_t sec_len = 0;
     const uint8_t *blob = ksurface_locate_modinfo(image_info->base, image_info->len, &sec_len);
     if(blob == NULL)
@@ -149,4 +150,4 @@ LIBKERN_DEFINE_PATCHABLE(bool, KXLocateKmod, (kxld_image_info_t *image_info),{
     }
     
     return true;
-});
+}

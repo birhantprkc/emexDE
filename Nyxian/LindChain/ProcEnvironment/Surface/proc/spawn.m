@@ -35,7 +35,8 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_spawn, (ksurface_proc_t *parent,
                                                      ksurface_proc_t **child,
                                                      pid_t child_pid,
                                                      int child_pidv,
-                                                     ksurface_trust_identity_t *identity), {
+                                                     ksurface_trust_identity_t *identity))
+{
     assert(parent != NULL && child != NULL && identity != NULL);
     
     ksurface_proc_t *child_new = kvo_copy(parent);
@@ -158,10 +159,11 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_spawn, (ksurface_proc_t *parent,
     
     /* child stays retained for the caller */
     return KERN_SUCCESS;
-});
+}
 
 LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_kill, (ksurface_proc_t *child,
-                                                    int sig), {
+                                                    int sig))
+{
     if(child == NULL)
     {
         return KERN_INVALID_ADDRESS;
@@ -202,7 +204,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_kill, (ksurface_proc_t *child,
     
     [process sendSignal:sig];
     return KERN_SUCCESS;
-});
+}
 
 kern_return_t proc_reap(ksurface_proc_t *proc)
 {

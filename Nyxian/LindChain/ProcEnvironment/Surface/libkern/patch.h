@@ -22,42 +22,48 @@
 #ifndef LIBKERN_PATCH_H
 #define LIBKERN_PATCH_H
 
-#define LIBKERN_PATCHABLE(name)                                             \
-    void *name##__ptr __attribute__((section("__DATA,__lkswz")))            \
-        = (void *)name##__impl;                                             \
-    __asm__(".globl _" #name "\n"                                           \
-            ".p2align 2\n"                                                  \
-            "_" #name ":\n"                                                 \
-            "  adrp x16, _" #name "__ptr@PAGE\n"                            \
-            "  ldr  x16, [x16, _" #name "__ptr@PAGEOFF]\n"                  \
-            "  br   x16\n")
+#define LIBKERN_DEFINE_PATCHABLE(ret, name, params)             \
+    static ret name##__impl params;                             \
+                                                                \
+    ret name params;                                            \
+                                                                \
+    __attribute__((used, section("__DATA,__lkswz")))            \
+    void *name##__ptr = (void *)&name##__impl;                  \
+                                                                \
+    __asm__(                                                    \
+        ".section __TEXT,__text,regular,pure_instructions\n"    \
+        ".globl _" #name "\n"                                   \
+        ".p2align 2\n"                                          \
+        "_" #name ":\n"                                         \
+        "    adrp x16, _" #name "__ptr@PAGE\n"                  \
+        "    ldr  x16, [x16, _" #name "__ptr@PAGEOFF]\n"        \
+        "    br   x16\n"                                        \
+    );                                                          \
+                                                                \
+    static __attribute__((noinline, optnone, used))             \
+    ret name##__impl params
 
-#define LIBKERN_DEFINE_PATCHABLE(ret, name, params, ...)    \
-    ret name params;                                        \
-    static ret name##__impl params __VA_ARGS__              \
-    LIBKERN_PATCHABLE(name)
-
-#define LIBKERN__DECLARE_PATCHABLE(ret, name, params)       \
-    ret name params;                                        \
+#define LIBKERN__DECLARE_PATCHABLE(ret, name, params)           \
+    ret name params;                                            \
     extern void *name##__ptr
 
-#define LIBKERN_PATCH(ret, name, params, ...)                       \
-    extern void *name##__ptr;                                       \
-    static ret (*name##__orig) params;                              \
-    static ret name##__swz params __VA_ARGS__                       \
-    static void name##__install(void) {                             \
-        name##__orig = (ret (*) params)name##__ptr;                 \
-        name##__ptr  = (void *)name##__swz;                         \
-    }                                                               \
-    static void name##__uninstall(void) {                           \
-        name##__ptr  = (void *)name##__orig;                        \
-    }                                                               \
+#define LIBKERN_PATCH(ret, name, params, ...)                   \
+    extern void *name##__ptr;                                   \
+    static ret (*name##__orig) params;                          \
+    static ret name##__swz params __VA_ARGS__                   \
+    static void name##__install(void) {                         \
+        name##__orig = (ret (*) params)name##__ptr;             \
+        name##__ptr  = (void *)name##__swz;                     \
+    }                                                           \
+    static void name##__uninstall(void) {                       \
+        name##__ptr  = (void *)name##__orig;                    \
+    }                                                           \
     extern int name##__need_semi
 
-#define LIBKERN_INSTALL_PATCH(name)     \
+#define LIBKERN_INSTALL_PATCH(name)                             \
     name##__install()
 
-#define LIBKERN_UNINSTALL_PATCH(name)   \
+#define LIBKERN_UNINSTALL_PATCH(name)                           \
     name##__uninstall()
 
 #endif /* LIBKERN_PATCH_H */
