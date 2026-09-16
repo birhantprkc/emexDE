@@ -21,11 +21,11 @@
 
 #include <LindChain/ProcEnvironment/Surface/kxld/init.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 typedef void (*kx_init_fn)(int argc, char **argv, char **envp, char **apple, void *vars);
 
-bool KXRunInitializers(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXRunInitializers, (kxld_image_info_t *image_info),{
     const uint8_t *ptr = (const uint8_t *)image_info->header + sizeof(struct mach_header_64);
     uint32_t ncmds = image_info->header->ncmds;
     for(uint32_t i = 0; i < ncmds; i++)
@@ -63,4 +63,4 @@ bool KXRunInitializers(kxld_image_info_t *image_info)
         ptr += lc->cmdsize;
     }
     return true;
-}
+});

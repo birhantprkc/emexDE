@@ -31,8 +31,8 @@
 #include <LindChain/ProcEnvironment/Surface/kxld/init.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/objc.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #include <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <ksurface_config.h>
@@ -50,8 +50,7 @@
 static bool g_kxld_sealed = false;
 static os_unfair_lock g_kxld_lock = OS_UNFAIR_LOCK_INIT;
 
-void *ksurface_kext_thread(void *ii)
-{
+LIBKERN_DEFINE_PATCHABLE(void *, ksurface_kext_thread, (void *ii),{
     /* invoking kextension start */
     kxld_image_info_t *image_info = (kxld_image_info_t*)ii;
     klog_log("kextloader:thread", "spinning up kext '%s'", image_info->mod->identifier);
@@ -62,12 +61,11 @@ void *ksurface_kext_thread(void *ii)
         kvo_release(image_info);
     }
     return NULL;
-}
+});
 
-kern_return_t kxopen(const char *path,
-                     int mode,
-                     kxld_image_info_t **export_info)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen, (const char *path,
+                                                 int mode,
+                                                 kxld_image_info_t **export_info),{
     int fd = open(path, O_RDWR);
     if(fd < 0)
     {
@@ -77,12 +75,12 @@ kern_return_t kxopen(const char *path,
     kern_return_t kr = kxopen_with_fd(fd, mode, export_info);
     close(fd);
     return kr;
-}
+});
 
-kern_return_t kxopen_with_fd(int fd,
-                             int mode,
-                             kxld_image_info_t **export_info)
-{
+
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen_with_fd, (int fd,
+                                                         int mode,
+                                                         kxld_image_info_t **export_info),{
     if(fd < 0)
     {
         return KERN_INVALID_ARGUMENT;
@@ -96,14 +94,14 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* map machO */
-    LCMachO *machO = kxld_vtable->LCMapMachOFromFDRO(dup(fd));
+    LCMachO *machO = LCMapMachOFromFDRO(dup(fd));
     if(machO == NULL)
     {
         goto out_failure;
     }
     
     /* checking if the kernel says(double meaning x3) this is signed */
-    if(!kxld_vtable->KXValidateCodeSignature(machO))
+    if(!KXValidateCodeSignature(machO))
     {
         LCUnmapMachO(machO);
         goto out_failure;
@@ -123,8 +121,8 @@ kern_return_t kxopen_with_fd(int fd,
         goto out_failure;
     }
     
-    bool success = kxld_vtable->KXMapMachOExecutable(machO, mode, image_info);
-    kxld_vtable->LCUnmapMachO(machO);
+    bool success = KXMapMachOExecutable(machO, mode, image_info);
+    LCUnmapMachO(machO);
     if(!success)
     {
         /* sets errno */
@@ -132,7 +130,7 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* we gotta get kmod first */
-    if(!kxld_vtable->KXLocateKmod(image_info))
+    if(!KXLocateKmod(image_info))
     {
         goto out_failure_destroy;
     }
@@ -142,7 +140,7 @@ kern_return_t kxopen_with_fd(int fd,
     {
         {
             kxld_image_info_t *depImageInfo;
-            kern_return_t kr = kxld_vtable->KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
+            kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
             if(kr != KERN_SUCCESS)
             {
                 goto revert;
@@ -169,7 +167,7 @@ kern_return_t kxopen_with_fd(int fd,
             for(; i >= 0; i--)
             {
                 kxld_image_info_t *depImageInfo;
-                kern_return_t kr = kxld_vtable->KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
+                kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
                 if(kr != KERN_SUCCESS)
                 {
                     ksurface_panic("failed to find previously resolvable dependency that was reference incremented.");
@@ -188,13 +186,13 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* fixing up kmod and the blobs offsets */
-    if(!kxld_vtable->KXApplyFixups(image_info))
+    if(!KXApplyFixups(image_info))
     {
         goto out_failure_destroy;
     }
     
     /* still very unmappable */
-    kern_return_t kr = kxld_vtable->KXRegisterKext(image_info);
+    kern_return_t kr = KXRegisterKext(image_info);
     if(kr != KERN_SUCCESS)
     {
         kvo_release(image_info);
@@ -203,18 +201,18 @@ kern_return_t kxopen_with_fd(int fd,
     }
     
     /* now the spicy port with the symbol exports */
-    if(!kxld_vtable->KXRegisterKextExports(image_info))
+    if(!KXRegisterKextExports(image_info))
     {
         goto out_failure_destroy;
     }
     
-    if(!kxld_vtable->KXRegisterObjCImage(image_info))
+    if(!KXRegisterObjCImage(image_info))
     {
         goto out_failure_destroy;
     }
     
     /* now resealing */
-    if(!kxld_vtable->KXResealDataConst(image_info))
+    if(!KXResealDataConst(image_info))
     {
         goto out_failure_destroy;
     }
@@ -274,10 +272,9 @@ out_failure_destroy:
 out_failure:
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_FAILURE;
-}
+});
 
-kern_return_t kxclose(kxld_image_info_t *claimed_image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxclose, (kxld_image_info_t *claimed_image_info),{
     os_unfair_lock_lock(&g_kxld_lock);
     if(g_kxld_sealed)
     {
@@ -288,7 +285,7 @@ kern_return_t kxclose(kxld_image_info_t *claimed_image_info)
     
     /* finding kext object */
     kxld_image_info_t *image_info = NULL;
-    if(kxld_vtable->KXGetRegisteredKextForIdentifier(claimed_image_info->mod->identifier, &image_info) != KERN_SUCCESS)
+    if(KXGetRegisteredKextForIdentifier(claimed_image_info->mod->identifier, &image_info) != KERN_SUCCESS)
     {
         klog_log("kextloader", "couldn't find kext for identifier '%s'", claimed_image_info->mod->identifier);
         return KERN_NOT_FOUND;
@@ -308,10 +305,9 @@ kern_return_t kxclose(kxld_image_info_t *claimed_image_info)
     klog_log("kextloader", "successfully unloaded kext '%s'", image_info->mod->identifier);
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_SUCCESS;
-}
+});
 
-kern_return_t kxld_seal(void)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxld_seal, (void),{
     os_unfair_lock_lock(&g_kxld_lock);
     if(g_kxld_sealed)
     {
@@ -321,4 +317,4 @@ kern_return_t kxld_seal(void)
     g_kxld_sealed = true;
     os_unfair_lock_unlock(&g_kxld_lock);
     return KERN_SUCCESS;
-}
+});

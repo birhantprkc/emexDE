@@ -21,6 +21,7 @@
 
 #include <LindChain/ProcEnvironment/Surface/kxld/export.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 uint64_t readULEB(const uint8_t **p, const uint8_t *end);
 
@@ -92,8 +93,7 @@ static bool KXWalkExportTrie(kxld_image_info_t *image_info,
     return true;
 }
 
-bool KXRegisterKextExports(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterKextExports, (kxld_image_info_t *image_info),{
     const struct linkedit_data_command *exportsTrieCmd = NULL;
     const struct dyld_info_command *dyldInfoCmd    = NULL;
     
@@ -139,4 +139,4 @@ bool KXRegisterKextExports(kxld_image_info_t *image_info)
     
     char prefix[NAME_MAX];
     return KXWalkExportTrie(image_info, trieStart, trieStart, trieEnd, prefix, 0, image_info->slide);
-}
+});

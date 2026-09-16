@@ -20,9 +20,9 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/kxld/validation.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
-bool KXValidateCodeSignature(LCMachO *machO)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXValidateCodeSignature, (LCMachO *machO),{
     /* validate machO header it self */
     if(machO->header->magic != MH_MAGIC_64 ||
        machO->header->filetype != MH_KEXT_BUNDLE ||
@@ -92,4 +92,4 @@ bool KXValidateCodeSignature(LCMachO *machO)
 out_denied:
     errno = EPERM;
     return false;
-}
+});

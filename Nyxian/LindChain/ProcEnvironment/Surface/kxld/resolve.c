@@ -22,6 +22,7 @@
 #include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/pseudo.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/radix/radix.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <sys/sysctl.h>
 #include <dlfcn.h>
 #include <os/lock.h>
@@ -30,8 +31,7 @@ static radix_tree_t g_kext_symbol_tree = { 0 };
 static radix_tree_t g_kext_identity_tree = { 0 };
 static os_unfair_lock g_kext_symbol_lock = OS_UNFAIR_LOCK_INIT;
 
-static uint64_t KXSymbolKey(const char *name)
-{
+LIBKERN_DEFINE_PATCHABLE(uint64_t, KXSymbolKey, (const char *name),{
     uint64_t h = 1469598103934665603ULL;
     for(const uint8_t *p = (const uint8_t *)name; *p; p++)
     {
@@ -39,10 +39,9 @@ static uint64_t KXSymbolKey(const char *name)
         h *= 1099511628203ULL;
     }
     return h;
-}
+});
 
-void KXRegisterExportCore(const char *name, void *addr)
-{
+LIBKERN_DEFINE_PATCHABLE(void, KXRegisterExportCore, (const char *name, void *addr),{
     const char *lookup = (name[0] == '_') ? name + 1 : name;
     os_unfair_lock_lock(&g_kext_symbol_lock);
     uint64_t key = KXSymbolKey(lookup);
@@ -62,11 +61,10 @@ void KXRegisterExportCore(const char *name, void *addr)
     symbol->addr = addr;
     radix_insert(&g_kext_symbol_tree, key, symbol);
     os_unfair_lock_unlock(&g_kext_symbol_lock);
-}
+});
 
-void KXRegisterExport(const char *name,
-                      void *addr)
-{
+LIBKERN_DEFINE_PATCHABLE(void, KXRegisterExport, (const char *name,
+                                                  void *addr),{
     const char *lookup = (name[0] == '_') ? name + 1 : name;
     void *dlAddr = dlsym(RTLD_DEFAULT, lookup);
     if(dlAddr != NULL)
@@ -92,10 +90,9 @@ void KXRegisterExport(const char *name,
     symbol->addr = addr;
     radix_insert(&g_kext_symbol_tree, key, symbol);
     os_unfair_lock_unlock(&g_kext_symbol_lock);
-}
+});
 
-void *KXResolve(const char *name)
-{
+LIBKERN_DEFINE_PATCHABLE(void *, KXResolve, (const char *name),{
     os_unfair_lock_lock(&g_kext_symbol_lock);
     if(!name)
     {
@@ -111,10 +108,9 @@ void *KXResolve(const char *name)
     }
     os_unfair_lock_unlock(&g_kext_symbol_lock);
     return dlsym(RTLD_DEFAULT, lookup);
-}
+});
 
-kern_return_t KXRegisterKext(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, KXRegisterKext, (kxld_image_info_t *image_info),{
     os_unfair_lock_lock(&g_kext_symbol_lock);
     uint64_t key = KXSymbolKey(image_info->mod->identifier);
     kxld_image_info_t *found = radix_lookup(&g_kext_identity_tree, key);
@@ -126,10 +122,9 @@ kern_return_t KXRegisterKext(kxld_image_info_t *image_info)
     radix_insert(&g_kext_identity_tree, key, image_info);
     os_unfair_lock_unlock(&g_kext_symbol_lock);
     return KERN_SUCCESS;
-}
+});
 
-kern_return_t KXUnregisterKext(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, KXUnregisterKext, (kxld_image_info_t *image_info),{
     os_unfair_lock_lock(&g_kext_symbol_lock);
     uint64_t key = KXSymbolKey(image_info->mod->identifier);
     kxld_image_info_t *found = radix_remove(&g_kext_identity_tree, key);
@@ -140,11 +135,10 @@ kern_return_t KXUnregisterKext(kxld_image_info_t *image_info)
     }
     os_unfair_lock_unlock(&g_kext_symbol_lock);
     return KERN_SUCCESS;
-}
+});
 
-kern_return_t KXGetRegisteredKextForIdentifier(const char *identifier,
-                                               kxld_image_info_t **image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, KXGetRegisteredKextForIdentifier, (const char *identifier,
+                                                                           kxld_image_info_t **image_info),{
     os_unfair_lock_lock(&g_kext_symbol_lock);
     uint64_t key = KXSymbolKey(identifier);
     kxld_image_info_t *found = radix_lookup(&g_kext_identity_tree, key);
@@ -156,7 +150,7 @@ kern_return_t KXGetRegisteredKextForIdentifier(const char *identifier,
     }
     os_unfair_lock_unlock(&g_kext_symbol_lock);
     return KERN_NOT_FOUND;
-}
+});
 
 static uint32_t platform_query_version(void)
 {

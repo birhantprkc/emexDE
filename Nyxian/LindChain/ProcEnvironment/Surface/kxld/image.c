@@ -23,7 +23,6 @@
 #include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <LindChain/ProcEnvironment/Utils/kpanic.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
 #include <os/lock.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
@@ -82,7 +81,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
                     for(uint32_t i = 0; i < image_info->mod->dependency_count; i++)
                     {
                         kxld_image_info_t *depImageInfo;
-                        kern_return_t kr = kxld_vtable->KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
+                        kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
                         if(kr != KERN_SUCCESS)
                         {
                             ksurface_panic("failed to find previously resolvable dependency that was reference incremented");
@@ -94,7 +93,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
                 /* then unmap */
                 if(image_info->base != NULL && image_info->safeToUnmap)
                 {
-                    kxld_vtable->munmap(image_info->base, image_info->len);
+                    munmap(image_info->base, image_info->len);
                 }
             }
             [[fallthrough]];    /* this is C23, fallthrough needs marking lol, apple fix your standard warn flags */

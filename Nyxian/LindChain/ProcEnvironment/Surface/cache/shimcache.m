@@ -31,14 +31,15 @@
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCUtils.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 static os_unfair_lock g_shimcache_lock = OS_UNFAIR_LOCK_INIT;
 
 static shimcache_segment_t *g_shimcache_seg;
 static int g_shimcache_seg_cnt = 0;
 
-kern_return_t ksurface_shimcache_append_code(CCFileType fileType,
-                                             const char *code)
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_append_code, (CCFileType fileType,
+                                                                         const char *code),
 {
     os_unfair_lock_lock(&g_shimcache_lock);
     
@@ -68,10 +69,9 @@ kern_return_t ksurface_shimcache_append_code(CCFileType fileType,
     
     os_unfair_lock_unlock(&g_shimcache_lock);
     return KERN_SUCCESS;
-}
+});
 
-kern_return_t ksurface_shimcache_build(void)
-{
+LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void),{
     os_unfair_lock_lock(&g_shimcache_lock);
     NSURL *shimcacheBuildURL = [[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Library/Shimcache.builder"];
     [[NSFileManager defaultManager] removeItemAtURL:shimcacheBuildURL error:nil];
@@ -231,4 +231,4 @@ kern_return_t ksurface_shimcache_build(void)
     
     os_unfair_lock_unlock(&g_shimcache_lock);
     return KERN_SUCCESS;
-}
+});

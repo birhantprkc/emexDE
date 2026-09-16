@@ -21,12 +21,11 @@
 
 #include <LindChain/ProcEnvironment/Surface/kxld/mapper.h>
 #include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
-bool KXMapMachOExecutable(LCMachO *machO,
-                          int mode,
-                          kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXMapMachOExecutable, (LCMachO *machO,
+                                                      int mode,
+                                                      kxld_image_info_t *image_info),{
     /* how much memory does this kext need? */
     uintptr_t vmStart = UINT64_MAX;
     uintptr_t vmEnd = 0;
@@ -51,7 +50,7 @@ bool KXMapMachOExecutable(LCMachO *machO,
     
     /* allocating the memory needed by the segments of the kext (aka address space reservation) */
     image_info->len = vmEnd - vmStart;
-    image_info->base = kxld_vtable->mmap(NULL, image_info->len, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    image_info->base = mmap(NULL, image_info->len, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
     if(image_info->base == MAP_FAILED)
     {
         return false;
@@ -117,7 +116,7 @@ bool KXMapMachOExecutable(LCMachO *machO,
                  * executable, even if the executable is not entirely mapped.
                  * which is crazy.
                  */
-                void *r = kxld_vtable->mmap(addr, sc->filesize, prot, flags, machO->fd, fileOff);
+                void *r = mmap(addr, sc->filesize, prot, flags, machO->fd, fileOff);
                 if(r == MAP_FAILED)
                 {
                     return false;
@@ -136,7 +135,7 @@ bool KXMapMachOExecutable(LCMachO *machO,
                 
                 if(bssEnd > bssStart)
                 {
-                    void *r = kxld_vtable->mmap((void *)bssStart, bssEnd - bssStart, prot, MAP_PRIVATE | MAP_FIXED | MAP_ANON, -1, 0);
+                    void *r = mmap((void *)bssStart, bssEnd - bssStart, prot, MAP_PRIVATE | MAP_FIXED | MAP_ANON, -1, 0);
                     if(r == MAP_FAILED)
                     {
                         return false;
@@ -150,4 +149,4 @@ bool KXMapMachOExecutable(LCMachO *machO,
     image_info->header = image_info->base;
     
     return true;
-}
+});

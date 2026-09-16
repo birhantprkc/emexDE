@@ -20,6 +20,7 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/kxld/objc.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <dlfcn.h>
 
 static bool KXImageHasObjC(kxld_image_info_t *image_info)
@@ -49,8 +50,7 @@ static bool KXImageHasObjC(kxld_image_info_t *image_info)
 
 typedef void (*objc_map_images_t)(unsigned count, const char * const paths[], const struct mach_header * const mhdrs[]);
 
-bool KXRegisterObjCImage(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXRegisterObjCImage, (kxld_image_info_t *image_info),{
     static objc_map_images_t objc_map = NULL;
     static bool probed = false;
     if(!probed)
@@ -73,4 +73,4 @@ bool KXRegisterObjCImage(kxld_image_info_t *image_info)
     
     objc_map(1, paths, mhdrs);
     return true;
-}
+});

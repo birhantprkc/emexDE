@@ -20,10 +20,9 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/kxld/reseal.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/vtable.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
-bool KXResealDataConst(kxld_image_info_t *image_info)
-{
+LIBKERN_DEFINE_PATCHABLE(bool, KXResealDataConst, (kxld_image_info_t *image_info),{
     const uint8_t *ptr = ((const uint8_t *)image_info->header) + sizeof(struct mach_header_64);
     uint64_t ncmds = image_info->header->ncmds;
     for(uint32_t i = 0; i < ncmds; i++)
@@ -35,7 +34,7 @@ bool KXResealDataConst(kxld_image_info_t *image_info)
             if(!(sc->initprot & VM_PROT_WRITE) && strncmp(sc->segname, "__DATA_CONST", 16) == 0)
             {
                 void *addr = (void *)((uintptr_t)image_info->slide + sc->vmaddr);
-                if(kxld_vtable->mprotect(addr, sc->vmsize, PROT_READ) != 0)
+                if(mprotect(addr, sc->vmsize, PROT_READ) != 0)
                 {
                     fprintf(stderr, "reseal __DATA_CONST failed: %s\n", strerror(errno));
                     return false;
@@ -45,4 +44,4 @@ bool KXResealDataConst(kxld_image_info_t *image_info)
         ptr += lc->cmdsize;
     }
     return true;
-}
+});
