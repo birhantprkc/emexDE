@@ -62,4 +62,6 @@
 #define KSURFACE_KLOG_ENABLE_PROCESSES          0
 #endif /* !DEBUG */
 
+#define KSURFACE_BROADPATCH_SUPPORT_ENABLED     1
+
 #endif /* KSURFACE_CONFIG_H */

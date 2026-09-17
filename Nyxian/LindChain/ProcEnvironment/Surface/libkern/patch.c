@@ -20,6 +20,9 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#include <ksurface_config.h>
+
+#if KSURFACE_BROADPATCH_SUPPORT_ENABLED
 
 /* libSystem patches */
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(____sigwait_nocancel);
@@ -1971,3 +1974,5 @@ LIBKERN_DEFINE_INTERPOSE_PATCHABLE(sigwait$NOCANCEL);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(start_wqthread);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(thread_chkstk_darwin);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(thread_start);
+
+#endif /* KSURFACE_BROADPATCH_SUPPORT_ENABLED */
