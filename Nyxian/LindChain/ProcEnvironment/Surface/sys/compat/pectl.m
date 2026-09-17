@@ -30,7 +30,7 @@
 #import <LindChain/ProcEnvironment/LiveContainer/LCUtils.h>
 #include <LindChain/ProcEnvironment/Utils/vnode.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <ksurface_config.h>
 #import <ksurface_abi.h>
 #include <dlfcn.h>

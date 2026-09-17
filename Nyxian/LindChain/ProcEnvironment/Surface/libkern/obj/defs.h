@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_DEFS_H
-#define KVOBJECT_DEFS_H
+#ifndef LIBKERN_OBJ_DEFS_H
+#define LIBKERN_OBJ_DEFS_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -130,4 +130,4 @@ struct kvobject {
     kvobject_t *orig;
 };
 
-#endif /* KVOBJECT_DEFS_H */
+#endif /* LIBKERN_OBJ_DEFS_H */

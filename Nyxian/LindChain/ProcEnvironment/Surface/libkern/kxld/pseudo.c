@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/pseudo.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/pseudo.h>
 
 kern_return_t kxopen_pseudo(const char *identifier,
                             uint32_t version,

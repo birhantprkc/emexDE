@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_IMAGE_H
-#define KXLD_IMAGE_H
+#ifndef LIBKERN_KXLD_IMAGE_H
+#define LIBKERN_KXLD_IMAGE_H
 
 #include <LindChain/ProcEnvironment/Surface/libkern/obj/kvobject.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
@@ -130,4 +130,4 @@ typedef struct {
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image);
 
-#endif /* KXLD_IMAGE_H */
+#endif /* LIBKERN_KXLD_IMAGE_H */

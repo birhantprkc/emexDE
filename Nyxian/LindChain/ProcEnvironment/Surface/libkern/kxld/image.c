@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <os/lock.h>

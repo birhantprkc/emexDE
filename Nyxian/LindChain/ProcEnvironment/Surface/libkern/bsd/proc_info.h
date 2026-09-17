@@ -26,8 +26,8 @@
  * @APPLE_OSREFERENCE_LICENSE_HEADER_END@
  */
 
-#ifndef _SYS_PROC_INFO_H
-#define _SYS_PROC_INFO_H
+#ifndef LIBKERN_BSD_PROC_INFO_H
+#define LIBKERN_BSD_PROC_INFO_H
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
@@ -1028,4 +1028,4 @@ extern int proc_pidpath(int pid, void * buffer, uint32_t  buffersize);
 extern int proc_libversion(int *major, int * minor);
 extern int proc_pid_rusage(int pid, int flavor, struct rusage_info_v2 *rusage);
 
-#endif /*_SYS_PROC_INFO_H */
+#endif /*LIBKERN_BSD_PROC_INFO_H */

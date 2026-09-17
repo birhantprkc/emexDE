@@ -27,7 +27,7 @@
 #include <LindChain/ProcEnvironment/Surface/fs/preserver.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>

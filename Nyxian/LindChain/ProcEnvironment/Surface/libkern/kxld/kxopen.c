@@ -20,17 +20,17 @@
 */
 
 #include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/validation.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/mapper.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/fixup.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/reseal.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/kmod.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/export.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/init.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/objc.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/validation.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/mapper.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/fixup.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/reseal.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kmod.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/export.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/init.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/objc.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>

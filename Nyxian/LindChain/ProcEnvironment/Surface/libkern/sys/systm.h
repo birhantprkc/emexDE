@@ -20,8 +20,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SYS_PAYLOAD_H
-#define SYS_PAYLOAD_H
+#ifndef LIBKERN_SYS_SYSTM_H
+#define LIBKERN_SYS_SYSTM_H
 
 #include <mach/mach.h>
 #include <stdlib.h>
@@ -37,4 +37,4 @@ kernelspace_pointer_t syscall_alloc_in(task_t task, size_t size, userspace_point
 bool syscall_copy_out(task_t task, size_t size, kernelspace_pointer_t kptr, userspace_pointer_t dst);
 char *syscall_copy_str_in(task_t task, userspace_pointer_t src, size_t len);
 
-#endif /* SYS_PAYLOAD_H */
+#endif /* LIBKERN_SYS_SYSTM_H */

@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_H
-#define KVOBJECT_H
+#ifndef LIBKERN_OBJ_KVOBJECT_H
+#define LIBKERN_OBJ_KVOBJECT_H
 
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/defs.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/alloc.h>
@@ -28,4 +28,4 @@
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/reference.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/event.h>
 
-#endif /* KVOBJECT_H */
+#endif /* LIBKERN_OBJ_KVOBJECT_H */

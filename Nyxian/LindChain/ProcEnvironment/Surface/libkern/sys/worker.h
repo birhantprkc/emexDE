@@ -20,8 +20,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SYS_WORKER_H
-#define SYS_WORKER_H
+#ifndef LIBKERN_SYS_WORKER_H
+#define LIBKERN_SYS_WORKER_H
 
 #include <LindChain/ProcEnvironment/Surface/libkern/sys/systm.h>
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
@@ -146,4 +146,4 @@ typedef struct syscall_server syscall_server_t;
 void* syscall_worker(void *ctx);
 void syscall_send_reply(mach_msg_header_t *request, int64_t result, mach_port_t *out_ports, uint32_t out_ports_cnt, bool release_req, errno_t err);
 
-#endif /* SYS_WORKER_H */
+#endif /* LIBKERN_SYS_WORKER_H */

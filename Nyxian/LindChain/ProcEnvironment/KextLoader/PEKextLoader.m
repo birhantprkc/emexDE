@@ -22,8 +22,8 @@
 #import <LindChain/ProcEnvironment/KextLoader/PEKextLoader.h>
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>
 #import <LindChain/ProcEnvironment/Surface/fs/fs.h>
-#import <LindChain/ProcEnvironment/Surface/kxld/image.h>
-#import <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 
 static BOOL PEKextIsVersionInBetweenMinMax(NSString *version,

@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/pseudo.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/pseudo.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/radix/radix.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <sys/sysctl.h>

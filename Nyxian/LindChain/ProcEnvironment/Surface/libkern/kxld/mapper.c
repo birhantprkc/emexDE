@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/mapper.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/mapper.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 LIBKERN_DEFINE_PATCHABLE(bool, KXMapMachOExecutable, (LCMachO *machO,

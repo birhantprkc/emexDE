@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_ALLOC_H
-#define KVOBJECT_ALLOC_H
+#ifndef LIBKERN_OBJ_ALLOC_H
+#define LIBKERN_OBJ_ALLOC_H
 
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/defs.h>
 
@@ -33,4 +33,4 @@ kvobject_t *kvobject_alloc(kvobject_main_event_handler_t handler);
 kvobject_t *kvobject_copy(kvobject_t *kvo);
 kvobject_snapshot_t *kvobject_snapshot(kvobject_t *kvo, kvobject_snapshot_options_t option);
 
-#endif /* KVOBJECT_ALLOC_H */
+#endif /* LIBKERN_OBJ_ALLOC_H */

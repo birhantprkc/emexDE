@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SURFACE_LIBKERN_TASK_HANDOFF_H
-#define SURFACE_LIBKERN_TASK_HANDOFF_H
+#ifndef LIBKERN_TASKHANDOFF_H
+#define LIBKERN_TASKHANDOFF_H
 
 #include <mach/mach.h>
 
 kern_return_t task_handoff(mach_port_t exceptionPort, task_t *task);
 
-#endif /* SURFACE_LIBKERN_TASK_HANDOFF_H */
+#endif /* LIBKERN_TASKHANDOFF_H */

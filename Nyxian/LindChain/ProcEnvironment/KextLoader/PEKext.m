@@ -22,7 +22,7 @@
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #import <LindChain/ProcEnvironment/Surface/trust/signing.h>
-#import <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <sys/stat.h>
 #import <sys/sysctl.h>

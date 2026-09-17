@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef PROCENVIRONMENT_EXTRA_H
-#define PROCENVIRONMENT_EXTRA_H
+#ifndef LIBKERN_EXTRA_H
+#define LIBKERN_EXTRA_H
 
 /*!
  @function relax
@@ -28,4 +28,4 @@
  */
 void relax(void);
 
-#endif /* PROCENVIRONMENT_EXTRA_H */
+#endif /* LIBKERN_EXTRA_H */

@@ -19,11 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_EXPORT_H
-#define KXLD_EXPORT_H
+#ifndef LIBKERN_KXLD_RESEAL_H
+#define LIBKERN_KXLD_RESEAL_H
 
-#include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,6 +32,6 @@
 #include <mach-o/loader.h>
 #include <mach-o/ldsyms.h>
 
-bool KXRegisterKextExports(kxld_image_info_t *image_info);
+bool KXResealDataConst(kxld_image_info_t *image_info);
 
-#endif /* KXLD_EXPORT_H */
+#endif /* LIBKERN_KXLD_RESEAL_H */

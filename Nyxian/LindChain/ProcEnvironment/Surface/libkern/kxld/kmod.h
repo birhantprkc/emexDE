@@ -19,11 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_FIXUP_H
-#define KXLD_FIXUP_H
+#ifndef LIBKERN_KXLD_KMOD_H
+#define LIBKERN_KXLD_KMOD_H
 
-#include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,6 +32,6 @@
 #include <mach-o/loader.h>
 #include <mach-o/ldsyms.h>
 
-bool KXApplyFixups(kxld_image_info_t *image_info);
+bool KXLocateKmod(kxld_image_info_t *image_info);
 
-#endif /* KXLD_FIXUP_H */
+#endif /* LIBKERN_KXLD_KMOD_H */

@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/reseal.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/reseal.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 LIBKERN_DEFINE_PATCHABLE(bool, KXResealDataConst, (kxld_image_info_t *image_info))

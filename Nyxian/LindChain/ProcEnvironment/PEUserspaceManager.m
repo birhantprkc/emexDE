@@ -32,7 +32,7 @@
 #import <LindChain/ProcEnvironment/Surface/cache/shimcache.h>
 #import <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #import <LindChain/ProcEnvironment/Surface/fs/preserver.h>
-#import <LindChain/ProcEnvironment/Surface/kxld/kxopen.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <LindChain/ProcEnvironment/Surface/cache/patchcache.h>
 #import <Nyxian-Swift.h>
 

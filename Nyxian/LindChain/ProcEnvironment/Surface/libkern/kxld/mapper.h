@@ -19,11 +19,12 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_VALIDATION_H
-#define KXLD_VALIDATION_H
+#ifndef LIBKERN_KXLD_MAPPER_H
+#define LIBKERN_KXLD_MAPPER_H
 
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -33,8 +34,6 @@
 #include <mach-o/loader.h>
 #include <mach-o/ldsyms.h>
 
-extern struct linkedit_data_command* findSignatureCommand(struct mach_header_64* header);
+bool KXMapMachOExecutable(LCMachO *machO, int mode, kxld_image_info_t *image_info);
 
-bool KXValidateCodeSignature(LCMachO *machO);
-
-#endif /* KXLD_VALIDATION_H */
+#endif /* LIBKERN_KXLD_MAPPER_H */

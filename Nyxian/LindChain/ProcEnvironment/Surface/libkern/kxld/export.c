@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/export.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/export.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 uint64_t readULEB(const uint8_t **p, const uint8_t *end);

@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/kmod.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kmod.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 const uint8_t *ksurface_locate_modinfo(const uint8_t *base, size_t size, uint64_t *out_len);

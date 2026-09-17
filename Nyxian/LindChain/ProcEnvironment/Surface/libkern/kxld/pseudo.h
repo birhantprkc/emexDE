@@ -19,19 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_KMOD_H
-#define KXLD_KMOD_H
+#ifndef LIBKERN_KXLD_PSEUDO_H
+#define LIBKERN_KXLD_PSEUDO_H
 
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <sys/param.h>
-#include <mach-o/loader.h>
-#include <mach-o/ldsyms.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 
-bool KXLocateKmod(kxld_image_info_t *image_info);
+kern_return_t kxopen_pseudo(const char *identifier, uint32_t version, uint64_t flag, kxld_image_info_t **out_image_info);
 
-#endif /* KXLD_KMOD_H */
+#endif /* LIBKERN_KXLD_PSEUDO_H */

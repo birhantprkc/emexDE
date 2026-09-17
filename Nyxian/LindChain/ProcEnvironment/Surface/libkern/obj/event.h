@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_EVENT_H
-#define KVOBJECT_EVENT_H
+#ifndef LIBKERN_OBJ_EVENT_H
+#define LIBKERN_OBJ_EVENT_H
 
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/defs.h>
 #include <mach/kern_return.h>
@@ -31,4 +31,4 @@
 kern_return_t kvobject_event_register(kvobject_t *kvo, kvobject_event_type_t mask, kvobject_event_handler_t handler, void *context, kvobject_event_t **event);
 void kvobject_event_trigger(kvobject_t *kvo, kvobject_event_type_t mask, uint64_t value);
 
-#endif /* KVOBJECT_EVENT_H */
+#endif /* LIBKERN_OBJ_EVENT_H */

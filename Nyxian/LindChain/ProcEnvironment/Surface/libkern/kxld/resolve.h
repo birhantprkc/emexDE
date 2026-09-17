@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KXLD_RESOLVE_H
-#define KXLD_RESOLVE_H
+#ifndef LIBKERN_KXLD_RESOLVE_H
+#define LIBKERN_KXLD_RESOLVE_H
 
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/image.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -46,4 +46,4 @@ kern_return_t KXRegisterKext(kxld_image_info_t *image_info);
 kern_return_t KXUnregisterKext(kxld_image_info_t *image_info);
 kern_return_t KXGetRegisteredKextForIdentifier(const char *identifier, kxld_image_info_t **image_info);
 
-#endif /* KXLD_RESOLVE_H */
+#endif /* LIBKERN_KXLD_RESOLVE_H */

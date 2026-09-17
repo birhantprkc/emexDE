@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KVOBJECT_REFERENCE_H
-#define KVOBJECT_REFERENCE_H
+#ifndef LIBKERN_OBJ_REFERENCE_H
+#define LIBKERN_OBJ_REFERENCE_H
 
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/defs.h>
 
@@ -32,4 +32,4 @@ bool kvobject_retain(kvobject_t *kvo);
 void kvobject_invalidate(kvobject_t *kvo);
 void kvobject_release(kvobject_t *kvo);
 
-#endif /* KVOBJECT_REFERENCE_H */
+#endif /* LIBKERN_OBJ_REFERENCE_H */

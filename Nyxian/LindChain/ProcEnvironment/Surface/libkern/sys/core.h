@@ -20,8 +20,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef SYS_CORE_H
-#define SYS_CORE_H
+#ifndef LIBKERN_SYS_CORE_H
+#define LIBKERN_SYS_CORE_H
 
 #include <LindChain/ProcEnvironment/Surface/libkern/sys/worker.h>
 #include <os/lock.h>
@@ -47,4 +47,4 @@ syscall_handler_t syscall_server_get_handler(syscall_server_t *server, uint32_t 
 
 mach_port_t syscall_server_get_port(syscall_server_t *server);
 
-#endif /* SYS_CORE_H */
+#endif /* LIBKERN_SYS_CORE_H */

@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef RADIX_H
-#define RADIX_H
+#ifndef LIBKERN_RADIX_RADIX_H
+#define LIBKERN_RADIX_RADIX_H
 
 #include <stdlib.h>
 
@@ -44,4 +44,4 @@ int radix_insert(radix_tree_t *tree, uint64_t ident, void *value);
 void *radix_remove(radix_tree_t *tree, uint64_t ident);
 void radix_walk(radix_tree_t *tree, radix_walk_fn callback, void *ctx);
 
-#endif /* RADIX_H */
+#endif /* LIBKERN_RADIX_RADIX_H */

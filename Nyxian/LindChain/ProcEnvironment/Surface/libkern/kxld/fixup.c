@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/kxld/fixup.h>
-#include <LindChain/ProcEnvironment/Surface/kxld/resolve.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/fixup.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <mach-o/fixup-chains.h>
