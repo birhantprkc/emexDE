@@ -32,6 +32,8 @@
 		8FB3BB043030089000DB3ABC /* LiveShim.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */; };
 		8FB3BB053030089000DB3ABC /* LiveShim.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8FD30F253044E7390059AE9A /* libHWHook.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */; };
+		8FDD846D305C4EE900949118 /* libBroadpatch.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		8FDD846E305C4EF200949118 /* libBroadpatch.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */; };
 		8FECB2472FFD34D500049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB2462FFD34D500049BB0 /* Runestone */; };
 		8FECB24D2FFD367A00049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB24C2FFD367A00049BB0 /* Runestone */; };
 		8FF32E2D3036F8DC00C46FE4 /* libHWHook.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */; };
@@ -95,6 +97,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 8FF32DEC3036F59E00C46FE4;
 			remoteInfo = HWHook;
+		};
+		8FDD846F305C4EF200949118 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AF9916D12DC8C42200DDF895 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8FDD845B305C4E9200949118;
+			remoteInfo = Broadpatch;
 		};
 		8FF32E2E3036F8DC00C46FE4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -168,6 +177,15 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8FDD845A305C4E9200949118 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8FF32DEB3036F59E00C46FE4 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -183,6 +201,7 @@
 			dstPath = Frameworks;
 			dstSubfolderSpec = 7;
 			files = (
+				8FDD846D305C4EE900949118 /* libBroadpatch.dylib in CopyFiles */,
 				8FF647CB3054E68400E1E610 /* bootstrapd.dylib in CopyFiles */,
 				8FF64813305678ED00E1E610 /* MobileDevelopmentService.dylib in CopyFiles */,
 			);
@@ -236,6 +255,7 @@
 		86DCC3092FA521A100973169 /* libz.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.1.tbd; path = usr/lib/libz.1.tbd; sourceTree = SDKROOT; };
 		8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LiveShim.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FB3C1EA3031450500DB3ABC /* ksurface_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_config.h; sourceTree = "<group>"; };
+		8FDD845C305C4E9200949118 /* libBroadpatch.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBroadpatch.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF32DED3036F59E00C46FE4 /* libHWHook.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHWHook.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF346DD3039AA7000C46FE4 /* ksurface_abi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_abi.h; sourceTree = "<group>"; };
 		8FF647C63054E61900E1E610 /* bootstrapd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = bootstrapd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -322,7 +342,6 @@
 				LindChain/ProcEnvironment/Shims/posix_spawn.m,
 				LindChain/ProcEnvironment/Shims/proxy.m,
 				LindChain/ProcEnvironment/Shims/vfork.m,
-				LindChain/ProcEnvironment/Surface/libkern/patch.c,
 				LindChain/ProcEnvironment/Surface/libkern/task_handoff.c,
 				LindChain/ProcEnvironment/Surface/trust/signing.c,
 				LindChain/ProcEnvironment/Utils/fd.c,
@@ -537,6 +556,13 @@
 			);
 			target = 860D91742FAE1F95000D321B /* MobileDevelopmentKit */;
 		};
+		8FDD846B305C4EA000949118 /* Exceptions for "Frameworks" folder in "Broadpatch" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Broadpatch/Broadpatch.m,
+			);
+			target = 8FDD845B305C4E9200949118 /* Broadpatch */;
+		};
 		8FF32E1A3036F5F500C46FE4 /* Exceptions for "Frameworks" folder in "HWHook" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -598,6 +624,13 @@
 				CoreCompiler/CoreCompilerSupportLibs/lib_CompilerSwiftWarningControl.dylib,
 			);
 		};
+		8FDD846C305C4EA000949118 /* Exceptions for "Frameworks" folder in "Copy Files" phase from "Broadpatch" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 8FDD845A305C4E9200949118 /* CopyFiles */;
+			membershipExceptions = (
+				Broadpatch/Broadpatch.h,
+			);
+		};
 		AFF4DBDB2DCA5DEA00B1B5F9 /* Exceptions for "Nyxian" folder in "Embed Libraries" phase from "Nyxian" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
@@ -632,6 +665,8 @@
 				8FB3C25E303145F100DB3ABC /* Exceptions for "Frameworks" folder in "CoreCompiler" target */,
 				8FB3C25F303145F100DB3ABC /* Exceptions for "Frameworks" folder in "Embed Libraries" phase from "CoreCompiler" target */,
 				8FB3C27B3031460B00DB3ABC /* Exceptions for "Frameworks" folder in "LiveShim" target */,
+				8FDD846B305C4EA000949118 /* Exceptions for "Frameworks" folder in "Broadpatch" target */,
+				8FDD846C305C4EA000949118 /* Exceptions for "Frameworks" folder in "Copy Files" phase from "Broadpatch" target */,
 				8FF32E1A3036F5F500C46FE4 /* Exceptions for "Frameworks" folder in "HWHook" target */,
 			);
 			path = Frameworks;
@@ -701,6 +736,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8FDD8459305C4E9200949118 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8FF32DEA3036F59E00C46FE4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -732,6 +774,7 @@
 				86E4D4F72FB8CF63008BFE4D /* TreeSitterSwift in Frameworks */,
 				860D917D2FAE1F95000D321B /* MobileDevelopmentKit.framework in Frameworks */,
 				79B708BC2F73157F000F38E7 /* TreeSitterCPP in Frameworks */,
+				8FDD846E305C4EF200949118 /* libBroadpatch.dylib in Frameworks */,
 				79B70C1C2F73223A000F38E7 /* Runestone in Frameworks */,
 				79B70C1F2F732364000F38E7 /* Runestone in Frameworks */,
 				8F4D96E62FFBF8FB006CAF3C /* Runestone in Frameworks */,
@@ -793,6 +836,7 @@
 				8FF32DED3036F59E00C46FE4 /* libHWHook.a */,
 				8FF647C63054E61900E1E610 /* bootstrapd.dylib */,
 				8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */,
+				8FDD845C305C4E9200949118 /* libBroadpatch.dylib */,
 			);
 			sourceTree = "<group>";
 		};
@@ -929,6 +973,25 @@
 			productReference = 8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		8FDD845B305C4E9200949118 /* Broadpatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8FDD8463305C4E9200949118 /* Build configuration list for PBXNativeTarget "Broadpatch" */;
+			buildPhases = (
+				8FDD8458305C4E9200949118 /* Sources */,
+				8FDD8459305C4E9200949118 /* Frameworks */,
+				8FDD845A305C4E9200949118 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Broadpatch;
+			packageProductDependencies = (
+			);
+			productName = Broadpatch;
+			productReference = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */;
+			productType = "com.apple.product-type.library.static";
+		};
 		8FF32DEC3036F59E00C46FE4 /* HWHook */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8FF32DF43036F59E00C46FE4 /* Build configuration list for PBXNativeTarget "HWHook" */;
@@ -1008,6 +1071,7 @@
 				8FB3BE8C303131D800DB3ABC /* PBXTargetDependency */,
 				8F60087A3033F9200028EDFD /* PBXTargetDependency */,
 				8FD30F273044E7390059AE9A /* PBXTargetDependency */,
+				8FDD8470305C4EF200949118 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AF9916DB2DC8C42200DDF895 /* Nyxian */,
@@ -1064,6 +1128,9 @@
 					8FB3BADA302FFBAA00DB3ABC = {
 						CreatedOnToolsVersion = 27.0;
 					};
+					8FDD845B305C4E9200949118 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					8FF32DEC3036F59E00C46FE4 = {
 						CreatedOnToolsVersion = 27.0;
 					};
@@ -1103,6 +1170,7 @@
 				860D91742FAE1F95000D321B /* MobileDevelopmentKit */,
 				86DCC2592FA5209600973169 /* CoreCompiler */,
 				8FB3BADA302FFBAA00DB3ABC /* LiveShim */,
+				8FDD845B305C4E9200949118 /* Broadpatch */,
 				8FF32DEC3036F59E00C46FE4 /* HWHook */,
 				79AA11BB2F7FFE24002FEAF2 /* nxtool */,
 			);
@@ -1184,6 +1252,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		8FDD8458305C4E9200949118 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8FF32DE93036F59E00C46FE4 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1250,6 +1325,11 @@
 			isa = PBXTargetDependency;
 			target = 8FF32DEC3036F59E00C46FE4 /* HWHook */;
 			targetProxy = 8FD30F263044E7390059AE9A /* PBXContainerItemProxy */;
+		};
+		8FDD8470305C4EF200949118 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8FDD845B305C4E9200949118 /* Broadpatch */;
+			targetProxy = 8FDD846F305C4EF200949118 /* PBXContainerItemProxy */;
 		};
 		8FF32E2F3036F8DC00C46FE4 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1697,6 +1777,52 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		8FDD8464305C4E9200949118 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				DYLIB_INSTALL_NAME_BASE = "@rpath/libBroadpatch.dylib";
+				EXECUTABLE_EXTENSION = dylib;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_DYLIB_INSTALL_NAME = "@rpath/libBroadpatch.dylib";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8FDD8465305C4E9200949118 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = L4A6CKH3TV;
+				DYLIB_INSTALL_NAME_BASE = "@rpath/libBroadpatch.dylib";
+				EXECUTABLE_EXTENSION = dylib;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_DYLIB_INSTALL_NAME = "@rpath/libBroadpatch.dylib";
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -2231,6 +2357,15 @@
 			buildConfigurations = (
 				8FB3BAE6302FFBAA00DB3ABC /* Debug */,
 				8FB3BAE7302FFBAA00DB3ABC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8FDD8463305C4E9200949118 /* Build configuration list for PBXNativeTarget "Broadpatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8FDD8464305C4E9200949118 /* Debug */,
+				8FDD8465305C4E9200949118 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

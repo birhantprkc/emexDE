@@ -19,7 +19,7 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#include "Broadpatch.h"
 
 /* libc API */
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(open);
