@@ -241,7 +241,7 @@ out_destroy_request:
         reply.NDR = NDR_record;
         reply.RetCode = kr;
         mr = mach_msg(&reply.Head, MACH_SEND_MSG, reply.Head.msgh_size, 0, MACH_PORT_NULL, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
-        if(mr == KERN_SUCCESS)
+        if(mr == MACH_MSG_SUCCESS)
         {
             request.v.Head.msgh_remote_port = MACH_PORT_NULL;
         }

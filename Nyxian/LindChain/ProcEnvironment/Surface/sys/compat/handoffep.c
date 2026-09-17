@@ -29,6 +29,7 @@
 
 DEFINE_SYSCALL_HANDLER(handoffep)
 {
+    /* guest hands of a receive right of a exception port */
     sys_need_in_ports(1, MACH_MSG_TYPE_MOVE_RECEIVE);
     
     kvo_wrlock(sys_proc_);
@@ -57,8 +58,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     mach_port_mod_refs(mach_task_self(), exceptionPort, MACH_PORT_RIGHT_RECEIVE, -1);
     if(kr != KERN_SUCCESS)
     {
-        proc_kill(sys_proc_, SIGKILL);
-        sys_return;
+        goto out_failure_kill;
     }
     
     /* validating the identity of the process behind the task port. */
@@ -67,8 +67,7 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     if(kr != KERN_SUCCESS || pid != proc_getpid(sys_proc_snapshot_))
     {
         mach_port_deallocate(mach_task_self(), returnedTask);
-        proc_kill(sys_proc_, SIGKILL);
-        sys_return;
+        goto out_failure_kill;
     }
     
     kvo_wrlock(sys_proc_);
@@ -78,5 +77,9 @@ DEFINE_SYSCALL_HANDLER(handoffep)
     
     kvo_event_trigger(sys_proc_, kProcEventTypeWaitTask, 0);
     
+    sys_return;
+    
+out_failure_kill:
+    proc_kill(sys_proc_, SIGKILL);
     sys_return;
 }

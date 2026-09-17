@@ -106,6 +106,12 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, proc_task_for_proc, (ksurface_proc_t *pr
     
     /* temporary task port to not leak port value on failure */
     kvo_rdlock(proc);
+    if(proc->task == MACH_PORT_NULL)
+    {
+        kvo_unlock(proc);
+        return KERN_INVALID_TASK;
+    }
+    
     task_t tmp_task = proc->task;
     
     /*
