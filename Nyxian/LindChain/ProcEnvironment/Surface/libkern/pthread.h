@@ -19,15 +19,23 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/libkern/relax.h>
+#ifndef LIBKERN_PTHREAD_H
+#define LIBKERN_PTHREAD_H
 
-void relax(void)
+#include <pthread.h>
+#include <mach/mach.h>
+#include <errno.h>
+
+static inline int pthread_suspend(pthread_t pthread)
 {
-#if defined(__x86_64__) || defined(__i386__)
-    __asm__ volatile("pause");
-#elif defined(__aarch64__)
-    __asm__ volatile("yield");
-#else
-    // fallback: nothing
-#endif
+    thread_t thread = pthread_mach_thread_np(pthread);
+    return thread_suspend(thread) == KERN_SUCCESS ? 0 : EINVAL;
 }
+
+static inline int pthread_resume(pthread_t pthread)
+{
+    thread_t thread = pthread_mach_thread_np(pthread);
+    return thread_resume(thread) == KERN_SUCCESS ? 0 : EINVAL;
+}
+
+#endif /* LIBKERN_PTHREAD_H */

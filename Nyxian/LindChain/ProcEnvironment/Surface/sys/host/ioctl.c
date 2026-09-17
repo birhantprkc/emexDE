@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/pthread.h>
 #include <LindChain/ProcEnvironment/Surface/sys/host/ioctl.h>
 #include <LindChain/ProcEnvironment/Surface/tty/tty.h>
-#include <LindChain/ProcEnvironment/Surface/tty/utils.h>
 #include <termios.h>
 #include <errno.h>
 
@@ -79,8 +79,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
                 goto out_fault;
             }
             
-            kr = tty_suspend(tty);
-            if(kr != KERN_SUCCESS)
+            if(pthread_suspend(tty->pump_thread) != 0)
             {
                 goto out_fault;
             }
@@ -88,7 +87,7 @@ DEFINE_SYSCALL_HANDLER(ioctl)
             /* TODO: sanitize fields, dont trust user memory blindly otherwise this could lead to a panic where the tty thread parses illegal data from termios */
             memcpy(&(tty->t), &temp, sizeof(struct termios));
             
-            tty_resume(tty);
+            pthread_resume(tty->pump_thread);
             
             break;
         case TIOCSPGRP:

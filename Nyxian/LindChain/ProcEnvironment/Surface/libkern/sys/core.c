@@ -20,8 +20,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/sys/core.h>
 #include <os/lock.h>
+#include <errno.h>
+#include <string.h>
 
 syscall_server_t* syscall_server_create(void)
 {
@@ -59,8 +62,7 @@ int syscall_server_start(syscall_server_t *server)
     guard_value = 0;    /* from now on, not even ksurface can unguard it */
     if(kr != KERN_SUCCESS)
     {
-        mach_port_deallocate(mach_task_self(), server->port);
-        return -1;
+        kpanic("couldn't construct syscall server port: \(%s)", mach_error_string(kr));
     }
     
     /* now we spin the workers up (not AI lol) */
@@ -74,15 +76,19 @@ int syscall_server_start(syscall_server_t *server)
     
     for(int i = 0; i < server->threads_cnt; i++)
     {
-        pthread_create(&server->threads[i], NULL, syscall_worker, server);
+        errno_t err = pthread_create(&server->threads[i], NULL, syscall_worker, server);
+        if(err != 0)
+        {
+            kpanic("couldn't spin up all syscall workers: \(%s)", strerror(err));
+        }
     }
     
     return 0;
 }
 
-void syscall_server_register(syscall_server_t *server,
-                             uint32_t syscall_num,
-                             syscall_handler_t handler)
+LIBKERN_DEFINE_PATCHABLE(void, syscall_server_register, (syscall_server_t *server,
+                                                         uint32_t syscall_num,
+                                                         syscall_handler_t handler))
 {
     assert(server != NULL && syscall_num < SYSCALL_HANDLERS_LIMIT && handler != NULL);
     

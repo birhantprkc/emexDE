@@ -26,6 +26,16 @@
  @function relax
  @abstract Tells the CPU to relax and shut up XD.
  */
-void relax(void);
+static inline void relax(void)
+{
+#if defined(__x86_64__) || defined(__i386__)
+    __asm__ volatile("pause");
+#elif defined(__aarch64__)
+    __asm__ volatile("yield");
+#else
+    #error "no relaxiation is very wasteful, I won't compile till you fixed me. >:3"
+    // fallback: nothing
+#endif
+}
 
 #endif /* LIBKERN_EXTRA_H */
