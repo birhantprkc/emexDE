@@ -27,6 +27,7 @@
 #import <MobileDevelopmentKit/MDKThreadPool.h>
 #import <LindChain/ProcEnvironment/Surface/trust/keychain.h>
 #import <UI/XCodeButton.h>
+#import <Nyxian-Swift.h>
 
 BOOL PEURLIsContainedIn(NSURL *candidate,
                         NSURL *root)
@@ -330,7 +331,10 @@ BOOL PEURLIsContainedIn(NSURL *candidate,
                     goto report_error;
                 }
                 
-                ksurface_keychain_update();
+                if(!NXApplicationState.extensionLessMode)
+                {
+                    ksurface_keychain_update();
+                }
                 
                 self.version = 28;
             }
