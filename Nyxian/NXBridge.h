@@ -55,10 +55,13 @@
 #import <LindChain/Utils/LDEDebouncer.h>
 #import <LindChain/Utils/IconUtils.h>
 
-/* Micro Kernel Headers */
+/* WindowServer headers */
 #import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/WindowServer/Session/NXWindowSessionTerminal.h>
+
+/* Micro Kernel Headers */
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
 #import <LindChain/ProcEnvironment/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/PEExtension.h>
@@ -71,7 +74,6 @@
 #import <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
 #import <LindChain/ProcEnvironment/Utils/misc.h>
 
 /* Daemon Interfaces Headers */

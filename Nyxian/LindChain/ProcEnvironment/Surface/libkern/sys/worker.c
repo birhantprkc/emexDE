@@ -20,11 +20,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/sys/worker.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/sys/core.h>
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
@@ -191,7 +191,7 @@ void* syscall_worker(void *ctx)
             /* receive right is dead when the server stops */
             if(mr == MACH_RCV_PORT_DIED || mr == MACH_RCV_INVALID_NAME)
             {
-                ksurface_panic("syscall server worker thread died unexpectedly, this is undefined behaviour. (mr = 0x%x)", mr);
+                kpanic("syscall server worker thread died unexpectedly, this is undefined behaviour. (mr = 0x%x)", mr);
             }
             continue;
         }

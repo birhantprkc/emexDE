@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Utils/kpanic.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <mach/mach.h>
@@ -43,7 +43,7 @@ static const char *xnu_version_string(void)
 
 static struct ksurface_panic_header g_kpanic_header;
 
-void ksurface_panic_log_append(const char *fmt, ...)
+void kpanic_append(const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -55,9 +55,9 @@ void ksurface_panic_log_append(const char *fmt, ...)
     }
 }
 
-static void ksurface_panic_emit_backtrace(task_t task,
-                                          thread_t thread,
-                                          uint64_t tid)
+static void kpanic_emit_backtrace(task_t task,
+                                  thread_t thread,
+                                  uint64_t tid)
 {
     arm_thread_state64_t ts;
     mach_msg_type_number_t cnt = ARM_THREAD_STATE64_COUNT;
@@ -69,8 +69,8 @@ static void ksurface_panic_emit_backtrace(task_t task,
     uint64_t pc = arm_thread_state64_get_pc(ts);
     uint64_t fp = arm_thread_state64_get_fp(ts);
     
-    ksurface_panic_log_append("Panicked thread: 0x%llx, backtrace: 0x%016llx, tid: %llu\n", (uint64_t)thread, fp, tid);
-    ksurface_panic_log_append("\t\t  lr: 0x%016llx fp: 0x%016llx\n", pc, fp);
+    kpanic_append("Panicked thread: 0x%llx, backtrace: 0x%016llx, tid: %llu\n", (uint64_t)thread, fp, tid);
+    kpanic_append("\t\t  lr: 0x%016llx fp: 0x%016llx\n", pc, fp);
     
     const int MAX_FRAMES = 64;
     for(int i = 0; i < MAX_FRAMES && fp != 0; i++)
@@ -91,7 +91,7 @@ static void ksurface_panic_emit_backtrace(task_t task,
             break;
         }
         
-        ksurface_panic_log_append("\t\t  lr: 0x%016llx fp: 0x%016llx\n", frame.saved_lr, frame.saved_fp);
+        kpanic_append("\t\t  lr: 0x%016llx fp: 0x%016llx\n", frame.saved_lr, frame.saved_fp);
         
         if(frame.saved_fp <= fp)
         {
@@ -124,7 +124,7 @@ static int kpanic_thread_index(task_t task, thread_t target)
 }
 
 __attribute__((noreturn))
-void ksurface_panic(const char *fmt, ...)
+void kpanic(const char *fmt, ...)
 {
     g_kpanic_header.magic = 'KSPN';
     g_kpanic_header.version = 1;
@@ -140,21 +140,21 @@ void ksurface_panic(const char *fmt, ...)
     }
     
     /* ksurface is seeing XNU as the hardware as the chip, so our CPU is the Thread */
-    ksurface_panic_log_append("panic(cpu %d caller 0x%016llx): ", kpanic_thread_index(mach_task_self(), thread), (uint64_t)__builtin_return_address(0));
+    kpanic_append("panic(cpu %d caller 0x%016llx): ", kpanic_thread_index(mach_task_self(), thread), (uint64_t)__builtin_return_address(0));
     va_list ap; va_start(ap, fmt);
     g_kpanic_header.len += vsnprintf(g_kpanic_header.body + g_kpanic_header.len, sizeof(g_kpanic_header.body) - g_kpanic_header.len, fmt, ap);
     va_end(ap);
-    ksurface_panic_log_append("\n");
+    kpanic_append("\n");
     
     /* structured block */
-    ksurface_panic_log_append("Debugger message: panic\n");
-    ksurface_panic_log_append("Kernel version: %s + ksurface 0.11.5\n", xnu_version_string());
-    ksurface_panic_log_append("Paniclog version: %u\n", g_kpanic_header.version);
-    ksurface_panic_log_append("Kernel slide: 0x%016llx\n", (uint64_t)_dyld_get_image_vmaddr_slide(0));
-    ksurface_panic_log_append("Kernel text base: 0x%016llx\n", (uint64_t)_dyld_get_image_header(0));
+    kpanic_append("Debugger message: panic\n");
+    kpanic_append("Kernel version: %s + ksurface 0.11.5\n", xnu_version_string());
+    kpanic_append("Paniclog version: %u\n", g_kpanic_header.version);
+    kpanic_append("Kernel slide: 0x%016llx\n", (uint64_t)_dyld_get_image_vmaddr_slide(0));
+    kpanic_append("Kernel text base: 0x%016llx\n", (uint64_t)_dyld_get_image_header(0));
     
     /* now a backtrace */
-    ksurface_panic_emit_backtrace(mach_task_self(), thread, faulting_tid);
+    kpanic_emit_backtrace(mach_task_self(), thread, faulting_tid);
     mach_port_deallocate(mach_task_self(), thread);
     
     /* first dump panic string into kernel log */
@@ -171,7 +171,7 @@ void ksurface_panic(const char *fmt, ...)
     __builtin_unreachable();
 }
 
-const struct ksurface_panic_header *ksurface_panic_log_get(void)
+const struct ksurface_panic_header *kpanic_log_get(void)
 {
     return &g_kpanic_header;
 }

@@ -19,9 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/reference.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/obj/event.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <dlfcn.h>
@@ -89,7 +89,7 @@ void kvobject_release(kvobject_t *kvo)
                 }
                 break;
             default:
-                ksurface_panic("unknown object %d type got deinitilized", kvo->base_type);
+                kpanic("unknown object %d type got deinitilized", kvo->base_type);
                 break;
         }
         
@@ -97,7 +97,6 @@ void kvobject_release(kvobject_t *kvo)
     }
     else if(old <= 0)
     {
-#if DEBUG
         Dl_info info;
         dladdr(kvo->main_handler, &info);
         
@@ -105,9 +104,6 @@ void kvobject_release(kvobject_t *kvo)
          * happens on reference underflow, by design a
          * panic cuz this never happens legitimately
          */
-        ksurface_panic("reference underflow on kvobject @ %p with main event handler @ %p (%s)", kvo, info.dli_fbase, info.dli_fname);
-#else
-        ksurface_panic("reference underflow on kvobject @ %p", kvo);
-#endif /* DEBUG */
+        kpanic("reference underflow on kvobject @ %p with main event handler @ %p (%s)", kvo, info.dli_fbase, info.dli_fname);
     }
 }

@@ -1,5 +1,5 @@
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 
 #define KEXT_IDENTITY "$(NXBundleIdentifier)"
 

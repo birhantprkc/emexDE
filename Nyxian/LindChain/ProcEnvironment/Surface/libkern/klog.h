@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KLOG_H
-#define KLOG_H
+#ifndef LIBKERN_KLOG_H
+#define LIBKERN_KLOG_H
 
 #if __OBJC__
 #import <Foundation/Foundation.h>
@@ -46,4 +46,4 @@ void klog_log_internal(const char *system, const char *format, ...);
 NSString *klog_dump(void);
 #endif /* __OBJC__ */
 
-#endif /* KLOG_H */
+#endif /* LIBKERN_KLOG_H */

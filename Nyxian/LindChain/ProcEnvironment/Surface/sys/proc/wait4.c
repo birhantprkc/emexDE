@@ -91,13 +91,13 @@ bool wait4_proc_event_handler(uint32_t type,
                 /* process has already exited, reap it */
                 if(!kvo_retain(child))
                 {
-                    ksurface_panic("failed to retain exited child process");
+                    kpanic("failed to retain exited child process");
                 }
                 
                 pthread_t thread;
                 if(pthread_create(&thread, NULL, proc_reap_thread, child) != 0)
                 {
-                    ksurface_panic("failed to create reap thread for exited child process");
+                    kpanic("failed to create reap thread for exited child process");
                 }
                 else
                 {

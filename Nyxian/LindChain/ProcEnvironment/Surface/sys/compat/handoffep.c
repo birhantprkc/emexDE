@@ -21,11 +21,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
 #include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
 #include <LindChain/ProcEnvironment/Surface/proc/spawn.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
 
 DEFINE_SYSCALL_HANDLER(handoffep)
 {

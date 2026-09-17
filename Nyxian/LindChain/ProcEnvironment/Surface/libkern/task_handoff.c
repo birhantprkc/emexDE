@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/task_handoff.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <ksurface_abi.h>
 #include <assert.h>
 
@@ -154,7 +154,7 @@ out_dealloc:
     mach_msg_return_t mr = mach_msg(&(request.v.Head), MACH_RCV_MSG | MACH_RCV_TIMEOUT, 0, sizeof(request), exceptionPort, 1000, MACH_PORT_NULL);
     if(mr != MACH_MSG_SUCCESS)
     {
-        klog_log("ktfp", "failed to receive task port right: %s", mach_error_string(mr));
+        klog_log("task_handoff", "failed to receive task port right: %s", mach_error_string(mr));
         return KERN_FAILURE;
     }
     
@@ -162,7 +162,7 @@ out_dealloc:
     if((request.v.Head.msgh_bits & MACH_MSGH_BITS_COMPLEX) == 0 ||
        (request.v.Head.msgh_bits & MACH_MSGH_BITS_PORTS_MASK) != MACH_MSGH_BITS(MACH_MSG_TYPE_PORT_SEND_ONCE, MACH_MSG_TYPE_PORT_SEND))
     {
-        klog_log("ktfp", "malformed mach message header");
+        klog_log("task_handoff", "malformed mach message header");
         goto out_failure;
     }
     
@@ -171,7 +171,7 @@ out_dealloc:
        request.v.thread.type != MACH_MSG_PORT_DESCRIPTOR ||
        request.v.task.type != MACH_MSG_PORT_DESCRIPTOR)
     {
-        klog_log("ktfp", "malformed mach message body");
+        klog_log("task_handoff", "malformed mach message body");
         goto out_failure;
     }
     
@@ -181,14 +181,14 @@ out_dealloc:
     kr = mach_port_kobject(mach_task_self(), request.v.task.name, &type, &address);
     if(kr != KERN_SUCCESS)
     {
-        klog_log("ktfp", "failed getting the kobject type: %s", mach_error_string(kr));
+        klog_log("task_handoff", "failed getting the kobject type: %s", mach_error_string(kr));
         goto out_failure;
     }
     
     /* checking for ipc object type */
     if(type != IPC_OTYPE_TASK_CONTROL)  /* also known as IKOT_TASK.. aka kernel task port */
     {
-        klog_log("ktfp", "port %d backed by ipc object with type %d is not a IKOT_TASK ipc object", request.v.task.name, type);
+        klog_log("task_handoff", "port %d backed by ipc object with type %d is not a IKOT_TASK ipc object", request.v.task.name, type);
         goto out_failure;
     }
     
@@ -204,7 +204,7 @@ out_dealloc:
     kr = thread_get_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, &count);
     if(kr != KERN_SUCCESS)
     {
-        klog_log("ktfp", "failed to get thread state of guest: %s", mach_error_string(kr));
+        klog_log("task_handoff", "failed to get thread state of guest: %s", mach_error_string(kr));
         goto out_failure;
     }
     
@@ -214,14 +214,14 @@ out_dealloc:
     kr = thread_set_state(request.v.thread.name, ARM_THREAD_STATE64, (thread_state_t)&state, count);
     if(kr != KERN_SUCCESS)
     {
-        klog_log("ktfp", "failed to restore thread state of guest: %s", mach_error_string(kr));
+        klog_log("task_handoff", "failed to restore thread state of guest: %s", mach_error_string(kr));
         goto out_failure;
     }
     
     kr = mach_port_mod_refs(mach_task_self(), request.v.task.name, MACH_PORT_RIGHT_SEND, 1);
     if(kr != KERN_SUCCESS)
     {
-        klog_log("ktfp", "failed to increment task port send right: %s", mach_error_string(kr));
+        klog_log("task_handoff", "failed to increment task port send right: %s", mach_error_string(kr));
         goto out_failure;
     }
     
@@ -247,7 +247,7 @@ out_destroy_request:
         }
         else
         {
-            klog_log("ktfp", "failed to reply back to kernel: %s", mach_error_string(mr));
+            klog_log("task_handoff", "failed to reply back to kernel: %s", mach_error_string(mr));
         }
         
         mach_msg_destroy(&(request.v.Head));

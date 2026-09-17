@@ -19,17 +19,18 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
-#import <LindChain/ProcEnvironment/Surface/tty/tty.h>
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#include <LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/PEProcessManager.h>
 #import <sys/socket.h>
 #import <sys/poll.h>
-#include <stdio.h>
+#import <stdio.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
+#import <LindChain/ProcEnvironment/Surface/tty/tty.h>
+#import <LindChain/ProcEnvironment/Surface/proc/list.h>
+#import <LindChain/ProcEnvironment/Surface/surface.h>
+#import <LindChain/ProcEnvironment/PEProcessManager.h>
 
+/* TODO: use new proc_kill API */
 static void tty_kill(ksurface_tty_t *tty, int sig)
 {
     kinfo_proc_t *kp  = NULL;
@@ -249,7 +250,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(tty)
     {
         case kvObjEventSnapshot:
         case kvObjEventCopy:
-            ksurface_panic("attempted to copy or snapshot tty, which is illegal");
+            kpanic("attempted to copy or snapshot tty, which is illegal");
         case kvObjEventInit:
         {
             klog_log("tty:init", "initializing tty @ %p", tty);

@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
 #include <ksurface_config.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(proc)

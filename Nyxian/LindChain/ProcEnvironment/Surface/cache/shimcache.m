@@ -28,7 +28,7 @@
 #import <MobileDevelopmentKit/MobileDevelopmentKit.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/IDEFoundation/NXProject.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCUtils.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>

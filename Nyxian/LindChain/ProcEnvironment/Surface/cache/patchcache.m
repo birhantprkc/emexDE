@@ -22,7 +22,7 @@
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/ProcEnvironment/Surface/cache/patchcache.h>
 #import <LindChain/ProcEnvironment/Surface/fs/mount.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/litehook/litehook.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #import <LindChain/ProcEnvironment/LiveContainer/utils.h>

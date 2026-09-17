@@ -20,7 +20,7 @@
 */
 
 #import <Foundation/Foundation.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <os/lock.h>
 
 /* not the kfd exploit dummy >:3 */

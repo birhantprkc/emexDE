@@ -19,10 +19,10 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <os/lock.h>
 
 DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
@@ -40,7 +40,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
     {
         case kvObjEventCopy:
         case kvObjEventSnapshot:
-            ksurface_panic("attempting to copy or snapshot a kxld image object is illegal");
+            kpanic("attempting to copy or snapshot a kxld image object is illegal");
         case kvObjEventInit:
             image_info->safeToUnmap = true;
             return 0;
@@ -55,7 +55,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
                         kern_return_t kr = image_info->mod->stop();
                         if(kr != KERN_SUCCESS)
                         {
-                            ksurface_panic("kext '%s' failed to stop: %s", image_info->mod->identifier, mach_error_string(kr));
+                            kpanic("kext '%s' failed to stop: %s", image_info->mod->identifier, mach_error_string(kr));
                         }
                     }
                     if(image_info->isInitialized && image_info->mod->deinit)
@@ -64,13 +64,13 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
                         kern_return_t kr = image_info->mod->deinit();
                         if(kr != KERN_SUCCESS)
                         {
-                            ksurface_panic("kext '%s' failed to deinitialize: %s", image_info->mod->identifier, mach_error_string(kr));
+                            kpanic("kext '%s' failed to deinitialize: %s", image_info->mod->identifier, mach_error_string(kr));
                         }
                     }
                     kern_return_t kr = KXUnregisterKext(image_info);
                     if(kr != KERN_SUCCESS && kr != KERN_NOT_FOUND)
                     {
-                        ksurface_panic("kext '%s' failed to unregister: %s", image_info->mod->identifier, mach_error_string(kr));
+                        kpanic("kext '%s' failed to unregister: %s", image_info->mod->identifier, mach_error_string(kr));
                     }
                 }
                 
@@ -84,7 +84,7 @@ DEFINE_KVOBJECT_MAIN_EVENT_HANDLER(kxld_image)
                         kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
                         if(kr != KERN_SUCCESS)
                         {
-                            ksurface_panic("failed to find previously resolvable dependency that was reference incremented");
+                            kpanic("failed to find previously resolvable dependency that was reference incremented");
                         }
                         kvo_release(depImageInfo);
                     }

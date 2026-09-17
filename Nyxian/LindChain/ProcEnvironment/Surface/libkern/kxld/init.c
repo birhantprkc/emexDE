@@ -20,7 +20,7 @@
 */
 
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/init.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 
 typedef void (*kx_init_fn)(int argc, char **argv, char **envp, char **apple, void *vars);

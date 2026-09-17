@@ -19,7 +19,9 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/validation.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/mapper.h>
@@ -32,9 +34,7 @@
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/objc.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/resolve.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
-#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
-#include <LindChain/ProcEnvironment/Utils/kpanic.h>
 #include <ksurface_config.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -172,7 +172,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, kxopen_with_fd, (int fd,
                 kern_return_t kr = KXGetRegisteredKextForIdentifier(image_info->mod->dependencies[i].identifier, &depImageInfo);
                 if(kr != KERN_SUCCESS)
                 {
-                    ksurface_panic("failed to find previously resolvable dependency that was reference incremented.");
+                    kpanic("failed to find previously resolvable dependency that was reference incremented.");
                 }
                 kvo_release(depImageInfo);
             }

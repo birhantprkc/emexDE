@@ -19,8 +19,8 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef KPANIC_H
-#define KPANIC_H
+#ifndef LIBKERN_KPANIC_H
+#define LIBKERN_KPANIC_H
 
 #include <stdint.h>
 
@@ -34,11 +34,11 @@ struct ksurface_panic_header {
     char body[KPANIC_BUF_SIZE];
 };
 
-void ksurface_panic_log_append(const char *fmt, ...) __printflike(1, 2);
+void kpanic_append(const char *fmt, ...) __printflike(1, 2);
 
 __attribute__((noreturn))
-void ksurface_panic(const char *fmt, ...) __printflike(1, 2);
+void kpanic(const char *fmt, ...) __printflike(1, 2);
 
-const struct ksurface_panic_header *ksurface_panic_log_get(void);
+const struct ksurface_panic_header *kpanic_log_get(void);
 
-#endif /* KPANIC_H */
+#endif /* LIBKERN_KPANIC_H */

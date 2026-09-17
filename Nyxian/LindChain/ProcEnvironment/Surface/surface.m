@@ -19,11 +19,11 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #import <LindChain/ProcEnvironment/Shims/environment.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
 #import <LindChain/ProcEnvironment/Surface/surface.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/Surface/sys/syscall.h>
 #import <LindChain/ProcEnvironment/LiveContainer/utils.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
@@ -119,7 +119,7 @@ void ksurface_kinit_get_keys(void)
     if(!get_static_kernel_key(NULL, NULL, &(ksurface->pub_key), &(ksurface->pub_key_len)))
     {
         /* shall never happen */
-        ksurface_panic("failed to get code signature key pair");
+        kpanic("failed to get code signature key pair");
     }
     klog_log("ksurface:kinit:kalloc", "got code signature key pair");
 }
@@ -132,7 +132,7 @@ static inline void ksurface_kinit_kalloc(void)
     if(ksurface == NULL)
     {
         /* shall never happen */
-        ksurface_panic("allocating ksurface failed got NULL pointer from malloc");
+        kpanic("allocating ksurface failed got NULL pointer from malloc");
     }
     klog_log("ksurface:kinit:kalloc", "allocated ksurface @ %p", ksurface);
     
@@ -155,7 +155,7 @@ static inline void ksurface_kinit_kalloc(void)
         klog_log("ksurface:kinit:kalloc", "initializing global lock @ %p", wls[i]);
         if(pthread_rwlock_init(wls[i], NULL) != 0)
         {
-            ksurface_panic("failed to initialize global lock @ %p", wls[i]);
+            kpanic("failed to initialize global lock @ %p", wls[i]);
         }
     }
     
@@ -196,7 +196,7 @@ static inline void ksurface_kinit_kserver(void)
     if(ksurface->sys_server == NULL)
     {
         /* shall never happen */
-        ksurface_panic("got NULL syscall server");
+        kpanic("got NULL syscall server");
     }
     klog_log("ksurface:kinit:kserver", "allocated syscall server @ %p", ksurface->sys_server);
     
@@ -232,7 +232,7 @@ static inline void ksurface_kinit_kproc(void)
     if(kproc == NULL)
     {
         /* shall never happen */
-        ksurface_panic("got NULL kernel process");
+        kpanic("got NULL kernel process");
     }
     klog_log("ksurface:kinit:kproc", "allocated kernel process @ %p", kproc);
     
@@ -240,7 +240,7 @@ static inline void ksurface_kinit_kproc(void)
     if(kproc->nyx.identity == NULL)
     {
         /* shall never happen */
-        ksurface_panic("got NULL kernel trust identity");
+        kpanic("got NULL kernel trust identity");
     }
     
     kern_return_t kr;
@@ -265,7 +265,7 @@ static inline void ksurface_kinit_kproc(void)
     if(kr != KERN_SUCCESS)
     {
         /* shall never happen */
-        ksurface_panic("failed to aquire task name of kernel it self");
+        kpanic("failed to aquire task name of kernel it self");
     }
     kproc->task = task;
 #endif /* KSURFACE_EMIT_KERNEL_TASK */
@@ -278,7 +278,7 @@ static inline void ksurface_kinit_kproc(void)
     if(kr != KERN_SUCCESS)
     {
         /* shall never happen */
-        ksurface_panic("failed to insert kernel process");
+        kpanic("failed to insert kernel process");
     }
     
     ksurface->proc_info.kern_proc = kproc;
@@ -310,12 +310,12 @@ void ksurface_kinit(void)
     /* initialize other subsytems */
     if(ksurface_fs_init() != KERN_SUCCESS)
     {
-        ksurface_panic("fs didn't initialize");
+        kpanic("fs didn't initialize");
     }
     
     if(ksurface_keychain_update() != KERN_SUCCESS)
     {
-        ksurface_panic("keychain didn't initialize");
+        kpanic("keychain didn't initialize");
     }
     
     /* put log devices where they actually belong to */

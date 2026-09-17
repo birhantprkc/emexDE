@@ -19,21 +19,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
+#import <Foundation/Foundation.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
+#import <LindChain/ProcEnvironment/Surface/sys/compat/pectl.h>
 #import <LindChain/ProcEnvironment/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/PEBootstrapRegistry.h>
 #import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
 #import <LindChain/ProcEnvironment/PEUserspaceManager.h>
-#import <Foundation/Foundation.h>
 #import <LindChain/WindowServer/NXWindowServer.h>
 #import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
 #import <LindChain/ProcEnvironment/LiveContainer/LCUtils.h>
-#include <LindChain/ProcEnvironment/Utils/vnode.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
-#include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
+#import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <ksurface_config.h>
 #import <ksurface_abi.h>
-#include <dlfcn.h>
 
 DEFINE_SYSCALL_HANDLER(pectl_launchservice)
 {

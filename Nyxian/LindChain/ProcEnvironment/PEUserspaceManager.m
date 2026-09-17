@@ -20,20 +20,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/PEUserspaceManager.h>
-#import <LindChain/ProcEnvironment/PEExtension.h>
-#import <LindChain/ProcEnvironment/PEProcessManager.h>
-#import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
-#import <LindChain/ProcEnvironment/PEBootstrapRegistry.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
-#import <LindChain/IDEFoundation/NXBootstrap.h>
-#import <LindChain/ProcEnvironment/KextLoader/PEKextLoader.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #import <LindChain/ProcEnvironment/Surface/cache/shimcache.h>
 #import <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #import <LindChain/ProcEnvironment/Surface/fs/preserver.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
 #import <LindChain/ProcEnvironment/Surface/cache/patchcache.h>
+#import <LindChain/ProcEnvironment/PEUserspaceManager.h>
+#import <LindChain/ProcEnvironment/PEExtension.h>
+#import <LindChain/ProcEnvironment/PEProcessManager.h>
+#import <LindChain/ProcEnvironment/PELaunchServiceManager.h>
+#import <LindChain/ProcEnvironment/PEBootstrapRegistry.h>
+#import <LindChain/ProcEnvironment/KextLoader/PEKextLoader.h>
+#import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <Nyxian-Swift.h>
 
 @implementation PEUserspaceManager {
@@ -71,7 +71,7 @@
     static atomic_flag once = ATOMIC_FLAG_INIT;
     if(atomic_flag_test_and_set(&once))
     {
-        ksurface_panic("This class may only be initilized once");
+        kpanic("This class may only be initilized once");
     }
     
     self = [super init];
@@ -93,7 +93,7 @@
     /* boot shall only happen once */
     if(atomic_flag_test_and_set(&_bootOnceFlag))
     {
-        ksurface_panic("boot called twice");
+        kpanic("boot called twice");
     }
     
     os_unfair_lock_lock(&_lock);
@@ -143,7 +143,7 @@
         }
         else
         {
-            ksurface_panic("%s [failed]", [NSStringFromClass(class) UTF8String]);
+            kpanic("%s [failed]", [NSStringFromClass(class) UTF8String]);
         }
     }
     klog_log(domain, "%@ [ok]", [self class]);
@@ -156,13 +156,13 @@
         os_unfair_lock_lock(&self->_lock);
         if(ksurface_shimcache_build() != KERN_SUCCESS)
         {
-            ksurface_panic("shimcache build failed");
+            kpanic("shimcache build failed");
         }
         klog_log(domain, "shimcache [ok]");
         
         if(ksurface_patchcache_emit() != KERN_SUCCESS)
         {
-            ksurface_panic("patchfinder emission failed");
+            kpanic("patchfinder emission failed");
         }
         klog_log(domain, "patchfinder [ok]");
         

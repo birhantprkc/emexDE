@@ -21,12 +21,12 @@
 */
 
 #import <Foundation/Foundation.h>
+#import <sys/sysctl.h>
+#import <regex.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/Surface/sys/host/sysctl.h>
 #import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#include <sys/sysctl.h>
-#include <regex.h>
-#include <ksurface_config.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#import <ksurface_config.h>
 
 /* sysctl defs */
 typedef struct {

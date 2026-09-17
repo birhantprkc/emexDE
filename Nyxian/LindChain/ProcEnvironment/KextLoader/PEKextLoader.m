@@ -24,7 +24,7 @@
 #import <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/kxld/image.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 
 static BOOL PEKextIsVersionInBetweenMinMax(NSString *version,
                                            NSString *minVersion,

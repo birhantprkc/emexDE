@@ -185,18 +185,18 @@ static void register_nximage(void)
     kern_return_t kr = kxopen_pseudo("com.apple.iphoneos", platform_query_version(), KMOD_FLAG_PERSISTENT | KMOD_FLAG_OVERRIDE_CORE | KMOD_FLAG_ALLOW_UNRESOLVED, &ios_image_info);
     if(kr != KERN_SUCCESS)
     {
-        ksurface_panic("failed to create pseudo kext for 'com.apple.ios'.");
+        kpanic("failed to create pseudo kext for 'com.apple.ios'.");
     }
     
     kxld_image_info_t *ksurface_image_info = NULL;
     kr = kxopen_pseudo("ksurface", KMOD_VERSION(0, 11, 5), KMOD_FLAG_PERSISTENT | KMOD_FLAG_OVERRIDE_CORE | KMOD_FLAG_ALLOW_UNRESOLVED, &ksurface_image_info);
     if(kr != KERN_SUCCESS)
     {
-        ksurface_panic("failed to create pseudo kext for 'ksurface'.");
+        kpanic("failed to create pseudo kext for 'ksurface'.");
     }
     
     if(KXRegisterKext(ios_image_info) != KERN_SUCCESS || KXRegisterKext(ksurface_image_info) != KERN_SUCCESS)
     {
-        ksurface_panic("failed to register pseudo kext's.");
+        kpanic("failed to register pseudo kext's.");
     }
 }

@@ -21,15 +21,15 @@
 
 #import <Foundation/Foundation.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <LindChain/ProcEnvironment/Surface/fs/fs.h>
 #include <LindChain/ProcEnvironment/Surface/fs/mount.h>
 #include <LindChain/ProcEnvironment/Surface/fs/preserver.h>
 #include <LindChain/ProcEnvironment/Surface/trust/signing.h>
 #include <LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 #include <LindChain/ProcEnvironment/Surface/libkern/kxld/kxopen.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
-#include <LindChain/ProcEnvironment/Utils/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>
 #include <mach/mach.h>
 #include <stdio.h>
@@ -56,7 +56,7 @@ kern_return_t ksurface_fs_init(void)
     kern_return_t kr = ksurface_fs_sandbox_init();
     if(kr != KERN_SUCCESS)
     {
-        ksurface_panic("failed to initialize fs sandbox");
+        kpanic("failed to initialize fs sandbox");
     }
     
     typedef struct {
@@ -250,7 +250,7 @@ kern_return_t ksurface_fs_init(void)
     kr = ksurface_fs_preserver_kickstart();
     if(kr != KERN_SUCCESS)
     {
-        ksurface_panic("failed to start mount preserver");
+        kpanic("failed to start mount preserver");
         return kr;
     }
     

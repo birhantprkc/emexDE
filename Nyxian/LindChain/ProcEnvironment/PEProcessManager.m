@@ -19,16 +19,16 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <LindChain/ProcEnvironment/PEProcessManager.h>
-#import <LindChain/Services/bootstrapd/LDEApplicationWorkspace.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
 #import <LindChain/ProcEnvironment/Surface/proc/proc.h>
-#import <LindChain/ProcEnvironment/Utils/kpanic.h>
-#import <Nyxian-Swift.h>
-#import <LindChain/ProcEnvironment/Utils/klog.h>
-#import <os/lock.h>
-#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
+#import <LindChain/ProcEnvironment/PEProcessManager.h>
 #import <LindChain/ProcEnvironment/Server/Server.h>
+#import <LindChain/WindowServer/Session/NXWindowSessionApplication.h>
+#import <LindChain/Services/bootstrapd/LDEApplicationWorkspace.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
+#import <Nyxian-Swift.h>
+#import <os/lock.h>
 
 @implementation PEProcessManager {
     NSMutableDictionary<NSNumber*,PEProcess*> *_processes;
