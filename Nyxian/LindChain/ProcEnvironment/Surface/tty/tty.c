@@ -19,19 +19,20 @@
  along with Nyxian. If not, see <https://www.gnu.org/licenses/>.
 */
 
-#import <sys/socket.h>
-#import <sys/poll.h>
-#import <stdio.h>
-#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
-#import <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
-#import <LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
-#import <LindChain/ProcEnvironment/Surface/tty/tty.h>
-#import <LindChain/ProcEnvironment/Surface/proc/list.h>
-#import <LindChain/ProcEnvironment/Surface/surface.h>
-#import <LindChain/ProcEnvironment/PEProcessManager.h>
+#include <sys/socket.h>
+#include <sys/poll.h>
+#include <stdio.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/klog.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/kpanic.h>
+#include <LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
+#include <LindChain/ProcEnvironment/Surface/tty/tty.h>
+#include <LindChain/ProcEnvironment/Surface/proc/list.h>
+#include <LindChain/ProcEnvironment/Surface/proc/spawn.h>
+#include <LindChain/ProcEnvironment/Surface/surface.h>
 
-/* TODO: use new proc_kill API */
-static void tty_kill(ksurface_tty_t *tty, int sig)
+static void tty_kill(ksurface_tty_t *tty,
+                     int sig)
 {
     kinfo_proc_t *kp  = NULL;
     size_t len = 0;
@@ -42,17 +43,19 @@ static void tty_kill(ksurface_tty_t *tty, int sig)
         size_t count = len / sizeof(kinfo_proc_t);
         for(size_t i = 0; i < count; i++)
         {
-            PEProcess *process = [[PEProcessManager shared] processForProcessIdentifier:kp[i].kp_proc.p_pid];
-            if(process)
+            ksurface_proc_t *session_proc = NULL;
+            kr = proc_for_pid(kp[i].kp_proc.p_pid, &session_proc);
+            if(kr == KERN_SUCCESS)
             {
-                [process sendSignal:sig];
+                proc_kill(session_proc, sig);
+                kvo_release(session_proc);
             }
         }
         free(kp);
     }
 }
 
-static int tty_input(ksurface_tty_t *tty)
+LIBKERN_DEFINE_PATCHABLE(int, tty_input, (ksurface_tty_t *tty))
 {
     ssize_t n = read(tty->kernelfds[MASTERFD], tty->rbuf, TTY_MAX_RD);
     if(n <= 0)
@@ -135,7 +138,7 @@ static int tty_input(ksurface_tty_t *tty)
     return 0;
 }
 
-static int tty_output(ksurface_tty_t *tty)
+LIBKERN_DEFINE_PATCHABLE(int, tty_output, (ksurface_tty_t *tty))
 {
     ssize_t n = read(tty->kernelfds[SLAVEFD], tty->rbuf, TTY_MAX_RD);
     ssize_t new_n = 0;
@@ -199,7 +202,7 @@ write_out:
     return 0;
 }
 
-static void *tty_pump_thread(void *arg)
+LIBKERN_DEFINE_PATCHABLE(void *, tty_pump_thread, (void *arg))
 {
     ksurface_tty_t *tty = arg;
 
