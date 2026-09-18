@@ -32,6 +32,7 @@
 #include <time.h>
 #include <os/lock.h>
 #include <LiveShim/patchcache.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if __has_include(<ksurface_config.h>)
 #include <ksurface_config.h>
@@ -453,11 +454,7 @@ static HWHookThreadContextRef HWHookDlopenThreadContext(void)
     return context;
 }
 
-void *hook_dlopen(const char *path, int mode);
-
-INTERPOSE(hook_dlopen, dlopen);
-
-void *hook_dlopen(const char *path, int mode)
+LIBKERN_PATCH(void*, dlopen, (const char *path, int mode),
 {
     inode_bank_init();
     
@@ -467,19 +464,18 @@ void *hook_dlopen(const char *path, int mode)
     snprintf(newTmpPath, sizeof(newTmpPath), "%s/tmp/%d", mmap_sandbox_map_exec_allowed_path, getpid());
     mkdir(newTmpPath, 0777);
     
-    void *(*darwin_dlopen)(const char *path, int mode) = _interpose_dlopen.replacee;
     dyld_hook_log("[hook_dlopen] %s\n", path);
     
     open_hardlock = false;
     HWHookThreadContextRef context = HWHookDlopenThreadContext();
     HWHookThreadContextEnter(context);  /* is nil safe, so it shall work anyways */
-    void *ret = darwin_dlopen(path, mode);
+    void *ret = dlopen__orig(path, mode);
     HWHookThreadContextExit(context);
     
     inode_bank_unlink_all(newTmpPath);
     rmdir(newTmpPath);
     return ret;
-}
+});
 
 void *dlopen_cdhash_verified(const char *path,
                              int flags,
@@ -490,7 +486,7 @@ void *dlopen_cdhash_verified(const char *path,
     cdhash_must_valid = true;
     cdhash_data_container_match = cdhash;
     cdhash_verifier_failed_callback = callback;
-    void *ret = hook_dlopen(path, flags);
+    void *ret = dlopen__swz(path, flags);
     cdhash_verifier_failed_callback = NULL;
     cdhash_data_container_match = NULL;
     cdhash_must_valid = false;
@@ -500,6 +496,8 @@ void *dlopen_cdhash_verified(const char *path,
 __attribute__((constructor))
 void LiveShimDlopenHookInit(void)
 {
+    LIBKERN_INSTALL_PATCH(dlopen);
+    
     const char *home = getenv("HOME");
     if(home == NULL)
     {

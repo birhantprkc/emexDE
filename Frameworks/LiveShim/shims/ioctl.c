@@ -20,26 +20,13 @@
 */
 
 #include <LiveShim/shim.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if LIVESHIM_IOCTL_ENABLED
 
-static int ksurface_user_ioctl(int fd, unsigned long flag, ...);
-static int ksurface_user_isatty(int fd);
-static int ksurface_user_tcgetattr(int fd, struct termios *t);
-static int ksurface_user_tcsetattr(int fd, int options, struct termios *t);
-static int ksurface_user_tcsetpgrp(int fd, pid_t pgrp);
-static int ksurface_user_tcgetpgrp(int fd);
-
-INTERPOSE(ksurface_user_ioctl, ioctl);
-INTERPOSE(ksurface_user_isatty, isatty);
-INTERPOSE(ksurface_user_tcgetattr, tcgetattr);
-INTERPOSE(ksurface_user_tcsetattr, tcsetattr);
-INTERPOSE(ksurface_user_tcsetpgrp, tcsetpgrp);
-INTERPOSE(ksurface_user_tcgetpgrp, tcgetpgrp);
-
-static int ksurface_user_ioctl(int fd,
-                               unsigned long flag,
-                               ...)
+LIBKERN_PATCH(int, ioctl, (int fd,
+                           unsigned long flag,
+                           ...),
 {
     /* starting variadic argument parse */
     va_list args;
@@ -56,33 +43,30 @@ static int ksurface_user_ioctl(int fd,
     va_end(args);
     
     int ret = (int)liveshim_syscall(SYS_ioctl, fd, flag, sys_args[0], sys_args[1], sys_args[2], sys_args[3], sys_args[4], sys_args[5], sys_args[6]);
-    
     if(ret != 0 &&
        errno == ENOSYS)
     {
-        int (*darwin_user_ioctl)(int fd, unsigned long flag, ...) = _interpose_ioctl.replacee;
-        return darwin_user_ioctl(fd, flag, sys_args[0], sys_args[1], sys_args[2], sys_args[3], sys_args[4], sys_args[5], sys_args[6]);
+        return LIBKERN_ORIG(ioctl)(fd, flag, sys_args[0], sys_args[1], sys_args[2], sys_args[3], sys_args[4], sys_args[5], sys_args[6]);
     }
     
     return ret;
-}
+});
 
-static int ksurface_user_isatty(int fd)
+LIBKERN_PATCH(int, isatty, (int fd),
 {
     struct termios termios;
     return liveshim_syscall(SYS_ioctl, fd, TIOCGETA, &termios) == 0;
-}
+});
 
-static int ksurface_user_tcgetattr(int fd,
-                                   struct termios *t)
+LIBKERN_PATCH(int, tcgetattr, (int fd,
+                               struct termios *t),
 {
     return (int)liveshim_syscall(SYS_ioctl, fd, TIOCGETA, t);
-}
+});
 
-static int ksurface_user_tcsetattr(int fd,
-                                   int options,
-                                   struct termios *t)
-{
+LIBKERN_PATCH(int, tcsetattr, (int fd,
+                               int options,
+                               struct termios *t),{
     unsigned long req;
 
     switch(options)
@@ -102,19 +86,29 @@ static int ksurface_user_tcsetattr(int fd,
     }
     
     return (int)liveshim_syscall(SYS_ioctl, fd, req, t);
-}
+});
 
-static int ksurface_user_tcsetpgrp(int fd,
-                                   pid_t pgrp)
-{
-    return (int)liveshim_syscall(SYS_ioctl, fd, TIOCSPGRP, &pgrp);
-}
-
-static int ksurface_user_tcgetpgrp(int fd)
-{
+LIBKERN_PATCH(int, tcgetpgrp, (int fd),{
     pid_t pgrp = 0;
     int ret = (int)liveshim_syscall(SYS_ioctl, fd, TIOCGPGRP, &pgrp);
     return (ret == 0) ? pgrp : -1;
+});
+
+LIBKERN_PATCH(int, tcsetpgrp, (int fd,
+                               pid_t pgrp),
+{
+    return (int)liveshim_syscall(SYS_ioctl, fd, TIOCSPGRP, &pgrp);
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(ioctl);
+    LIBKERN_INSTALL_PATCH(isatty);
+    LIBKERN_INSTALL_PATCH(tcgetattr);
+    LIBKERN_INSTALL_PATCH(tcsetattr);
+    LIBKERN_INSTALL_PATCH(tcgetpgrp);
+    LIBKERN_INSTALL_PATCH(tcsetpgrp);
 }
 
 #endif /* LIVESHIM_IOCTL_ENABLED */

@@ -79,7 +79,7 @@
     static __attribute__((noinline, optnone, used))             \
     ret name##__impl params
 
-#define LIBKERN__DECLARE_PATCHABLE(ret, name, params)           \
+#define LIBKERN_DECLARE_PATCHABLE(ret, name, params)            \
     ret name params;                                            \
     extern void *name##__ptr
 
@@ -91,12 +91,15 @@
         name##__orig = (ret (*) params)name##__ptr;             \
         name##__ptr  = (void *)name##__swz;                     \
     }                                                           \
-    static void name##__uninstall(void) {                       \
+    __attribute__((used)) static void name##__uninstall(void) { \
         name##__ptr  = (void *)name##__orig;                    \
     }                                                           \
     extern int name##__need_semi
 
 #define LIBKERN_INSTALL_PATCH(name)     name##__install()
 #define LIBKERN_UNINSTALL_PATCH(name)   name##__uninstall()
+
+#define LIBKERN_ORIG(name)              name##__orig
+#define LIBKERN_SWZ(name)               name##__swz
 
 #endif /* LIBKERN_PATCH_H */

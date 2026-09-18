@@ -21,67 +21,40 @@
 
 #include <LiveShim/shim.h>
 #include <Nyxian/LindChain/ProcEnvironment/Surface/libkern/bsd/proc_info.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if LIVESHIM_PROC_ENABLED
 
 extern int __proc_info(int32_t callnum, int32_t pid, uint32_t flavor, uint64_t arg, user_addr_t buffer, int32_t buffersize);
 
-static int __ksurface_proc_info(int32_t callnum, int32_t pid, uint32_t flavor, uint64_t arg, user_addr_t buffer, int32_t buffersize);
-static int ksurface_proc_pidinfo(pid_t pid, int flavor, uint64_t arg, void * buffer, int buffersize);
-static int ksurface_proc_name(pid_t pid, void *buffer, uint32_t buffersize);
-static int ksurface_proc_pidpath(pid_t pid, void *buffer, uint32_t buffersize);
-static int ksurface_proc_listallpids(void *buffer, int buffersize);
-static int ksurface_proc_pid_rusage(int pid, int flavor, rusage_info_t *buffer);
-static int ksurface_proc_kmsgbuf(void *buffer, uint32_t buffersize);
-static int ksurface_kill(pid_t pid, int sig);
-static int ksurface_raise(int sig);
-
-INTERPOSE(__ksurface_proc_info, __proc_info);
-INTERPOSE(ksurface_proc_pidinfo, proc_pidinfo);
-INTERPOSE(ksurface_proc_name, proc_name);
-INTERPOSE(ksurface_proc_pidpath, proc_pidpath);
-INTERPOSE(ksurface_proc_listallpids, proc_listallpids);
-INTERPOSE(ksurface_proc_pid_rusage, proc_pid_rusage);
-INTERPOSE(ksurface_proc_kmsgbuf, proc_kmsgbuf);
-INTERPOSE(ksurface_kill, kill);
-INTERPOSE(ksurface_raise, raise);
-
-static int __ksurface_proc_info(int32_t callnum,
-                                int32_t pid,
-                                uint32_t flavor,
-                                uint64_t arg,
-                                user_addr_t buffer,
-                                int32_t buffersize)
+LIBKERN_PATCH(int, __proc_info, (int32_t callnum,
+                                 int32_t pid,
+                                 uint32_t flavor,
+                                 uint64_t arg,
+                                 user_addr_t buffer,
+                                 int32_t buffersize),
 {
     errno = 0;
     int ret = (int)liveshim_syscall(SYS_proc_info, callnum, pid, flavor, arg, buffer, buffersize);
     if(errno == ENOSYS)
     {
-        int (*__darwin_proc_info)(int32_t callnum, int32_t pid, uint32_t flavor, uint64_t arg, user_addr_t buffer, int32_t buffersize) = _interpose___proc_info.replacee;
-        __darwin_proc_info(callnum, pid, flavor, arg, buffer, buffersize);
+        errno = 0;  /* must be reset so it is no errno */
+        ret = LIBKERN_ORIG(__proc_info)(callnum, pid, flavor, arg, buffer, buffersize);
     }
     return ret;
-}
+});
 
-static int ksurface_proc_pidinfo(pid_t pid,
-                                 int flavor,
-                                 uint64_t arg,
-                                 void * buffer,
-                                 int buffersize)
-{
-    errno = 0;
-    int ret = (int)liveshim_syscall(SYS_proc_info, PROC_INFO_CALL_PIDINFO, pid, flavor, 0, buffer, buffersize);
-    if(errno == ENOSYS)
-    {
-        int (*darwin_proc_pidinfo)(pid_t pid, int flavor, uint64_t arg, void * buffer, int buffersize) = _interpose_proc_pidinfo.replacee;
-        return darwin_proc_pidinfo(pid, flavor, arg, buffer, buffersize);
-    }
-    return ret;
-}
+LIBKERN_PATCH(int, proc_pidinfo, (pid_t pid,
+                                  int flavor,
+                                  uint64_t arg,
+                                  void * buffer,
+                                  int buffersize),{
+    return __proc_info(PROC_INFO_CALL_PIDINFO, pid, flavor, 0, (user_addr_t)buffer, buffersize);
+});
 
-static int ksurface_proc_name(pid_t pid,
-                              void *buffer,
-                              uint32_t buffersize)
+LIBKERN_PATCH(int, proc_name, (pid_t pid,
+                               void *buffer,
+                               uint32_t buffersize),
 {
     struct proc_bsdinfo pbsd;
     if(buffersize < sizeof(pbsd.pbi_name))
@@ -90,7 +63,7 @@ static int ksurface_proc_name(pid_t pid,
         return 0;
     }
     
-    int retval = ksurface_proc_pidinfo(pid, PROC_PIDTBSDINFO, 0,  &pbsd, sizeof(pbsd));
+    int retval = proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &pbsd, sizeof(pbsd));
     if(retval != 0)
     {
         if(pbsd.pbi_name[0])
@@ -104,11 +77,11 @@ static int ksurface_proc_name(pid_t pid,
         return (int)strlen(buffer);
     }
     return 0;
-}
+});
 
-static int ksurface_proc_pidpath(pid_t pid,
-                                 void *buffer,
-                                 uint32_t buffersize)
+LIBKERN_PATCH(int, proc_pidpath, (pid_t pid,
+                                  void *buffer,
+                                  uint32_t buffersize),
 {
     /* sanity check */
     if(buffersize == 0 || buffer == NULL)
@@ -117,7 +90,7 @@ static int ksurface_proc_pidpath(pid_t pid,
     }
     
     /* syscall with SYS_PROCPATH */
-    int retval = ksurface_proc_pidinfo(pid, PROC_PIDPATHINFO, 0, buffer, buffersize);
+    int retval = proc_pidinfo(pid, PROC_PIDPATHINFO, 0, buffer, buffersize);
     if(retval != 0)
     {
         return 0;
@@ -125,10 +98,10 @@ static int ksurface_proc_pidpath(pid_t pid,
     
     /* final return of lenght */
     return (int)strlen((char*)buffer);
-}
+});
 
-static int ksurface_proc_listallpids(void *buffer,
-                                     int buffersize)
+LIBKERN_PATCH(int, proc_listallpids, (void *buffer,
+                                      int buffersize),
 {
     if(buffersize < 0)
     {
@@ -146,8 +119,7 @@ static int ksurface_proc_listallpids(void *buffer,
     size_t len = sizeof(kp);
     
     int mib[3] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL };
-    extern int ksurface_user_sysctl(int *name, u_int namelen, void *__sized_by(*oldlenp) oldp, size_t *oldlenp, void *__sized_by(newlen) newp, size_t newlen);
-    ksurface_user_sysctl(mib, 3, &kp, &len, NULL, 0);
+    sysctl(mib, 3, &kp, &len, NULL, 0); /* goes through broadpatch */
     
     size_t count = (uint32_t)(len / sizeof(struct kinfo_proc));
     
@@ -175,36 +147,42 @@ static int ksurface_proc_listallpids(void *buffer,
     }
     
     return (int)(n * sizeof(pid_t));
-}
+});
 
-static int ksurface_proc_pid_rusage(int pid,
-                                    int flavor,
-                                    rusage_info_t *buffer)
+LIBKERN_PATCH(int, proc_pid_rusage, (int pid,
+                                     int flavor,
+                                     rusage_info_t *buffer),
 {
-    int retval = (int)liveshim_syscall(SYS_proc_info, PROC_INFO_CALL_PIDRUSAGE, pid, (uint32_t)flavor, (uint64_t)0, buffer, 0);
-    if(retval != 0)
-    {
-        int (*darwin_proc_pid_rusage)(int pid, int flavor, rusage_info_t *buffer) = _interpose_proc_pid_rusage.replacee;
-        return darwin_proc_pid_rusage(pid, flavor, buffer);
-    }
-    return retval;
-}
+    return __proc_info(PROC_INFO_CALL_PIDRUSAGE, pid, (uint32_t)flavor, (uint64_t)0, (user_addr_t)buffer, 0);
+});
 
-static int ksurface_proc_kmsgbuf(void *buffer,
-                                 uint32_t buffersize)
-{
-    return (int)liveshim_syscall(SYS_proc_info, PROC_INFO_CALL_KERNMSGBUF, 0, 0, (uint64_t)0, buffer, buffersize);
-}
+LIBKERN_PATCH(int, proc_kmsgbuf, (void *buffer,
+                                  uint32_t buffersize),{
+    return __proc_info(PROC_INFO_CALL_KERNMSGBUF, 0, 0, (uint64_t)0, (user_addr_t)buffer, buffersize);
+});
 
-static int ksurface_kill(pid_t pid,
-                         int sig)
+LIBKERN_PATCH(int, kill, (pid_t pid,
+                          int sig),
 {
     return (int)liveshim_syscall(SYS_kill, pid, sig);
-}
+});
 
-static int ksurface_raise(int sig)
+LIBKERN_PATCH(int, raise, (int sig),{
+    return kill(getpid(), sig);
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
 {
-    return ksurface_kill(getpid(), sig);
+    LIBKERN_INSTALL_PATCH(__proc_info);
+    LIBKERN_INSTALL_PATCH(proc_pidinfo);
+    LIBKERN_INSTALL_PATCH(proc_name);
+    LIBKERN_INSTALL_PATCH(proc_pidpath);
+    LIBKERN_INSTALL_PATCH(proc_listallpids);
+    LIBKERN_INSTALL_PATCH(proc_pid_rusage);
+    LIBKERN_INSTALL_PATCH(proc_kmsgbuf);
+    LIBKERN_INSTALL_PATCH(kill);
+    LIBKERN_INSTALL_PATCH(raise);
 }
 
 #endif /* LIVESHIM_PROC_ENABLED */

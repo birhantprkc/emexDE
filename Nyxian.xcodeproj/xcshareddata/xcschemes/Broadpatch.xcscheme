@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8FDD845B305C4E9200949118"
-               BuildableName = "libBroadpatch.a"
+               BuildableName = "libBroadpatch.dylib"
                ReferencedContainer = "container:Nyxian.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -51,7 +51,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8FDD845B305C4E9200949118"
-            BuildableName = "libBroadpatch.a"
+            BuildableName = "libBroadpatch.dylib"
             ReferencedContainer = "container:Nyxian.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

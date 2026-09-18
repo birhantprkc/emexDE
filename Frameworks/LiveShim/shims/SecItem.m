@@ -23,16 +23,7 @@
 #import <LiveShim/shim.h>
 #import <Foundation/Foundation.h>
 #import <Security/Security.h>
-
-static OSStatus ksurface_SecItemAdd(CFDictionaryRef query, CFTypeRef *result);
-static OSStatus ksurface_SecItemCopyMatching(CFDictionaryRef query, CFTypeRef *result);
-static OSStatus ksurface_SecItemUpdate(CFDictionaryRef query, CFTypeRef *result);
-static OSStatus ksurface_SecItemDelete(CFDictionaryRef query);
-
-INTERPOSE(ksurface_SecItemAdd, SecItemAdd);
-INTERPOSE(ksurface_SecItemCopyMatching, SecItemCopyMatching);
-INTERPOSE(ksurface_SecItemUpdate, SecItemUpdate);
-INTERPOSE(ksurface_SecItemDelete, SecItemDelete);
+#include <Broadpatch/Broadpatch.h>
 
 NSMutableDictionary *SecItemPrepare(CFDictionaryRef query)
 {
@@ -59,29 +50,34 @@ NSMutableDictionary *SecItemPrepare(CFDictionaryRef query)
 }
 
 /* will later be ksurface syscalls (safe finally) */
-static OSStatus ksurface_SecItemAdd(CFDictionaryRef query,
-                                    CFTypeRef *result)
+LIBKERN_PATCH(OSStatus, SecItemAdd, (CFDictionaryRef query,
+                                     CFTypeRef *result),
 {
-    OSStatus (*darwin_SecItemAdd)(CFDictionaryRef query, CFTypeRef *result) = _interpose_SecItemAdd.replacee;
-    return darwin_SecItemAdd((__bridge CFDictionaryRef)SecItemPrepare(query), result);
-}
+    return LIBKERN_ORIG(SecItemAdd)((__bridge CFDictionaryRef)SecItemPrepare(query), result);
+});
 
-static OSStatus ksurface_SecItemCopyMatching(CFDictionaryRef query,
-                                             CFTypeRef *result)
+LIBKERN_PATCH(OSStatus, SecItemCopyMatching, (CFDictionaryRef query,
+                                              CFTypeRef *result),
 {
-    OSStatus (*darwin_SecItemCopyMatching)(CFDictionaryRef query, CFTypeRef *result) = _interpose_SecItemCopyMatching.replacee;
-    return darwin_SecItemCopyMatching((__bridge CFDictionaryRef)SecItemPrepare(query), result);
-}
+    return LIBKERN_ORIG(SecItemCopyMatching)((__bridge CFDictionaryRef)SecItemPrepare(query), result);
+});
 
-static OSStatus ksurface_SecItemUpdate(CFDictionaryRef query,
-                                       CFTypeRef *result)
+LIBKERN_PATCH(OSStatus, SecItemUpdate, (CFDictionaryRef query,
+                                        CFTypeRef *result),
 {
-    OSStatus (*darwin_SecItemUpdate)(CFDictionaryRef query, CFTypeRef *result) = _interpose_SecItemUpdate.replacee;
-    return darwin_SecItemUpdate((__bridge CFDictionaryRef)SecItemPrepare(query), result);
-}
+    return LIBKERN_ORIG(SecItemUpdate)((__bridge CFDictionaryRef)SecItemPrepare(query), result);
+});
 
-static OSStatus ksurface_SecItemDelete(CFDictionaryRef query)
+LIBKERN_PATCH(OSStatus, SecItemDelete, (CFDictionaryRef query),
 {
-    OSStatus (*darwin_SecItemDelete)(CFDictionaryRef query) = _interpose_SecItemDelete.replacee;
-    return darwin_SecItemDelete((__bridge CFDictionaryRef)SecItemPrepare(query));
+    return LIBKERN_ORIG(SecItemDelete)((__bridge CFDictionaryRef)SecItemPrepare(query));
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(SecItemAdd);
+    LIBKERN_INSTALL_PATCH(SecItemCopyMatching);
+    LIBKERN_INSTALL_PATCH(SecItemUpdate);
+    LIBKERN_INSTALL_PATCH(SecItemDelete);
 }

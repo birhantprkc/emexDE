@@ -20,43 +20,54 @@
 */
 
 #include <LiveShim/shim.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if LIVESHIM_SYSCTL_ENABLED
 
-int ksurface_user_sysctl(int *name, u_int namelen, void *__sized_by(*oldlenp) oldp, size_t *oldlenp, void *__sized_by(newlen) newp, size_t newlen);
-static int ksurface_user_gethostname(char *name, size_t len);
-static int ksurface_user_sethostname(char *name, size_t len);
-
-INTERPOSE(ksurface_user_sysctl, sysctl);
-INTERPOSE(ksurface_user_gethostname, gethostname);
-INTERPOSE(ksurface_user_sethostname, sethostname);
-
-int ksurface_user_sysctl(int *name,
-                         u_int namelen,
-                         void *__sized_by(*oldlenp) oldp,
-                         size_t *oldlenp,
-                         void *__sized_by(newlen) newp,
-                         size_t newlen)
+LIBKERN_PATCH(int, sysctl, (int *name,
+                            u_int namelen,
+                            void *__sized_by(*oldlenp) oldp,
+                            size_t *oldlenp,
+                            void *__sized_by(newlen) newp,
+                            size_t newlen),
 {
     int ret = (int)liveshim_syscall(SYS_sysctl, name, namelen, oldp, oldlenp, newp, newlen);
-    int (*darwin_user_sysctl)(int *name, u_int namelen, void *__sized_by(*oldlenp) oldp,size_t *oldlenp, void *__sized_by(newlen) newp, size_t newlen) = _interpose_sysctl.replacee;
-    return (ret == -1 && errno == ENOSYS) ? darwin_user_sysctl(name, namelen, oldp, oldlenp, newp, newlen) : ret;
-}
+    return (ret == -1 && errno == ENOSYS) ? LIBKERN_ORIG(sysctl)(name, namelen, oldp, oldlenp, newp, newlen) : ret;
+});
 
-static int ksurface_user_gethostname(char *name,
-                                     size_t len)
+LIBKERN_PATCH(int, sysctlbyname, (const char *name,
+                                  void *__sized_by(*oldlenp) oldp,
+                                  size_t *oldlenp,
+                                  void *__sized_by(newlen) newp,
+                                  size_t newlen),
+{
+    int ret = (int)liveshim_syscall(SYS_sysctlbyname, name, oldp, oldlenp, newp, newlen);
+    return (ret == -1 && errno == ENOSYS) ? LIBKERN_ORIG(sysctlbyname)(name, oldp, oldlenp, newp, newlen) : ret;
+});
+
+LIBKERN_PATCH(int, gethostname, (char *name,
+                                 size_t len),
 {
     int mib[2] = { CTL_KERN, KERN_HOSTNAME };
-    int retval = (int)ksurface_user_sysctl(mib, 2, name, &len, NULL, 0);
+    int retval = (int)sysctl(mib, 2, name, &len, NULL, 0);
     name[len] = '\0';
     return retval;
-}
+});
 
-static int ksurface_user_sethostname(char *name,
-                                     size_t len)
+LIBKERN_PATCH(int, sethostname, (char *name,
+                                 size_t len),
 {
     int mib[2] = { CTL_KERN, KERN_HOSTNAME };
-    return (int)ksurface_user_sysctl(mib, 2, NULL, NULL, name, len);
+    return (int)sysctl(mib, 2, NULL, NULL, name, len);
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(sysctl);
+    LIBKERN_INSTALL_PATCH(sysctlbyname);
+    LIBKERN_INSTALL_PATCH(gethostname);
+    LIBKERN_INSTALL_PATCH(sethostname);
 }
 
 #endif /* LIVESHIM_SYSCTL_ENABLED */

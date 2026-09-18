@@ -23,6 +23,7 @@
 #include <sys/ucred.h>
 #include <sys/mount.h>
 #include <LiveShim/shim.h>
+#include <Broadpatch/Broadpatch.h>
 
 static void fill_fake(struct statfs *f)
 {
@@ -43,19 +44,11 @@ static void fill_fake(struct statfs *f)
     strlcpy(f->f_mntfromname, "nyxian", sizeof(f->f_mntfromname));
 }
 
-static int ksurface_getmntinfo(struct statfs **buf, int m);
-static int ksurface_getmntinfo_r_np(struct statfs **buf, int m);
-
-INTERPOSE(ksurface_getmntinfo, getmntinfo);
-INTERPOSE(ksurface_getmntinfo_r_np, getmntinfo_r_np);
-
-static int ksurface_getmntinfo(struct statfs **mntbufp,
-                               int flags)
+LIBKERN_PATCH(int, getmntinfo, (struct statfs **mntbufp,
+                                int flags),
 {
-    int (*orig)(struct statfs **, int) = (int (*)(struct statfs **, int))_interpose_getmntinfo.replacee;
-    
     struct statfs *buf;
-    int n = orig(&buf, flags);
+    int n = LIBKERN_ORIG(getmntinfo)(&buf, flags);
     if(n <= 0)
     {
         *mntbufp = buf;
@@ -65,15 +58,13 @@ static int ksurface_getmntinfo(struct statfs **mntbufp,
     fill_fake(&buf[n]);
     *mntbufp = buf;
     return n + 1;
-}
+});
 
-static int ksurface_getmntinfo_r_np(struct statfs **mntbufp,
-                                    int flags)
+LIBKERN_PATCH(int, getmntinfo_r_np, (struct statfs **mntbufp,
+                                     int flags),
 {
-    int (*orig)(struct statfs **, int) = (int (*)(struct statfs **, int))_interpose_getmntinfo_r_np.replacee;
-    
     struct statfs *buf;
-    int n = orig(&buf, flags);
+    int n = LIBKERN_ORIG(getmntinfo_r_np)(&buf, flags);
     if(n <= 0)
     {
         *mntbufp = buf;
@@ -83,4 +74,11 @@ static int ksurface_getmntinfo_r_np(struct statfs **mntbufp,
     fill_fake(&buf[n]);
     *mntbufp = buf;
     return n + 1;
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(getmntinfo);
+    LIBKERN_INSTALL_PATCH(getmntinfo_r_np);
 }

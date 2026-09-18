@@ -20,19 +20,14 @@
 */
 
 #include <LiveShim/shim.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if LIVESHIM_TASK_ENABLED
 
-static kern_return_t ksurface_user_task_for_pid(mach_port_name_t tp_in, pid_t pid, mach_port_name_t *tp_out);
-static kern_return_t ksurface_user_task_name_for_pid(mach_port_name_t tp_in, pid_t pid, mach_port_name_t *tp_out);
-
-INTERPOSE(ksurface_user_task_for_pid, task_for_pid);
-INTERPOSE(ksurface_user_task_name_for_pid, task_name_for_pid);
-
-static inline kern_return_t __environment_task_for_pid(mach_port_name_t tp_in,
-                                                       pid_t pid,
-                                                       mach_port_name_t *tp_out,
-                                                       bool name_port)
+static inline kern_return_t __task_for_pid(mach_port_name_t tp_in,
+                                           pid_t pid,
+                                           mach_port_name_t *tp_out,
+                                           bool name_port)
 {
     if(tp_out == NULL)
     {
@@ -49,18 +44,27 @@ static inline kern_return_t __environment_task_for_pid(mach_port_name_t tp_in,
     return KERN_SUCCESS;
 }
 
-static kern_return_t ksurface_user_task_for_pid(mach_port_name_t tp_in,
-                                                pid_t pid,
-                                                mach_port_name_t *tp_out)
+LIBKERN_PATCH(kern_return_t, task_for_pid, (mach_port_name_t tp_in,
+                                            pid_t pid,
+                                            mach_port_name_t *tp_out),
 {
-    return __environment_task_for_pid(tp_in, pid, tp_out, false);
-}
+    return __task_for_pid(tp_in, pid, tp_out, false);
+});
 
-static kern_return_t ksurface_user_task_name_for_pid(mach_port_name_t tp_in,
-                                                     pid_t pid,
-                                                     mach_port_name_t *tp_out)
+LIBKERN_PATCH(kern_return_t, task_name_for_pid, (mach_port_name_t tp_in,
+                                                 pid_t pid,
+                                                 mach_port_name_t *tp_out),
 {
-    return __environment_task_for_pid(tp_in, pid, tp_out, true);
+    return __task_for_pid(tp_in, pid, tp_out, true);
+});
+
+/* NEED PATCHES FOR READ AND INSPECT */
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(task_for_pid);
+    LIBKERN_INSTALL_PATCH(task_name_for_pid);
 }
 
 #endif /* LIVESHIM_TASK_ENABLED */

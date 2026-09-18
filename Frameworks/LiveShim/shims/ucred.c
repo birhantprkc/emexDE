@@ -20,114 +20,105 @@
 */
 
 #include <LiveShim/shim.h>
+#include <Broadpatch/Broadpatch.h>
 
 #if LIVESHIM_UCRED_ENABLED
 
-static uid_t ksurface_user_getuid(void);
-static gid_t ksurface_user_getgid(void);
-static uid_t ksurface_user_geteuid(void);
-static gid_t ksurface_user_getegid(void);
-static pid_t ksurface_user_getppid(void);
-static int ksurface_user_setuid(uid_t uid);
-static int ksurface_user_seteuid(uid_t euid);
-static int ksurface_user_setruid(uid_t uid);
-static int ksurface_user_setreuid(uid_t ruid, uid_t euid);
-static int ksurface_user_setgid(gid_t gid);
-static int ksurface_user_setegid(gid_t gid);
-static int ksurface_user_setrgid(gid_t gid);
-static int ksurface_user_setregid(gid_t egid, gid_t rgid);
-static pid_t ksurface_user_getsid(pid_t sid);
-static int ksurface_user_setsid(void);
-
-INTERPOSE(ksurface_user_getuid, getuid);
-INTERPOSE(ksurface_user_getgid, getgid);
-INTERPOSE(ksurface_user_geteuid, geteuid);
-INTERPOSE(ksurface_user_getegid, getegid);
-INTERPOSE(ksurface_user_getppid, getppid);
-INTERPOSE(ksurface_user_setuid, setuid);
-INTERPOSE(ksurface_user_seteuid, seteuid);
-INTERPOSE(ksurface_user_setruid, setruid);
-INTERPOSE(ksurface_user_setreuid, setreuid);
-INTERPOSE(ksurface_user_setgid, setgid);
-INTERPOSE(ksurface_user_setegid, setegid);
-INTERPOSE(ksurface_user_setrgid, setrgid);
-INTERPOSE(ksurface_user_setregid, setregid);
-INTERPOSE(ksurface_user_getsid, getsid);
-INTERPOSE(ksurface_user_setsid, setsid);
-
-static uid_t ksurface_user_getuid(void)
+LIBKERN_PATCH(uid_t, getuid, (void),
 {
     return (uid_t)liveshim_syscall(SYS_getuid);
-}
+});
 
-static gid_t ksurface_user_getgid(void)
+LIBKERN_PATCH(gid_t, getgid, (void),
 {
     return (gid_t)liveshim_syscall(SYS_getgid);
-}
+});
 
-static uid_t ksurface_user_geteuid(void)
+LIBKERN_PATCH(uid_t, geteuid, (void),
 {
     return (uid_t)liveshim_syscall(SYS_geteuid);
-}
+});
 
-static gid_t ksurface_user_getegid(void)
+LIBKERN_PATCH(gid_t, getegid, (void),
 {
     return (gid_t)liveshim_syscall(SYS_getegid);
-}
+});
 
-static pid_t ksurface_user_getppid(void)
+LIBKERN_PATCH(pid_t, getppid, (void),
 {
     return (pid_t)liveshim_syscall(SYS_getppid);
-}
+});
 
-static int ksurface_user_setuid(uid_t uid)
+LIBKERN_PATCH(int, setuid, (uid_t uid),
 {
     return (int)liveshim_syscall(SYS_setuid, uid);
-}
+});
 
-static int ksurface_user_seteuid(uid_t euid)
+LIBKERN_PATCH(int, seteuid, (uid_t euid),
 {
     return (int)liveshim_syscall(SYS_seteuid, euid);
-}
+});
 
-static int ksurface_user_setruid(uid_t uid)
+LIBKERN_PATCH(int, setruid, (uid_t uid),
 {
     return (int)liveshim_syscall(SYS_setreuid, uid, -1);
-}
+});
 
-static int ksurface_user_setreuid(uid_t ruid, uid_t euid)
+LIBKERN_PATCH(int, setreuid, (uid_t ruid,
+                              uid_t euid),
 {
     return (int)liveshim_syscall(SYS_setreuid, ruid, euid);
-}
+});
 
-static int ksurface_user_setgid(gid_t gid)
+LIBKERN_PATCH(int, setgid, (gid_t gid),
 {
     return (int)liveshim_syscall(SYS_setgid, gid);
-}
+});
 
-static int ksurface_user_setegid(gid_t gid)
+LIBKERN_PATCH(int, setegid, (gid_t gid),
 {
     return (int)liveshim_syscall(SYS_setegid, gid);
-}
+});
 
-static int ksurface_user_setrgid(gid_t gid)
+LIBKERN_PATCH(int, setrgid, (gid_t gid),
 {
     return (int)liveshim_syscall(SYS_setregid, gid, -1);
-}
+});
 
-static int ksurface_user_setregid(gid_t egid, gid_t rgid)
+LIBKERN_PATCH(int, setregid, (gid_t egid,
+                              gid_t rgid),
 {
     return (int)liveshim_syscall(SYS_setregid, egid, rgid);
-}
+});
 
-static pid_t ksurface_user_getsid(pid_t sid)
+LIBKERN_PATCH(pid_t, getsid, (pid_t sid),
 {
     return (pid_t)liveshim_syscall(SYS_getsid, sid);
-}
+});
 
-static int ksurface_user_setsid(void)
+LIBKERN_PATCH(int, setsid, (void),
 {
     return (int)liveshim_syscall(SYS_setsid);
+});
+
+__attribute__((constructor))
+static void InstallPatches(void)
+{
+    LIBKERN_INSTALL_PATCH(getuid);
+    LIBKERN_INSTALL_PATCH(getgid);
+    LIBKERN_INSTALL_PATCH(geteuid);
+    LIBKERN_INSTALL_PATCH(getegid);
+    LIBKERN_INSTALL_PATCH(getppid);
+    LIBKERN_INSTALL_PATCH(setuid);
+    LIBKERN_INSTALL_PATCH(seteuid);
+    LIBKERN_INSTALL_PATCH(setruid);
+    LIBKERN_INSTALL_PATCH(setreuid);
+    LIBKERN_INSTALL_PATCH(setgid);
+    LIBKERN_INSTALL_PATCH(setegid);
+    LIBKERN_INSTALL_PATCH(setrgid);
+    LIBKERN_INSTALL_PATCH(setregid);
+    LIBKERN_INSTALL_PATCH(getsid);
+    LIBKERN_INSTALL_PATCH(setsid);
 }
 
 #endif /* LIVESHIM_UCRED_ENABLED */
