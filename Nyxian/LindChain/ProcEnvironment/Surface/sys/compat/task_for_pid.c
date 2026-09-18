@@ -73,7 +73,7 @@ skip_bsd_primitive_semantic_check:
         }
         
         /* allocating syscall payload, so we can export it to the syscall caller */
-        kr = syscall_payload_create(NULL, sizeof(mach_port_t), (vm_address_t*)out_ports);
+        kr = syscall_payload_create(NULL, sizeof(mach_port_t), (mach_vm_address_t*)out_ports);
         if(kr != KERN_SUCCESS)
         {
             mach_port_deallocate(mach_task_self(), exportTask);

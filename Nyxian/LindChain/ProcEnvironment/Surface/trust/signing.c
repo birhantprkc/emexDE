@@ -321,7 +321,7 @@ kern_return_t trust_nxt2_sign_fd(int fd,
     
 #if HAS_OPENSSL && !CLIENT_ENV
     /* signing blob if applicable */
-    if(signBlob && cdhash != NULL)
+    if(signBlob)
     {
         /* sign blob mode requires cdhash */
         memcpy((void*)(blob_header->cdhash), cdhash, USER_FSIGNATURES_CDHASH_LEN);
@@ -586,7 +586,7 @@ kern_return_t trust_nxt2_read_fd(int fd,
     if(machO != NULL)
     {
         uint8_t cdhash[USER_FSIGNATURES_CDHASH_LEN];
-        if(CDHashOfMachO(machO->header, machO->size, (uint8_t*)&cdhash))
+        if(CDHashOfMachO(machO->map, machO->size, (uint8_t*)&cdhash))
         {
             if(memcmp(cdhash, result->cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
             {
