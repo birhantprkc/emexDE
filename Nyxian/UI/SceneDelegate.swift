@@ -234,69 +234,145 @@ struct UIOnboardingHelper {
     }
 }
 
-class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDelegate, UIOnboardingViewControllerDelegate {
-    var window: NXWindowServer?
+func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
+    recoveryController.enterRecovery(
+        withHeader: "Nyxian Recovery\n\(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? "UNKNOWN") \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "0.0.0") Beta (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? "UNKNOWN"))",
+        instructions: nil,
+        footer: nil,
+        items: [
+            NXRecoveryItem(title: "Reboot system now") { c in
+                PERestartSelf()
+            },
+            NXRecoveryItem(title: "Wipe data / factory reset") { c in },
+            NXRecoveryItem(title: "Nyxian Files") { c in
+                c?.enterFileBrowser(atPath: NSHomeDirectory(), root: NSHomeDirectory(), header: "Nyxian Files", onBack: { recovery in
+                    if let recovery = recovery {
+                        recoveryShowMenu(recoveryController: recovery)
+                    }
+                }, onFile: { path,name,controller in
+                })
+            },
+            NXRecoveryItem(title: "System Files") { c in
+                c?.enterFileBrowser(atPath: "/", root: "/", header: "System Files", onBack: { recovery in
+                    if let recovery = recovery {
+                        recoveryShowMenu(recoveryController: recovery)
+                    }
+                }, onFile: { path,name,controller in
+                })
+            },
+            NXRecoveryItem(title: "Power Off") { c in },
+        ],
+        onSelect: nil,
+        onMove: nil
+    )
+}
+
+class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboardingViewControllerDelegate {
+    private func install(_ child: UIViewController) {
+        addChild(child)
+        child.view.frame = view.bounds
+        child.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(child.view)
+        child.didMove(toParent: self)
+    }
     
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        NXApplicationState.loadKernelExtensions = (connectionOptions.shortcutItem?.type != "org.emexlabs.nyxian.noload")
-        PEUserspaceManager.shared().boot(withKextLoadingEnabled: NXApplicationState.loadKernelExtensions)
-        NXBootstrap.shared().bootstrap()
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
-        guard let windowScene = scene as? UIWindowScene else { return }
+        self.view.backgroundColor = .systemBackground
         
-        // swizzle swizzle swizzle :3
-        UIViewController.swizzlePresentAndDismissOnce
-        UIBarButtonItem.swizzleBarButtonitem
-        RevertUI()
+        guard let image: UIImage = UIImage(named: "EmexLogo") else { return }
+        let imageView: UIImageView = UIImageView(image: image)
         
-        self.window = NXWindowServer.shared(with: windowScene)
-        if(self.window == nil)
-        {
-            return;
-        }
+        imageView.translatesAutoresizingMaskIntoConstraints = false
         
-        let themedTabViewController: NXUITabBarController = NXUITabBarController()
+        self.view.addSubview(imageView)
         
-        let contentViewController: ContentViewController = ContentViewController()
-        let settingsViewController: NXSettingsTableViewController = NXSettingsTableViewController()
+        NSLayoutConstraint.activate([
+            imageView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+            imageView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            imageView.heightAnchor.constraint(equalToConstant: 125),
+            imageView.widthAnchor.constraint(equalToConstant: 125),
+        ])
         
-        let contentNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
-        let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
-        
-        contentNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
-        settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
-        
-        var viewControllers: [UIViewController] = [contentNavigationController, settingsNavigationController]
-        
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            if #available(iOS 26.0, *) {
-                if !NXApplicationState.extensionLessMode {
-                    let fakeViewController: UIViewController = UIViewController()
-                    fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
-                    fakeViewController.tabBarItem.title = "Switcher"
-                    fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
-                    viewControllers.append(fakeViewController)
+        DispatchQueue.global(qos: .utility).async {
+            let mode = NXVolumeButtonMonitor.scan(for: 1.0)
+            NXVolumeButtonMonitor.disarm()
+            
+            if mode == 1 {
+                // Extension less mode >.<
+                NXApplicationState.loadKernelExtensions = false
+            } else {
+                NXApplicationState.loadKernelExtensions = true
+            }
+            
+            DispatchQueue.main.async {
+                if mode == 2 {
+                    let recoveryController = NXRecoveryViewController()
+                    recoveryShowMenu(recoveryController: recoveryController)
+                    self.install(recoveryController)
+                    return
                 }
+                
+                self.changableStatusBarHidden = false
+                self.setNeedsStatusBarAppearanceUpdate()
+                
+                PEUserspaceManager.shared().boot(withKextLoadingEnabled: NXApplicationState.loadKernelExtensions)
+                NXBootstrap.shared().bootstrap()
+                
+                // swizzle swizzle swizzle :3
+                UIViewController.swizzlePresentAndDismissOnce
+                UIBarButtonItem.swizzleBarButtonitem
+                RevertUI()
+                
+                let themedTabViewController: NXUITabBarController = NXUITabBarController()
+                
+                let contentViewController: ContentViewController = ContentViewController()
+                let settingsViewController: NXSettingsTableViewController = NXSettingsTableViewController()
+                
+                let contentNavigationController: UINavigationController = UINavigationController(rootViewController: contentViewController)
+                let settingsNavigationController: UINavigationController = UINavigationController(rootViewController: settingsViewController)
+                
+                contentNavigationController.tabBarItem = UITabBarItem(title: "Projects", image: UIImage(systemName: "square.grid.2x2.fill"), tag: 0)
+                settingsNavigationController.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 1)
+                
+                var viewControllers: [UIViewController] = [contentNavigationController, settingsNavigationController]
+                
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    if #available(iOS 26.0, *) {
+                        if !NXApplicationState.extensionLessMode {
+                            let fakeViewController: UIViewController = UIViewController()
+                            fakeViewController.tabBarItem = UITabBarItem(tabBarSystemItem: .search, tag: 2)
+                            fakeViewController.tabBarItem.title = "Switcher"
+                            fakeViewController.tabBarItem.image = UIImage(systemName: "iphone.app.switcher")
+                            viewControllers.append(fakeViewController)
+                        }
+                    }
+                }
+                
+                themedTabViewController.viewControllers = viewControllers
+                themedTabViewController.delegate = self
+                
+                self.install(themedTabViewController)
+                
+                if let _: NSNumber = UserDefaults.standard.object(forKey: "NXOnboardingSentinel") as? NSNumber {
+                    checkSigningSetup()
+                    return
+                }
+                
+                let onboardingConfiguration = UIOnboardingViewConfiguration(appIcon: UIOnboardingHelper.setUpIcon(), firstTitleLine: UIOnboardingHelper.setUpFirstTitleLine(), secondTitleLine: UIOnboardingHelper.setUpSecondTitleLine(), features: UIOnboardingHelper.setUpFeatures(), textViewConfiguration: UIOnboardingHelper.setUpNotice(), buttonConfiguration: UIOnboardingHelper.setUpButton())
+                let onboardingController: UIOnboardingViewController = UIOnboardingViewController(withConfiguration: onboardingConfiguration)
+                onboardingController.delegate = self
+                onboardingController.backgroundColor = LDETheme.currentTheme!.backgroundColor
+                
+                themedTabViewController.present(onboardingController, animated: false)
             }
         }
-        
-        themedTabViewController.viewControllers = viewControllers
-        themedTabViewController.delegate = self
-        
-        self.window?.rootViewController = themedTabViewController
-        self.window?.makeKeyAndVisible()
-        
-        if let _: NSNumber = UserDefaults.standard.object(forKey: "NXOnboardingSentinel") as? NSNumber {
-            checkSigningSetup()
-            return
-        }
-        
-        let onboardingConfiguration = UIOnboardingViewConfiguration(appIcon: UIOnboardingHelper.setUpIcon(), firstTitleLine: UIOnboardingHelper.setUpFirstTitleLine(), secondTitleLine: UIOnboardingHelper.setUpSecondTitleLine(), features: UIOnboardingHelper.setUpFeatures(), textViewConfiguration: UIOnboardingHelper.setUpNotice(), buttonConfiguration: UIOnboardingHelper.setUpButton())
-        let onboardingController: UIOnboardingViewController = UIOnboardingViewController(withConfiguration: onboardingConfiguration)
-        onboardingController.delegate = self
-        onboardingController.backgroundColor = LDETheme.currentTheme!.backgroundColor
-        
-        self.window?.rootViewController?.present(onboardingController, animated: false)
+    }
+    
+    var changableStatusBarHidden = true
+    override var prefersStatusBarHidden: Bool {
+        return self.changableStatusBarHidden
     }
     
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
@@ -304,7 +380,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
             return false
         }
         if viewController.tabBarItem.tag == 2 {
-            self.window?.showAppSwitcherExternal()
+            NXWindowServer.shared().showAppSwitcherExternal()
             return false
         }
         return true
@@ -333,5 +409,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate, UITabBarControllerDeleg
                 NXApplicationState.restartAppWithoutKEXTLoadingEnabled()
             });
         }
+    }
+}
+
+class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+    var window: NXWindowServer?
+    
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        
+        self.window = NXWindowServer.shared(with: windowScene)
+        if self.window == nil {
+            return;
+        }
+        
+        self.window?.rootViewController = BootViewController()
+        
+        self.window?.makeKeyAndVisible()
+        
+        return
     }
 }
