@@ -358,6 +358,14 @@ LIBKERN_DEFINE_PATCHABLE(CFArrayRef, trust_identity_give_file_permissions, (CFSt
             @"EXECUTABLE": (__bridge NSString*)executableString,
         } mutableCopy];
         
+        if(![[NSUserDefaults standardUserDefaults] boolForKey:@"nyxian.boot.sandbox.filesystems"])
+        {
+            trust_identity_append_file_permissions_for_paths(filePermissions, @[
+                @"$(NXROOT)",
+            ], vars, kFSMountPermissionReadWrite, true);
+            return (__bridge_retained CFArrayRef)filePermissions;
+        }
+        
         /* append applicable variables */
         LDEApplicationObject *applicationObject = [[LDEApplicationWorkspace shared] applicationObjectForExecutablePath:(__bridge NSString*)executableString];
         if(applicationObject != nil && applicationObject.bundlePath != nil && applicationObject.containerPath != nil)

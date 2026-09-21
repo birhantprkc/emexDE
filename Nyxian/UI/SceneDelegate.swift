@@ -237,11 +237,13 @@ struct UIOnboardingHelper {
 enum BootFlag: String, CaseIterable {
     case kextLoading = "nyxian.boot.kextLoading"
     case logObfucation = "nyxian.boot.log.obfuscated"
+    case sandboxFilesystem = "nyxian.boot.sandbox.filesystems"
     
     var title: String {
         switch self {
             case .kextLoading: return "Load kexts at boot"
             case .logObfucation: return "Obfuscate Log"
+            case .sandboxFilesystem: return "Filesystem Sandbox (as a replacement for POSIX file permissions)"
         }
     }
     
@@ -249,6 +251,7 @@ enum BootFlag: String, CaseIterable {
         switch self {
             case .kextLoading: return true
             case .logObfucation: return true
+            case .sandboxFilesystem: return true
         }
     }
 }
