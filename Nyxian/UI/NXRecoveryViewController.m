@@ -22,10 +22,18 @@
 #import <UI/NXRecoveryViewController.h>
 #import <UI/NXVolumeButtonMonitor.h>
 
-static NSString * const NXRecoveryFontFamily = @"Inconsolata";
+static NSString * const NXRecoveryAtlasResource = @"recovery_font_18x32";
+
 const CGFloat NXRecoveryFontSize = 13.0;
+static const NSInteger NXRecoveryGlyphScale = 1;
+
 static const CGFloat NXRecoveryMargin = 0.0;
 static const CGFloat NXRecoveryMenuFooterGap = 8.0;
+
+static void NXRecoveryReleaseData(void *info, const void *data, size_t size)
+{
+    free((void *)data);
+}
 
 @implementation NXRecoveryItem
 
@@ -54,10 +62,388 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 
 @end
 
+@interface NXRecoveryFontAtlas : NSObject
+
+@property (nonatomic, readonly) NSInteger cellWidth;
+@property (nonatomic, readonly) NSInteger cellHeight;
+
++ (nullable instancetype)sharedAtlas;
+- (nullable CGImageRef)imageTintedWithColor:(UIColor *)color;
+
+@end
+
+@implementation NXRecoveryFontAtlas
+{
+    NSInteger _width;
+    NSInteger _height;
+    uint8_t *_coverage;
+    NSMutableDictionary<UIColor*, id> *_tinted;
+}
+
++ (instancetype)sharedAtlas
+{
+    static NXRecoveryFontAtlas *atlas;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        atlas = [[self alloc] initWithResource:NXRecoveryAtlasResource];
+    });
+    return atlas;
+}
+
+- (instancetype)initWithResource:(NSString *)name
+{
+    self = [super init];
+    if(self == nil)
+    {
+        return nil;
+    }
+    
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    NSString *path = [bundle pathForResource:name ofType:@"png"];
+    CGImageRef cg = (path != nil) ? [UIImage imageWithContentsOfFile:path].CGImage : NULL;
+    if(cg == NULL)
+    {
+        return nil;
+    }
+    
+    _width = (NSInteger)CGImageGetWidth(cg);
+    _height = (NSInteger)CGImageGetHeight(cg);
+    if(_width < 96 || (_width % 96) != 0 || (_height % 2) != 0)
+    {
+        return nil;
+    }
+    
+    _coverage = calloc((size_t)(_width * _height), 1);
+    if(_coverage == NULL)
+    {
+        return nil;
+    }
+    
+    CGColorSpaceRef gray = CGColorSpaceCreateDeviceGray();
+    CGContextRef ctx = CGBitmapContextCreate(_coverage, (size_t)_width, (size_t)_height, 8, (size_t)_width, gray, (CGBitmapInfo)kCGImageAlphaNone);
+    CGColorSpaceRelease(gray);
+    if(ctx == NULL)
+    {
+        free(_coverage);
+        _coverage = NULL;
+        return nil;
+    }
+    
+    CGContextDrawImage(ctx, CGRectMake(0, 0, _width, _height), cg);
+    CGContextRelease(ctx);
+    
+    _tinted = [NSMutableDictionary dictionary];
+    return self;
+}
+
+- (void)dealloc
+{
+    free(_coverage);
+}
+
+- (NSInteger)cellWidth
+{
+    return _width / 96;
+}
+
+- (NSInteger)cellHeight
+{
+    return _height / 2;
+}
+
+- (CGImageRef)imageTintedWithColor:(UIColor *)color
+{
+    if(color == nil)
+    {
+        return NULL;
+    }
+    
+    id cached = _tinted[color];
+    if(cached != nil)
+    {
+        return (__bridge CGImageRef)cached;
+    }
+    
+    CGFloat r = 0.0, g = 0.0, b = 0.0, a = 1.0;
+    if(![color getRed:&r green:&g blue:&b alpha:&a])
+    {
+        return NULL;
+    }
+    
+    size_t count = (size_t)(_width * _height);
+    uint8_t *rgba = malloc(count * 4);
+    if(rgba == NULL)
+    {
+        return NULL;
+    }
+    
+    for(size_t i = 0; i < count; i++)
+    {
+        uint8_t cov = _coverage[i];
+        rgba[i * 4 + 0] = (uint8_t)lround(r * cov);
+        rgba[i * 4 + 1] = (uint8_t)lround(g * cov);
+        rgba[i * 4 + 2] = (uint8_t)lround(b * cov);
+        rgba[i * 4 + 3] = cov;
+    }
+    
+    CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, rgba, count * 4, NXRecoveryReleaseData);
+    CGColorSpaceRef rgb = CGColorSpaceCreateDeviceRGB();
+    CGBitmapInfo bitmapInfo = (CGBitmapInfo)kCGImageAlphaPremultipliedLast | kCGBitmapByteOrderDefault;
+    CGImageRef image = CGImageCreate((size_t)_width, (size_t)_height, 8, 32, (size_t)(_width * 4), rgb, bitmapInfo, provider, NULL, false, kCGRenderingIntentDefault);
+    CGColorSpaceRelease(rgb);
+    CGDataProviderRelease(provider);
+    
+    if(image == NULL)
+    {
+        return NULL;
+    }
+    
+    _tinted[color] = (__bridge_transfer id)image;
+    return image;
+}
+
+@end
+
+@interface NXRecoveryGlyphView : UIView
+
+@property (nonatomic, copy) NSString *text;
+@property (nonatomic) BOOL bold;
+@property (nonatomic, strong) UIColor *color;
+@property (nonatomic) NSInteger glyphScale;
+@property (nonatomic) BOOL wraps;
+
+- (CGSize)cellSizeInPoints;
+
+@end
+
+@implementation NXRecoveryGlyphView
+{
+    NSData *_bytes;
+    NSArray<NSValue *> *_lines;
+    CGFloat _lastWidth;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if(self)
+    {
+        self.opaque = NO;
+        self.backgroundColor = [UIColor clearColor];
+        self.contentMode = UIViewContentModeRedraw;
+        _glyphScale = NXRecoveryGlyphScale;
+        _lastWidth = -1.0;
+        [self setContentHuggingPriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisVertical];
+    }
+    return self;
+}
+
+- (void)invalidateGlyphs
+{
+    _lines = nil;
+    [self invalidateIntrinsicContentSize];
+    [self setNeedsDisplay];
+}
+
+- (void)setText:(NSString *)text
+{
+    if(_text == text || [_text isEqualToString:text])
+    {
+        return;
+    }
+    _text = [text copy];
+    _bytes = [(_text ?: @"") dataUsingEncoding:NSUTF8StringEncoding];
+    [self invalidateGlyphs];
+}
+
+- (void)setBold:(BOOL)bold
+{
+    if(_bold != bold)
+    {
+        _bold = bold;
+        [self setNeedsDisplay];
+    }
+}
+
+- (void)setColor:(UIColor *)color
+{
+    _color = color;
+    [self setNeedsDisplay];
+}
+
+- (void)setGlyphScale:(NSInteger)glyphScale
+{
+    _glyphScale = MAX((NSInteger)1, glyphScale);
+    [self invalidateGlyphs];
+}
+
+- (void)setWraps:(BOOL)wraps
+{
+    if(_wraps != wraps)
+    {
+        _wraps = wraps;
+        [self invalidateGlyphs];
+    }
+}
+
+- (CGFloat)displayScaleValue
+{
+    CGFloat scale = self.traitCollection.displayScale;
+    if(scale <= 0.0)
+    {
+        scale = UIScreen.mainScreen.scale;
+    }
+    return (scale > 0.0) ? scale : 1.0;
+}
+
+- (CGSize)cellSizeInPoints
+{
+    NXRecoveryFontAtlas *atlas = [NXRecoveryFontAtlas sharedAtlas];
+    if(atlas == nil)
+    {
+        return CGSizeZero;
+    }
+    
+    CGFloat k = (CGFloat)self.glyphScale / [self displayScaleValue];
+    return CGSizeMake(atlas.cellWidth * k, atlas.cellHeight * k);
+}
+
+- (NSArray<NSValue *> *)glyphLines
+{
+    if(_lines != nil)
+    {
+        return _lines;
+    }
+    
+    NSMutableArray<NSValue *> *lines = [NSMutableArray array];
+    const uint8_t *b = _bytes.bytes;
+    NSUInteger len = _bytes.length;
+    
+    CGFloat cellWidth = [self cellSizeInPoints].width;
+    NSUInteger columns = NSUIntegerMax;
+    if(self.wraps && cellWidth > 0.0 && CGRectGetWidth(self.bounds) > 0.0)
+    {
+        NSInteger fit = (NSInteger)floor(CGRectGetWidth(self.bounds) / cellWidth);
+        columns = (NSUInteger)MAX((NSInteger)1, fit);
+    }
+    
+    NSUInteger start = 0;
+    for(NSUInteger i = 0; i <= len; i++)
+    {
+        BOOL hardBreak = (i < len && b[i] == '\n');
+        BOOL full = (i > start) && ((i - start) == columns);
+        if(i == len || hardBreak || full)
+        {
+            [lines addObject:[NSValue valueWithRange:NSMakeRange(start, i - start)]];
+            start = hardBreak ? (i + 1) : i;
+            if(i == len)
+            {
+                break;
+            }
+        }
+    }
+    
+    if(lines.count == 0)
+    {
+        [lines addObject:[NSValue valueWithRange:NSMakeRange(0, 0)]];
+    }
+    
+    _lines = [lines copy];
+    return _lines;
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    
+    if(self.wraps && fabs(CGRectGetWidth(self.bounds) - _lastWidth) > 0.5)
+    {
+        _lastWidth = CGRectGetWidth(self.bounds);
+        [self invalidateGlyphs];
+    }
+}
+
+- (CGSize)intrinsicContentSize
+{
+    CGSize cell = [self cellSizeInPoints];
+    NSArray<NSValue *> *lines = [self glyphLines];
+    
+    CGFloat width = UIViewNoIntrinsicMetric;
+    if(!self.wraps)
+    {
+        NSUInteger longest = 0;
+        for(NSValue *v in lines)
+        {
+            longest = MAX(longest, v.rangeValue.length);
+        }
+        width = cell.width * (CGFloat)longest;
+    }
+    
+    return CGSizeMake(width, cell.height * (CGFloat)MAX((NSUInteger)1, lines.count));
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previous
+{
+    [super traitCollectionDidChange:previous];
+    
+    if(previous.displayScale != self.traitCollection.displayScale)
+    {
+        [self invalidateGlyphs];
+    }
+}
+
+- (void)drawRect:(CGRect)rect
+{
+    UIColor *ink = self.color ?: UIColor.whiteColor;
+    NXRecoveryFontAtlas *atlas = [NXRecoveryFontAtlas sharedAtlas];
+    NSArray<NSValue *> *lines = [self glyphLines];
+    CGSize cell = [self cellSizeInPoints];
+    if(atlas == nil)
+    {
+        return;
+    }
+    
+    CGImageRef tinted = [atlas imageTintedWithColor:ink];
+    if(tinted == NULL)
+    {
+        return;
+    }
+    
+    CGContextRef ctx = UIGraphicsGetCurrentContext();
+    CGContextSetShouldAntialias(ctx, NO);
+    CGContextSetInterpolationQuality(ctx, kCGInterpolationNone);
+    
+    const uint8_t *b = _bytes.bytes;
+    CGFloat limit = CGRectGetWidth(self.bounds);
+    for(NSUInteger li = 0; li < lines.count; li++)
+    {
+        NSRange line = lines[li].rangeValue;
+        CGFloat y = cell.height * (CGFloat)li;
+        CGFloat x = 0.0;
+        for(NSUInteger i = 0; i < line.length && x < limit; i++)
+        {
+            NSInteger off = (NSInteger)b[line.location + i] - 32;
+            if(off >= 0 && off < 96)
+            {
+                CGRect src = CGRectMake(off * atlas.cellWidth, self.bold ? atlas.cellHeight : 0, atlas.cellWidth, atlas.cellHeight);
+                CGImageRef glyph = CGImageCreateWithImageInRect(tinted, src);
+                if(glyph != NULL)
+                {
+                    [[UIImage imageWithCGImage:glyph] drawInRect:CGRectMake(x, y, cell.width, cell.height)];
+                    CGImageRelease(glyph);
+                }
+            }
+            x += cell.width;
+        }
+    }
+}
+
+@end
+
 @interface NXRecoveryRow : NSObject
 
 @property (nonatomic, strong) UIView *bar;
-@property (nonatomic, strong) UILabel *label;
+@property (nonatomic, strong) NXRecoveryGlyphView *glyph;
 
 @end
 
@@ -117,23 +503,21 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 
 @interface NXRecoveryViewController ()
 
-@property (nonatomic, strong) UILabel *headerLabel;
-@property (nonatomic, strong) UILabel *instructionsLabel;
+@property (nonatomic, strong) NXRecoveryGlyphView *headerView;
+@property (nonatomic, strong) NXRecoveryGlyphView *instructionsView;
 @property (nonatomic, strong) UIStackView *menuStack;
 @property (nonatomic, strong) UIStackView *footerStack;
 
 @property (nonatomic, strong) NSMutableArray<NXRecoveryRow*> *rows;
 @property (nonatomic, strong) NSMutableArray<UIView*> *decor;
 @property (nonatomic, strong) NSMutableArray<NXRecoveryItem*> *mutableItems;
-@property (nonatomic, strong) UIFont *itemFont;
-@property (nonatomic, strong) UIFont *itemFontBold;
 
 @property (nonatomic) NSInteger menuOffset;
 @property (nonatomic) NSInteger visibleWindow;
 @property (nonatomic) NSInteger menuWindow;
 
 @property (nonatomic, strong) NSMutableArray<NXRecoveryLogLine*> *logLines;
-@property (nonatomic, strong) NSMutableArray<UILabel*> *logRows;
+@property (nonatomic, strong) NSMutableArray<NXRecoveryGlyphView*> *logRows;
 @property (nonatomic, strong) UIFont *logFont;
 
 @property (nonatomic, readwrite, getter=isRecoveryActive) BOOL recoveryActive;
@@ -164,26 +548,31 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 
 + (UIColor *)recoveryHeaderColor
 {
-    return [self rgbR:249/255.0 g:194/255.0 b:0.0];
+    /* HEADER */
+    return [self rgbR:247/255.0 g:0.0 b:6/255.0];
 }
 
 + (UIColor *)recoveryInfoColor
 {
+    /* INFO */
     return [self rgbR:249/255.0 g:194/255.0 b:0.0];
 }
 
 + (UIColor *)recoveryItemColor
 {
-    return [self rgbR:0.0 g:0.66 b:1.0];
+    /* MENU */
+    return [self rgbR:0.0 g:106/255.0 b:157/255.0];
 }
 
 + (UIColor *)recoveryHighlightColor
 {
-    return [self rgbR:0.0 g:0.66 b:1.0];
+    /* MENU_SEL_BG */
+    return [self rgbR:0.0 g:106/255.0 b:157/255.0];
 }
 
 + (UIColor *)recoveryHighlightTextColor
 {
+    /* MENU_SEL_FG */
     return [self rgbR:1.0 g:1.0 b:1.0];
 }
 
@@ -194,11 +583,13 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 
 + (UIColor *)recoveryLogInfoColor
 {
+    /* LOG */
     return [self rgbR:196/255.0 g:196/255.0 b:196/255.0];
 }
 
 + (UIColor *)recoveryLogErrorColor
 {
+    /* Nyxian addition since AOSP's text log has no severity =3 */
     return [self rgbR:1.0 g:0.27 b:0.27];
 }
 
@@ -228,6 +619,19 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     [self loadViewIfNeeded];
 }
 
+- (NXRecoveryGlyphView *)makeGlyphViewWrapping:(BOOL)wraps
+                                         color:(UIColor *)color
+                                          bold:(BOOL)bold
+{
+    NXRecoveryGlyphView *v = [NXRecoveryGlyphView new];
+    v.translatesAutoresizingMaskIntoConstraints = NO;
+    v.glyphScale = NXRecoveryGlyphScale;
+    v.wraps = wraps;
+    v.color = color;
+    v.bold = bold;
+    return v;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -235,30 +639,15 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     self.view.backgroundColor = [self.class recoveryBackgroundColor];
     self.view.hidden = YES;
     
-    UIColor *clear = [UIColor clearColor];
-    UIFont *infoFont = [self recoveryFontOfWeight:UIFontWeightMedium];
-    
-    UILabel *header = [UILabel new];
-    header.translatesAutoresizingMaskIntoConstraints = NO;
-    header.numberOfLines = 0;
-    header.textAlignment = NSTextAlignmentLeft;
-    header.backgroundColor = clear;
-    header.textColor = [self.class recoveryInfoColor];
+    NXRecoveryGlyphView *header = [self makeGlyphViewWrapping:YES color:[self.class recoveryInfoColor] bold:YES];
     header.text = @"Nyxian Recovery";
-    header.font = infoFont;
     [self.view addSubview:header];
-    self.headerLabel = header;
+    self.headerView = header;
     
-    UILabel *instructions = [UILabel new];
-    instructions.translatesAutoresizingMaskIntoConstraints = NO;
-    instructions.numberOfLines = 0;
-    instructions.textAlignment = NSTextAlignmentLeft;
-    instructions.backgroundColor = clear;
-    instructions.textColor = [self.class recoveryInfoColor];
+    NXRecoveryGlyphView *instructions = [self makeGlyphViewWrapping:YES color:[self.class recoveryInfoColor] bold:NO];
     instructions.text = @"Use volume up/down and hold both volume keys.";
-    instructions.font = infoFont;
     [self.view addSubview:instructions];
-    self.instructionsLabel = instructions;
+    self.instructionsView = instructions;
     
     UIStackView *stack = [UIStackView new];
     stack.translatesAutoresizingMaskIntoConstraints = NO;
@@ -283,11 +672,11 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     [NSLayoutConstraint activateConstraints:@[
         [header.topAnchor constraintEqualToAnchor:guide.topAnchor constant:12],
         [header.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:NXRecoveryMargin],
-        [header.trailingAnchor constraintLessThanOrEqualToAnchor:guide.trailingAnchor constant:-8],
+        [header.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
         
         [instructions.topAnchor constraintEqualToAnchor:header.bottomAnchor constant:0],
         [instructions.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:NXRecoveryMargin],
-        [instructions.trailingAnchor constraintLessThanOrEqualToAnchor:guide.trailingAnchor constant:-8],
+        [instructions.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
         
         [stack.topAnchor constraintEqualToAnchor:instructions.bottomAnchor constant:4],
         [stack.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:NXRecoveryMargin],
@@ -296,7 +685,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
         
         [footer.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor constant:-12],
         [footer.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:NXRecoveryMargin],
-        [footer.trailingAnchor constraintLessThanOrEqualToAnchor:guide.trailingAnchor constant:-8],
+        [footer.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
     ]];
 }
 
@@ -311,6 +700,17 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     if([self effectiveMenuWindow] != self.visibleWindow)
     {
         [self rebuildMenuRows];
+    }
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previous
+{
+    [super traitCollectionDidChange:previous];
+    
+    if(previous.displayScale != self.traitCollection.displayScale)
+    {
+        [self rebuildMenuRows];
+        [self paintRecoveryLog];
     }
 }
 
@@ -341,55 +741,16 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     return YES;
 }
 
-- (UIFont *)recoveryFontOfWeight:(UIFontWeight)weight
-{
-    BOOL bold = (weight > UIFontWeightRegular);
-    NSString *name = bold ? @"Inconsolata-Bold" : @"Inconsolata-Regular";
-    UIFont *font = [UIFont fontWithName:name size:NXRecoveryFontSize];
-    if(font != nil)
-    {
-        return font;
-    }
-    return [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize weight:weight];
-}
-
-- (UIFont *)itemFont
-{
-    if(_itemFont == nil)
-    {
-        _itemFont = [self recoveryFontOfWeight:UIFontWeightRegular];
-    }
-    return _itemFont;
-}
-
-- (UIFont *)itemFontBold
-{
-    if(_itemFontBold == nil)
-    {
-        _itemFontBold = [self recoveryFontOfWeight:UIFontWeightBold];
-    }
-    return _itemFontBold;
-}
-
-- (UIFont *)logFont
-{
-    if(_logFont == nil)
-    {
-        _logFont = [self recoveryFontOfWeight:UIFontWeightRegular];
-    }
-    return _logFont;
-}
-
 - (void)setRecoveryHeader:(NSString *)text
 {
     [self createRecoveryView];
-    self.headerLabel.text = text ?: @"";
+    self.headerView.text = text ?: @"";
 }
 
 - (void)setRecoveryInstructions:(NSString *)text
 {
     [self createRecoveryView];
-    self.instructionsLabel.text = text ?: @"";
+    self.instructionsView.text = text ?: @"";
 }
 
 - (void)setRecoveryFooter:(NSString *)text
@@ -406,7 +767,27 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 - (CGFloat)px:(CGFloat)pixels
 {
     CGFloat scale = self.traitCollection.displayScale;
+    if(scale <= 0.0)
+    {
+        scale = UIScreen.mainScreen.scale;
+    }
     return (scale > 0.0) ? (pixels / scale) : pixels;
+}
+
+- (CGFloat)menuCellHeight
+{
+    NXRecoveryGlyphView *probe = [self makeGlyphViewWrapping:NO color:[self.class recoveryItemColor] bold:NO];
+    return [probe cellSizeInPoints].height;
+}
+
+- (CGFloat)menuRowHeight
+{
+    return [self menuCellHeight] + 2.0 * [self px:2.0];
+}
+
+- (CGFloat)menuRuleGap
+{
+    return [self px:6.0];
 }
 
 - (UIView *)makeRecoveryLine
@@ -435,20 +816,13 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     [self rebuildMenuRows];
 }
 
-- (CGFloat)menuRowHeight
-{
-    UIFont *f = self.itemFont;
-    return ceil(f.ascender - f.descender) + 2.0 * [self px:2.0];
-}
-
-- (CGFloat)menuRuleGap
-{
-    return [self px:3.0];
-}
-
 - (NSInteger)autoMenuWindow
 {
     CGFloat rowHeight = [self menuRowHeight];
+    if(rowHeight <= 0.0)
+    {
+        return 1;
+    }
     
     CGFloat top = CGRectGetMinY(self.menuStack.frame);
     CGFloat bottom = CGRectGetMinY(self.footerStack.frame) - NXRecoveryMenuFooterGap;
@@ -517,8 +891,8 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
      highlighted:(BOOL)highlighted
 {
     row.bar.backgroundColor = highlighted ? [self.class recoveryHighlightColor] : [UIColor clearColor];
-    row.label.textColor = highlighted ? [self.class recoveryHighlightTextColor] : [self.class recoveryItemColor];
-    row.label.font = highlighted ? self.itemFontBold : self.itemFont;
+    row.glyph.color = highlighted ? [self.class recoveryHighlightTextColor] : [self.class recoveryItemColor];
+    row.glyph.bold = highlighted;
 }
 
 - (void)applyMenuWindow
@@ -533,12 +907,12 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
         
         if(index < 0 || index >= count)
         {
-            row.label.text = @"";
+            row.glyph.text = @"";
             [self styleRow:row highlighted:NO];
             continue;
         }
         
-        row.label.text = self.mutableItems[index].title;
+        row.glyph.text = self.mutableItems[index].title;
         [self styleRow:row highlighted:(index == _recoveryIndex)];
     }
 }
@@ -547,7 +921,6 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 {
     [self createRecoveryView];
     
-    UIColor *clear = [UIColor clearColor];
     for(NXRecoveryRow *row in self.rows)
     {
         [row.bar removeFromSuperview];
@@ -567,6 +940,9 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
         return;
     }
     
+    CGFloat rowHeight = [self menuRowHeight];
+    CGFloat cellHeight = [self menuCellHeight];
+    
     UIView *topLine = [self makeRecoveryLine];
     [self.menuStack addArrangedSubview:topLine];
     [self.decor addObject:topLine];
@@ -576,29 +952,23 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     {
         UIView *bar = [UIView new];
         bar.translatesAutoresizingMaskIntoConstraints = NO;
-        bar.backgroundColor = clear;
+        bar.backgroundColor = [UIColor clearColor];
         
-        UILabel *label = [UILabel new];
-        label.translatesAutoresizingMaskIntoConstraints = NO;
-        label.numberOfLines = 1;
-        label.textAlignment = NSTextAlignmentLeft;
-        label.backgroundColor = clear;
-        label.textColor = [self.class recoveryItemColor];
-        label.font = self.itemFont;
-        
-        [bar addSubview:label];
+        NXRecoveryGlyphView *glyph = [self makeGlyphViewWrapping:NO color:[self.class recoveryItemColor] bold:NO];
+        [bar addSubview:glyph];
         [NSLayoutConstraint activateConstraints:@[
-            [bar.heightAnchor constraintEqualToConstant:[self menuRowHeight]],
-            [label.centerYAnchor constraintEqualToAnchor:bar.centerYAnchor],
-            [label.leadingAnchor constraintEqualToAnchor:bar.leadingAnchor constant:[self px:4.0]],
-            [label.trailingAnchor constraintEqualToAnchor:bar.trailingAnchor constant:-8],
+            [bar.heightAnchor constraintEqualToConstant:rowHeight],
+            [glyph.centerYAnchor constraintEqualToAnchor:bar.centerYAnchor],
+            [glyph.heightAnchor constraintEqualToConstant:cellHeight],
+            [glyph.leadingAnchor constraintEqualToAnchor:bar.leadingAnchor constant:[self px:4.0]],
+            [glyph.trailingAnchor constraintEqualToAnchor:bar.trailingAnchor],
         ]];
         
         [self.menuStack addArrangedSubview:bar];
         
         NXRecoveryRow *row = [NXRecoveryRow new];
         row.bar = bar;
-        row.label = label;
+        row.glyph = glyph;
         [self.rows addObject:row];
     }
     
@@ -776,9 +1146,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 {
     [self createRecoveryView];
     
-    UIColor *clear = [UIColor clearColor];
-    
-    for(UILabel *row in self.logRows)
+    for(NXRecoveryGlyphView *row in self.logRows)
     {
         [row removeFromSuperview];
     }
@@ -786,17 +1154,11 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     
     for(NXRecoveryLogLine *line in self.logLines)
     {
-        UILabel *lbl = [UILabel new];
-        lbl.translatesAutoresizingMaskIntoConstraints = NO;
-        lbl.numberOfLines = 0;
-        lbl.textAlignment = NSTextAlignmentLeft;
-        lbl.backgroundColor = clear;
-        lbl.textColor = [self logColorForLevel:line.level];
-        lbl.text = line.text;
-        lbl.font = self.logFont;
+        NXRecoveryGlyphView *v = [self makeGlyphViewWrapping:NO color:[self logColorForLevel:line.level] bold:NO];
+        v.text = line.text;
         
-        [self.footerStack addArrangedSubview:lbl];
-        [self.logRows addObject:lbl];
+        [self.footerStack addArrangedSubview:v];
+        [self.logRows addObject:v];
     }
 }
 
@@ -833,12 +1195,6 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 - (NSFileManager *)fm
 {
     return [NSFileManager defaultManager];
-}
-
-- (BOOL)fmIsDirectoryAtPath:(NSString *)path
-{
-    NSDictionary *attrs = [self.fm attributesOfItemAtPath:path error:NULL];
-    return attrs != nil && [attrs[NSFileType] isEqualToString:NSFileTypeDirectory];
 }
 
 - (NSString *)fmJoin:(NSString *)dir
@@ -882,7 +1238,6 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     {
         e.isSymlink = YES;
         e.linkDestination = [self.fm destinationOfSymbolicLinkAtPath:e.path error:NULL];
-        
         BOOL targetIsDir = NO;
         BOOL targetExists = [self.fm fileExistsAtPath:e.path isDirectory:&targetIsDir];
         
@@ -932,7 +1287,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     
     NSMutableArray<NXRecoveryItem *> *items = [NSMutableArray array];
     NSString *here = [path copy];
-    [items addObject:[NXRecoveryItem itemWithTitle:@"<< Back" action:^(NXRecoveryViewController *c){
+    [items addObject:[NXRecoveryItem itemWithTitle:@"../" action:^(NXRecoveryViewController *c){
         if(![here isEqualToString:c.browserRoot])
         {
             [c browsePath:[c fmParentOfPath:here]];

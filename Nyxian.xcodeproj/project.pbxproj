@@ -35,8 +35,7 @@
 		8FDD846D305C4EE900949118 /* libBroadpatch.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8FDD846E305C4EF200949118 /* libBroadpatch.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */; };
 		8FDD8D2D305CE45100949118 /* libBroadpatch.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FDD845C305C4E9200949118 /* libBroadpatch.dylib */; };
-		8FDD96F83060AAD800949118 /* Inconsolata-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8FDD96F63060AAD800949118 /* Inconsolata-Bold.ttf */; };
-		8FDD96F93060AAD800949118 /* Inconsolata-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8FDD96F73060AAD800949118 /* Inconsolata-Regular.ttf */; };
+		8FDD96FB3060B4FB00949118 /* recovery_font_18x32.png in Resources */ = {isa = PBXBuildFile; fileRef = 8FDD96FA3060B4FB00949118 /* recovery_font_18x32.png */; };
 		8FECB2472FFD34D500049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB2462FFD34D500049BB0 /* Runestone */; };
 		8FECB24D2FFD367A00049BB0 /* Runestone in Frameworks */ = {isa = PBXBuildFile; productRef = 8FECB24C2FFD367A00049BB0 /* Runestone */; };
 		8FF32E2D3036F8DC00C46FE4 /* libHWHook.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FF32DED3036F59E00C46FE4 /* libHWHook.a */; };
@@ -266,8 +265,7 @@
 		8FB3BADB302FFBAA00DB3ABC /* LiveShim.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LiveShim.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FB3C1EA3031450500DB3ABC /* ksurface_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_config.h; sourceTree = "<group>"; };
 		8FDD845C305C4E9200949118 /* libBroadpatch.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBroadpatch.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		8FDD96F63060AAD800949118 /* Inconsolata-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inconsolata-Bold.ttf"; sourceTree = "<group>"; };
-		8FDD96F73060AAD800949118 /* Inconsolata-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Inconsolata-Regular.ttf"; sourceTree = "<group>"; };
+		8FDD96FA3060B4FB00949118 /* recovery_font_18x32.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = recovery_font_18x32.png; sourceTree = "<group>"; };
 		8FF32DED3036F59E00C46FE4 /* libHWHook.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libHWHook.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		8FF346DD3039AA7000C46FE4 /* ksurface_abi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ksurface_abi.h; sourceTree = "<group>"; };
 		8FF647C63054E61900E1E610 /* bootstrapd.dylib */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = bootstrapd.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -850,8 +848,7 @@
 				8FF647C63054E61900E1E610 /* bootstrapd.dylib */,
 				8FF6480E3056786A00E1E610 /* MobileDevelopmentService.dylib */,
 				8FDD845C305C4E9200949118 /* libBroadpatch.dylib */,
-				8FDD96F63060AAD800949118 /* Inconsolata-Bold.ttf */,
-				8FDD96F73060AAD800949118 /* Inconsolata-Regular.ttf */,
+				8FDD96FA3060B4FB00949118 /* recovery_font_18x32.png */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1226,8 +1223,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8FDD96F83060AAD800949118 /* Inconsolata-Bold.ttf in Resources */,
-				8FDD96F93060AAD800949118 /* Inconsolata-Regular.ttf in Resources */,
+				8FDD96FB3060B4FB00949118 /* recovery_font_18x32.png in Resources */,
 				AFF4D5D92DC9390B00B1B5F9 /* Shared in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
