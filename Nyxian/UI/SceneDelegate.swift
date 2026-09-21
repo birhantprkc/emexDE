@@ -374,6 +374,191 @@ func recoveryShowBootConfig(recoveryController c: NXRecoveryViewController) {
     )
 }
 
+private struct WipeFailure {
+    let path: String
+    let reason: String
+}
+
+private struct WipeStats {
+    var removedFiles = 0
+    var removedDirectories = 0
+    var bytes: Int64 = 0
+    var failures: [WipeFailure] = []
+}
+
+private let maxFailuresShown = 3
+
+private let wipeResourceKeys: [URLResourceKey] = [
+    .isDirectoryKey,
+    .isSymbolicLinkKey,
+    .totalFileAllocatedSizeKey,
+]
+
+private func errnoDescription(_ error: Error) -> String {
+    let ns = error as NSError
+    if let u = ns.userInfo[NSUnderlyingErrorKey] as? NSError, u.domain == NSPOSIXErrorDomain {
+        return String(cString: strerror(Int32(u.code)))
+    }
+    return ns.localizedDescription
+}
+
+private func formatBytes(_ bytes: Int64) -> String {
+    ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+}
+
+private func relativePath(_ url: URL, home: String) -> String {
+    let path = url.standardizedFileURL.path
+    return path.hasPrefix(home) ? String(path.dropFirst(home.count)) : path
+}
+
+private func recordFailure(_ url: URL, _ error: Error, home: String, stats: inout WipeStats) {
+    stats.failures.append(WipeFailure(path: relativePath(url, home: home), reason: errnoDescription(error)))
+}
+
+private func removeTree(_ url: URL,
+                        keeping keep: Set<String>,
+                        isRoot: Bool,
+                        home: String,
+                        stats: inout WipeStats) -> Bool {
+    let fm = FileManager.default
+    let values = try? url.resourceValues(forKeys: Set(wipeResourceKeys))
+    let isSymlink = values?.isSymbolicLink ?? false
+    let isRealDirectory = (values?.isDirectory ?? false) && !isSymlink
+    
+    var ok = true
+    if isRealDirectory {
+        let children: [URL]
+        do {
+            children = try fm.contentsOfDirectory(at: url, includingPropertiesForKeys: wipeResourceKeys, options: [])
+        } catch {
+            recordFailure(url, error, home: home, stats: &stats)
+            return false
+        }
+        
+        for child in children {
+            let childOK = removeTree(child, keeping: keep, isRoot: false, home: home, stats: &stats)
+            ok = ok && childOK
+        }
+    }
+    
+    if isRoot || keep.contains(url.standardizedFileURL.path) || !ok {
+        return ok
+    }
+    
+    let size = Int64(values?.totalFileAllocatedSize ?? 0)
+    do {
+        try fm.removeItem(at: url)
+    } catch {
+        recordFailure(url, error, home: home, stats: &stats)
+        return false
+    }
+    
+    if isRealDirectory {
+        stats.removedDirectories += 1
+    } else {
+        stats.removedFiles += 1
+        stats.bytes += size
+    }
+    
+    return true
+}
+
+func recoveryWipeData(_ c: NXRecoveryViewController) {
+    let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).standardizedFileURL
+    let homePath = home.path
+    
+    let targets = ["Documents", "Library", "tmp"].map {
+        home.appendingPathComponent($0, isDirectory: true)
+    }
+    
+    let keep: Set<String> = [
+        home.appendingPathComponent("Library/Caches").standardizedFileURL.path,
+        home.appendingPathComponent("Library/Preferences").standardizedFileURL.path,
+    ]
+    
+    c.recoveryLogMax = max(c.recoveryLogMax, 16)
+    
+    let started = CFAbsoluteTimeGetCurrent()
+    c.recoveryLog("\n-- Wiping data...")
+    
+    var prefsOK = true
+    if let id = Bundle.main.bundleIdentifier {
+        let before = UserDefaults.standard.persistentDomain(forName: id)?.count ?? 0
+        c.recoveryLog("Clearing preferences (\(before) keys)...")
+        
+        UserDefaults.standard.removePersistentDomain(forName: id)
+        
+        let after = UserDefaults.standard.persistentDomain(forName: id)?.count ?? 0
+        if after != 0 {
+            c.recoveryLogError("  failed: \(after) keys remain")
+            prefsOK = false
+        }
+    } else {
+        c.recoveryLogError("  failed: no bundle identifier")
+        prefsOK = false
+    }
+    
+    DispatchQueue.global(qos: .userInitiated).async {
+        var success = prefsOK
+        var totalBytes: Int64 = 0
+        
+        for dir in targets {
+            let name = dir.lastPathComponent
+            DispatchQueue.main.async { c.recoveryLog("Formatting /\(name)...") }
+            
+            var stats = WipeStats()
+            let ok = removeTree(dir, keeping: keep, isRoot: true, home: homePath, stats: &stats)
+            success = success && ok
+            totalBytes += stats.bytes
+            
+            let summary = "  \(stats.removedFiles) files, \(stats.removedDirectories) dirs, \(formatBytes(stats.bytes))"
+            let shown = Array(stats.failures.prefix(maxFailuresShown))
+            let hidden = stats.failures.count - shown.count
+            
+            DispatchQueue.main.async {
+                c.recoveryLog(summary)
+                for f in shown {
+                    c.recoveryLogError("  failed: \(f.path): \(f.reason)")
+                }
+                if hidden > 0 {
+                    c.recoveryLogError("  ... and \(hidden) more (see system log)")
+                }
+            }
+        }
+        
+        let elapsed = String(format: "%.1f", CFAbsoluteTimeGetCurrent() - started)
+        let tail = "(\(formatBytes(totalBytes)) in \(elapsed)s)"
+        
+        DispatchQueue.main.async {
+            if success {
+                c.recoveryLog("Data wipe complete. \(tail)")
+            } else {
+                c.recoveryLogError("Data wipe failed. \(tail)")
+            }
+        }
+    }
+}
+
+func recoveryConfirmWipe(recoveryController c: NXRecoveryViewController) {
+    c.enterRecovery(
+        withHeader: "Wipe all user data?\n THIS CAN NOT BE UNDONE!",
+        instructions: nil,
+        footer: nil,
+        items: [
+            NXRecoveryItem(title: " Cancel") { c in
+                if let c = c { recoveryShowMenu(recoveryController: c) }
+            },
+            NXRecoveryItem(title: " Factory data reset") { c in
+                guard let c = c else { return }
+                recoveryShowMenu(recoveryController: c)
+                recoveryWipeData(c)
+            },
+        ],
+        onSelect: nil,
+        onMove: nil
+    )
+}
+
 func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
     recoveryController.enterRecovery(
         withHeader: "Nyxian Recovery\n\(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? "UNKNOWN") \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "0.0.0") Beta (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? "UNKNOWN"))",
@@ -388,7 +573,11 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
                     recoveryShowBootConfig(recoveryController: c)
                 }
             },
-            NXRecoveryItem(title: "Wipe data / factory reset") { c in },
+            NXRecoveryItem(title: "Wipe data / factory reset") { c in
+                if let c = c {
+                    recoveryConfirmWipe(recoveryController: c)
+                }
+            },
             NXRecoveryItem(title: "Nyxian Files") { c in
                 c?.enterFileBrowser(atPath: NSHomeDirectory(), root: NSHomeDirectory(), header: "Nyxian Files", onBack: { recovery in
                     if let recovery = recovery {
@@ -405,7 +594,10 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
                 }, onFile: { path,name,controller in
                 })
             },
-            NXRecoveryItem(title: "Power Off") { c in },
+            NXRecoveryItem(title: "Power Off") { c in
+                UIApplication.shared.perform(Selector("suspend"))
+                exit(0)
+            },
         ],
         onSelect: nil,
         onMove: nil
