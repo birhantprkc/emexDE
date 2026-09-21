@@ -243,7 +243,7 @@ enum BootFlag: String, CaseIterable {
         switch self {
             case .kextLoading: return "Load kexts at boot"
             case .logObfucation: return "Obfuscate Log"
-            case .sandboxFilesystem: return "Filesystem Sandbox (as a replacement for POSIX file permissions)"
+            case .sandboxFilesystem: return "Filesystem Sandbox"
         }
     }
     

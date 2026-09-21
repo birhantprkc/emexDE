@@ -146,6 +146,11 @@ class CreditsViewController: NXUITableViewController {
                     name: "The Swift Programming Language",
                     role: "swift",
                     ghuser: "swiftlang"
+                ),
+                Credit(
+                    name: "Android Open Source Project",
+                    role: "Android Recovery Styling",
+                    ghuser: "aosp-mirror"
                 )
             ]
         ),
