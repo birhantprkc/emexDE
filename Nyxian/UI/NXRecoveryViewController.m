@@ -22,6 +22,7 @@
 #import <UI/NXRecoveryViewController.h>
 #import <UI/NXVolumeButtonMonitor.h>
 
+static NSString * const NXRecoveryFontFamily = @"Inconsolata";
 const CGFloat NXRecoveryFontSize = 13.0;
 static const CGFloat NXRecoveryMargin = 0.0;
 static const CGFloat NXRecoveryMenuFooterGap = 8.0;
@@ -235,7 +236,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     self.view.hidden = YES;
     
     UIColor *clear = [UIColor clearColor];
-    UIFont *infoFont = [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize weight:UIFontWeightMedium];
+    UIFont *infoFont = [self recoveryFontOfWeight:UIFontWeightMedium];
     
     UILabel *header = [UILabel new];
     header.translatesAutoresizingMaskIntoConstraints = NO;
@@ -264,7 +265,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     stack.axis = UILayoutConstraintAxisVertical;
     stack.alignment = UIStackViewAlignmentFill;
     stack.distribution = UIStackViewDistributionFill;
-    stack.spacing = 2;
+    stack.spacing = 0;
     [self.view addSubview:stack];
     self.menuStack = stack;
     
@@ -340,20 +341,32 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     return YES;
 }
 
+- (UIFont *)recoveryFontOfWeight:(UIFontWeight)weight
+{
+    BOOL bold = (weight > UIFontWeightRegular);
+    NSString *name = bold ? @"Inconsolata-Bold" : @"Inconsolata-Regular";
+    UIFont *font = [UIFont fontWithName:name size:NXRecoveryFontSize];
+    if(font != nil)
+    {
+        return font;
+    }
+    return [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize weight:weight];
+}
+
 - (UIFont *)itemFont
 {
-    if (_itemFont == nil) {
-        _itemFont = [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize
-                                                weight:UIFontWeightRegular];
+    if(_itemFont == nil)
+    {
+        _itemFont = [self recoveryFontOfWeight:UIFontWeightRegular];
     }
     return _itemFont;
 }
 
 - (UIFont *)itemFontBold
 {
-    if (_itemFontBold == nil) {
-        _itemFontBold = [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize
-                                                    weight:UIFontWeightBold];
+    if(_itemFontBold == nil)
+    {
+        _itemFontBold = [self recoveryFontOfWeight:UIFontWeightBold];
     }
     return _itemFontBold;
 }
@@ -362,7 +375,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
 {
     if(_logFont == nil)
     {
-        _logFont = [UIFont monospacedSystemFontOfSize:NXRecoveryFontSize weight:UIFontWeightRegular];
+        _logFont = [self recoveryFontOfWeight:UIFontWeightRegular];
     }
     return _logFont;
 }
@@ -390,12 +403,18 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     [self paintRecoveryLog];
 }
 
+- (CGFloat)px:(CGFloat)pixels
+{
+    CGFloat scale = self.traitCollection.displayScale;
+    return (scale > 0.0) ? (pixels / scale) : pixels;
+}
+
 - (UIView *)makeRecoveryLine
 {
     UIView *v = [UIView new];
     v.translatesAutoresizingMaskIntoConstraints = NO;
     v.backgroundColor = [self.class recoveryItemColor];
-    [v.heightAnchor constraintEqualToConstant:1.0].active = YES;
+    [v.heightAnchor constraintEqualToConstant:[self px:2.0]].active = YES;
     return v;
 }
 
@@ -416,11 +435,20 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     [self rebuildMenuRows];
 }
 
+- (CGFloat)menuRowHeight
+{
+    UIFont *f = self.itemFont;
+    return ceil(f.ascender - f.descender) + 2.0 * [self px:2.0];
+}
+
+- (CGFloat)menuRuleGap
+{
+    return [self px:3.0];
+}
+
 - (NSInteger)autoMenuWindow
 {
-    CGFloat rowHeight = MAX(self.itemFont.lineHeight, self.itemFontBold.lineHeight);
-    rowHeight = ceil(rowHeight) + 2.0;
-    CGFloat gap = self.menuStack.spacing;
+    CGFloat rowHeight = [self menuRowHeight];
     
     CGFloat top = CGRectGetMinY(self.menuStack.frame);
     CGFloat bottom = CGRectGetMinY(self.footerStack.frame) - NXRecoveryMenuFooterGap;
@@ -435,12 +463,13 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
         }
     }
     
-    CGFloat available = (bottom - top) - 2.0 * (1.0 + gap);
+    CGFloat chrome = 2.0 * [self px:2.0] + 2.0 * [self menuRuleGap];
+    CGFloat available = (bottom - top) - chrome;
     if(available < rowHeight)
     {
         return 1;
     }
-    return MAX(1, (NSInteger)floor((available + gap) / (rowHeight + gap)));
+    return MAX(1, (NSInteger)floor(available / rowHeight));
 }
 
 - (NSInteger)effectiveMenuWindow
@@ -541,6 +570,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     UIView *topLine = [self makeRecoveryLine];
     [self.menuStack addArrangedSubview:topLine];
     [self.decor addObject:topLine];
+    [self.menuStack setCustomSpacing:[self menuRuleGap] afterView:topLine];
     
     for(NSInteger slot = 0; slot < window; slot++)
     {
@@ -558,9 +588,9 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
         
         [bar addSubview:label];
         [NSLayoutConstraint activateConstraints:@[
-            [label.topAnchor constraintEqualToAnchor:bar.topAnchor constant:1],
-            [label.bottomAnchor constraintEqualToAnchor:bar.bottomAnchor constant:-1],
-            [label.leadingAnchor constraintEqualToAnchor:bar.leadingAnchor constant:0],
+            [bar.heightAnchor constraintEqualToConstant:[self menuRowHeight]],
+            [label.centerYAnchor constraintEqualToAnchor:bar.centerYAnchor],
+            [label.leadingAnchor constraintEqualToAnchor:bar.leadingAnchor constant:[self px:4.0]],
             [label.trailingAnchor constraintEqualToAnchor:bar.trailingAnchor constant:-8],
         ]];
         
@@ -575,6 +605,7 @@ static const CGFloat NXRecoveryMenuFooterGap = 8.0;
     UIView *bottomLine = [self makeRecoveryLine];
     [self.menuStack addArrangedSubview:bottomLine];
     [self.decor addObject:bottomLine];
+    [self.menuStack setCustomSpacing:[self menuRuleGap] afterView:self.rows.lastObject.bar];
     
     [self applyMenuWindow];
 }
