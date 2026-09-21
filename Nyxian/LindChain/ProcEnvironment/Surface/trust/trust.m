@@ -531,10 +531,6 @@ LIBKERN_DEFINE_PATCHABLE(ksurface_trust_identity_t *, trust_identity_create_from
     /* daemon trustpath validation */
     trustDaemonEntry trustDaemonPath[] = {  /* those paths are immutable */
         {
-            .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/execd"].path.UTF8String,
-            .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonExec,
-        },
-        {
             .path = [NXBootstrap.shared.rootfsURL URLByAppendingPathComponent:@"boot/libexec/bootstrapd"].path.UTF8String,
             .entitlementPreset = kPEEntitlementsNXT2PresetsDaemonBootstrap,
         },

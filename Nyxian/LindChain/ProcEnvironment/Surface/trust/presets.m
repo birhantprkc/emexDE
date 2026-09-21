@@ -24,11 +24,10 @@
 
 CFDictionaryRef kPEEntitlementsNXT2PresetsKernel;
 CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonBootstrap;
-CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonExec;
 CFDictionaryRef kPEEntitlementsNXT2PresetsDaemonCompiler;
 
 __attribute__((constructor))
-void TrustPresetsInit(void)
+static void TrustPresetsInit(void)
 {
     kPEEntitlementsNXT2PresetsKernel = (__bridge CFDictionaryRef)@{
         /* platformization */
@@ -76,15 +75,5 @@ void TrustPresetsInit(void)
         
         /* sandbox */
         (__bridge NSString*)kNXT2EntitlementSandboxHost: @(YES),                /* allows file access to all of Nyxian, EXTREMELY POWERFUL */
-    };
-    
-    kPEEntitlementsNXT2PresetsDaemonExec = (__bridge CFDictionaryRef)@{
-        /* platformization */
-        (__bridge NSString*)kNXT2EntitlementPlatform: @(YES),
-        (__bridge NSString*)kNXT2EntitlementPlatformUser: @(1),     /* it is just a proof of concept */
-        (__bridge NSString*)kNXT2EntitlementPlatformGroup: @(1),
-        
-        /* debugging */
-        (__bridge NSString*)kNXT2EntitlementGetTaskAllow: @(NO),
     };
 }

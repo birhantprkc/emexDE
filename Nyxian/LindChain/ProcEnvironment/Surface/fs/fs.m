@@ -112,11 +112,6 @@ kern_return_t ksurface_fs_init(void)
         /* bind mounts */
         {
             kFSMountAttrRead,
-            [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/execd.dylib"].path.UTF8String,
-            [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/execd", home] UTF8String],
-        },
-        {
-            kFSMountAttrRead,
             [[[NSBundle mainBundle] bundleURL] URLByAppendingPathComponent:@"/Frameworks/bootstrapd.dylib"].path.UTF8String,
             [[NSString stringWithFormat:@"%s/Documents/mntfs/bootfs/libexec/bootstrapd", home] UTF8String],
         },
