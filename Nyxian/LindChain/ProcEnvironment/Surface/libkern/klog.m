@@ -22,6 +22,7 @@
 #import <Foundation/Foundation.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #include <os/lock.h>
+#include <stdatomic.h>
 
 /* not the kfd exploit dummy >:3 */
 int kfd = -1;
@@ -37,11 +38,7 @@ static void init_process_start_time(void)
 }
 
 /* maximum lines klog can take */
-#if DEBUG
-static const NSUInteger KLOG_MAX_LINES = 5000;
-#else
 static const NSUInteger KLOG_MAX_LINES = 500;
-#endif /* DEBUG */
 
 static void klog_truncate_if_needed(void)
 {
@@ -127,41 +124,59 @@ static void klog_truncate_if_needed(void)
     lseek(kfd, 0, SEEK_END);
 }
 
+static _Atomic bool g_klog_obfuscate = true;
+static _Atomic bool g_klog_obfuscate_decided = false;
+
+bool klog_set_obfuscation(bool enabled)
+{
+    bool expected = false;
+    if(!atomic_compare_exchange_strong(&g_klog_obfuscate_decided, &expected, true))
+    {
+        return false;
+    }
+    atomic_store(&g_klog_obfuscate, enabled);
+    return true;
+}
+
+static inline bool klog_obfuscation_enabled(void)
+{
+    return atomic_load(&g_klog_obfuscate);
+}
+
 static NSString *const kKlogPrivatePointer = @"<obfuscated>";
 
 static NSString *klog_pointer_token(const void *ptr)
 {
-#if DEBUG
     if(ptr == NULL)
     {
         return @"(null)";
+    }
+    if(klog_obfuscation_enabled())
+    {
+        return kKlogPrivatePointer;
     }
     return [NSString stringWithFormat:@"%p", ptr];
-#else
-    if(ptr == NULL)
-    {
-        return @"(null)";
-    }
-    return kKlogPrivatePointer;
-#endif
 }
 
 static NSString *klog_redact_addresses(NSString *input)
 {
-#if DEBUG
-    return input;
-#else
-    static NSRegularExpression *re;
-    static dispatch_once_t once;
-    dispatch_once(&once, ^{
-        re = [NSRegularExpression regularExpressionWithPattern:@"0[xX][0-9a-fA-F]{9,16}" options:0 error:NULL];
-    });
-    if(re == nil || input.length == 0)
+    if(klog_obfuscation_enabled())
+    {
+        static NSRegularExpression *re;
+        static dispatch_once_t once;
+        dispatch_once(&once, ^{
+            re = [NSRegularExpression regularExpressionWithPattern:@"0[xX][0-9a-fA-F]{9,16}" options:0 error:NULL];
+        });
+        if(re == nil || input.length == 0)
+        {
+            return input;
+        }
+        return [re stringByReplacingMatchesInString:input options:0 range:NSMakeRange(0, input.length) withTemplate:kKlogPrivatePointer];
+    }
+    else
     {
         return input;
     }
-    return [re stringByReplacingMatchesInString:input options:0 range:NSMakeRange(0, input.length) withTemplate:kKlogPrivatePointer];
-#endif
 }
 
 enum klog_len {

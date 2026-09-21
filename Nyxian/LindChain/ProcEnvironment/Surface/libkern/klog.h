@@ -25,6 +25,7 @@
 #if __OBJC__
 #import <Foundation/Foundation.h>
 #endif /* __OBJC__ */
+#include <stdbool.h>
 
 extern struct timespec g_process_start_time;
 extern struct timespec g_process_start_time_sysctl;;
@@ -39,6 +40,8 @@ extern struct timespec g_process_start_time_sysctl;;
 #define klog_log(system, format, ...)
 
 #endif
+
+bool klog_set_obfuscation(bool enabled);
 
 void klog_log_internal(const char *system, const char *format, ...);
 

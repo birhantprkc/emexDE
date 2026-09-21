@@ -463,6 +463,10 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
                     assertionFailure("trust_enforcement_mode() was read before trust_enforcement_set_mode()")
                 }
                 
+                if !klog_set_obfuscation(BootConfig.isEnabled(.logObfucation)) {
+                    assertionFailure("klog_obfuscation_enabled() was read before klog_set_obfuscation()")
+                }
+                
                 PEUserspaceManager.shared().boot(withKextLoadingEnabled: NXApplicationState.loadKernelExtensions)
                 NXBootstrap.shared().bootstrap()
                 

@@ -77,6 +77,7 @@
 #import <LindChain/ProcEnvironment/KextLoader/PEKext.h>
 #import <LindChain/ProcEnvironment/Utils/vnode.h>
 #import <LindChain/ProcEnvironment/Utils/misc.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 
 /* Daemon Interfaces Headers */
 #import <LindChain/Services/bootstrapd/LDEApplicationWorkspace.h>
