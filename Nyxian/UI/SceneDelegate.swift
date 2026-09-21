@@ -234,6 +234,146 @@ struct UIOnboardingHelper {
     }
 }
 
+enum BootFlag: String, CaseIterable {
+    case kextLoading = "nyxian.boot.kextLoading"
+    case logObfucation = "nyxian.boot.log.obfuscated"
+    
+    var title: String {
+        switch self {
+            case .kextLoading: return "Load kexts at boot"
+            case .logObfucation: return "Obfuscate Log"
+        }
+    }
+    
+    var defaultValue: Bool {
+        switch self {
+            case .kextLoading: return true
+            case .logObfucation: return true
+        }
+    }
+}
+
+enum BootConfig {
+    fileprivate static let entitlementModeKey = "nyxian.boot.entitlements.mode"
+    
+    static func registerDefaults() {
+        var defaults: [String: Any] = Dictionary(uniqueKeysWithValues: BootFlag.allCases.map { ($0.rawValue, $0.defaultValue) })
+        defaults[entitlementModeKey] = EnforcementMode.enforcing.rawValue
+        
+        UserDefaults.standard.register(defaults: defaults)
+    }
+    
+    static var entitlementMode: EnforcementMode {
+        get {
+            guard let raw = UserDefaults.standard.string(forKey: entitlementModeKey),
+                  let mode = EnforcementMode(rawValue: raw) else {
+                return .enforcing
+            }
+            return mode
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: entitlementModeKey)
+        }
+    }
+    
+    static func isEnabled(_ flag: BootFlag) -> Bool {
+        UserDefaults.standard.bool(forKey: flag.rawValue)
+    }
+    
+    static func toggle(_ flag: BootFlag) {
+        UserDefaults.standard.set(!isEnabled(flag), forKey: flag.rawValue)
+    }
+}
+
+enum EnforcementMode: String, CaseIterable {
+    case enforcing
+    case permissive
+    case disabled
+    
+    var badge: String {
+        switch self {
+            case .enforcing: return "E"
+            case .permissive: return "P"
+            case .disabled: return "-"
+        }
+    }
+    
+    var next: EnforcementMode {
+        let all = EnforcementMode.allCases
+        let i = all.firstIndex(of: self) ?? 0
+        return all[(i + 1) % all.count]
+    }
+    
+    var kernelMode: PEEnforcementMode {
+        switch self {
+            case .enforcing: return .enforcing
+            case .permissive: return .permissive
+            case .disabled: return .disabled
+        }
+    }
+}
+
+private func bootConfigItems(returningTo parent: @escaping (NXRecoveryViewController) -> Void) -> [NXRecoveryItem] {
+    func label(_ flag: BootFlag) -> String {
+        "[\(BootConfig.isEnabled(flag) ? "X" : " ")] \(flag.title)"
+    }
+    
+    func reload(_ c: NXRecoveryViewController) {
+        let keep = c.recoveryIndex
+        c.recoveryItems = bootConfigItems(returningTo: parent)
+        c.recoveryIndex = keep
+    }
+    
+    var items: [NXRecoveryItem] = [
+        NXRecoveryItem(title: "../") { c in
+            if let c = c {
+                parent(c)
+            }
+        }
+    ]
+    
+    for flag in BootFlag.allCases {
+        items.append(NXRecoveryItem(title: label(flag)) { c in
+            guard let c = c else { return }
+            
+            BootConfig.toggle(flag)
+            reload(c)
+            
+            let state = BootConfig.isEnabled(flag) ? "enabled" : "disabled"
+            c.recoveryLog("\(flag.title): \(state)")
+        })
+    }
+    
+    let mode = BootConfig.entitlementMode
+    items.append(NXRecoveryItem(title: "[\(mode.badge)] Entitlements: \(mode.rawValue)") { c in
+        guard let c = c else { return }
+        
+        BootConfig.entitlementMode = BootConfig.entitlementMode.next
+        reload(c)
+        
+        switch BootConfig.entitlementMode {
+            case .enforcing: c.recoveryLog("entitlements: enforcing")
+            case .permissive: c.recoveryLogError("entitlements: permissive, denials logged, not blocked")
+            case .disabled: c.recoveryLogError("entitlements: DISABLED, no checks will run")
+        }
+    })
+    
+    return items
+}
+
+func recoveryShowBootConfig(recoveryController c: NXRecoveryViewController) {
+    c.enterRecovery(
+        withHeader: "Boot Configuration",
+        instructions: nil,
+        footer: nil,
+        items: bootConfigItems(returningTo: { parent in
+            recoveryShowMenu(recoveryController: parent)
+        }),
+        onSelect: nil,
+        onMove: nil
+    )
+}
+
 func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
     recoveryController.enterRecovery(
         withHeader: "Nyxian Recovery\n\(Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? "UNKNOWN") \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") ?? "0.0.0") Beta (\(Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") ?? "UNKNOWN"))",
@@ -242,6 +382,11 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
         items: [
             NXRecoveryItem(title: "Reboot system now") { c in
                 PERestartSelf()
+            },
+            NXRecoveryItem(title: "Boot Configuration") { c in
+                if let c = c {
+                    recoveryShowBootConfig(recoveryController: c)
+                }
             },
             NXRecoveryItem(title: "Wipe data / factory reset") { c in },
             NXRecoveryItem(title: "Nyxian Files") { c in
@@ -279,6 +424,8 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        BootConfig.registerDefaults()
+        
         self.view.backgroundColor = .systemBackground
         
         guard let image: UIImage = UIImage(named: "EmexLogo") else { return }
@@ -299,12 +446,7 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
             let mode = NXVolumeButtonMonitor.scan(for: 1.0)
             NXVolumeButtonMonitor.disarm()
             
-            if mode == 1 {
-                // Extension less mode >.<
-                NXApplicationState.loadKernelExtensions = false
-            } else {
-                NXApplicationState.loadKernelExtensions = true
-            }
+            NXApplicationState.loadKernelExtensions = BootConfig.isEnabled(.kextLoading)
             
             DispatchQueue.main.async {
                 if mode == 2 {
@@ -316,6 +458,10 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
                 
                 self.changableStatusBarHidden = false
                 self.setNeedsStatusBarAppearanceUpdate()
+                
+                if !trust_enforcement_set_mode(BootConfig.entitlementMode.kernelMode) {
+                    assertionFailure("trust_enforcement_mode() was read before trust_enforcement_set_mode()")
+                }
                 
                 PEUserspaceManager.shared().boot(withKextLoadingEnabled: NXApplicationState.loadKernelExtensions)
                 NXBootstrap.shared().bootstrap()
@@ -395,19 +541,6 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             checkSigningSetup()
-        }
-    }
-    
-    func windowScene(
-        _ windowScene: UIWindowScene,
-        performActionFor shortcutItem: UIApplicationShortcutItem,
-        completionHandler: @escaping (Bool) -> Void
-    ) {
-        completionHandler(true)
-        if NXApplicationState.loadKernelExtensions, shortcutItem.type == "org.emexlabs.nyxian.noload" {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
-                NXApplicationState.restartAppWithoutKEXTLoadingEnabled()
-            });
         }
     }
 }

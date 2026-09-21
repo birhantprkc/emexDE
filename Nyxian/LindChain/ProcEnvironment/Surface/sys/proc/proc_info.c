@@ -224,7 +224,9 @@ DEFINE_SYSCALL_HANDLER(proc_info_kernmsgbuf)
     }
     
     /* first permission checks */
-    if(proc_geteuid(sys_proc_snapshot_) != 0 && !entitlement_got_entitlement(proc_getmaxentitlements(sys_proc_snapshot_), kPEEntitlementFlagPlatform))
+    if(proc_geteuid(sys_proc_snapshot_) != 0 &&
+       !entitlement_got_entitlement(proc_getmaxentitlements(sys_proc_snapshot_), kPEEntitlementFlagPlatform) &&
+       trust_enforcement_should_deny(proc_getpid(sys_proc_snapshot_), kPEEntitlementFlagPlatform, "kernmsgbuf read"))
     {
         sys_return_failure_with_errno(EPERM);
     }

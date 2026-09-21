@@ -42,6 +42,7 @@
 #import <LindChain/Utils/CFTools.h>
 #import <LindChain/IDEFoundation/NXBootstrap.h>
 #import <LindChain/ProcEnvironment/Surface/libkern/patch.h>
+#import <LindChain/ProcEnvironment/Surface/libkern/klog.h>
 #import <ksurface_config.h>
 
 /* ----------------------------------------------------------------------
@@ -55,6 +56,61 @@ typedef struct {
 /* ----------------------------------------------------------------------
  *  Functions
  * -------------------------------------------------------------------- */
+static _Atomic int g_enforcement_mode = -1;
+
+bool trust_enforcement_set_mode(PEEnforcementMode mode)
+{
+    if(mode != kPEEnforcementModePermissive && mode != kPEEnforcementModeDisabled)
+    {
+        mode = kPEEnforcementModeEnforcing;
+    }
+    
+    int expected = -1;
+    return atomic_compare_exchange_strong(&g_enforcement_mode, &expected, (int)mode);
+}
+
+PEEnforcementMode trust_enforcement_mode(void)
+{
+    int expected = -1;
+    atomic_compare_exchange_strong(&g_enforcement_mode, &expected, (int)kPEEnforcementModeEnforcing);
+    return (PEEnforcementMode)atomic_load(&g_enforcement_mode);
+}
+
+bool trust_enforcement_should_deny(pid_t pid,
+                                   PEEntitlementFlags missing,
+                                   const char *operation)
+{
+    switch(trust_enforcement_mode())
+    {
+        case kPEEnforcementModeDisabled:
+            return false;
+        case kPEEnforcementModePermissive:
+            klog_log("trust", "permissive: pid %d lacks 0x%llx for %s, allowed", pid, (unsigned long long)missing, operation ?: "?");
+            return false;
+        case kPEEnforcementModeEnforcing:
+        default:
+            klog_log("trust", "denied: pid %d lacks 0x%llx for %s", pid, (unsigned long long)missing, operation ?: "?");
+            return true;
+    }
+}
+
+bool trust_enforcement_overrides(pid_t pid,
+                                 PEEntitlementFlags missing,
+                                 const char *operation)
+{
+    switch(trust_enforcement_mode())
+    {
+        case kPEEnforcementModeDisabled:
+            return true;
+        case kPEEnforcementModePermissive:
+            klog_log("trust", "permissive: pid %d lacks 0x%llx for %s, widened", pid, (unsigned long long)missing, operation ?: "?");
+            return true;
+        case kPEEnforcementModeEnforcing:
+        default:
+            return false;
+    }
+}
+
 static bool array_is_all_strings(CFArrayRef arr)
 {
     CFIndex n = CFArrayGetCount(arr);

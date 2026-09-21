@@ -63,7 +63,8 @@ LIBKERN_DEFINE_PATCHABLE(bool, proc_snapshot_primitive_over_proc_allowed, (ksurf
      * that is platformised
      */
     if(entitlement_got_entitlement(proc_getmaxentitlements(targetProc), kPEEntitlementFlagPlatform) &&
-       !entitlement_got_entitlement(proc_getmaxentitlements(proc), kPEEntitlementFlagPlatform))
+       !entitlement_got_entitlement(proc_getmaxentitlements(proc), kPEEntitlementFlagPlatform) &&
+       trust_enforcement_should_deny(proc_getpid(proc), kPEEntitlementFlagPlatform, "primitive over platform process"))
     {
         goto out_eperm_no;
     }
@@ -107,13 +108,15 @@ LIBKERN_DEFINE_PATCHABLE(bool, proc_snapshot_primitive_over_proc_allowed, (ksurf
      */
     if(targetEntitlementsNeeded != kPEEntitlementFlagNone &&
        !entitlement_got_entitlement(proc_getmaxentitlements(proc), kPEEntitlementFlagPlatform) &&
-       !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded))
+       !entitlement_got_entitlement(proc_getentitlements(targetProc), targetEntitlementsNeeded) &&
+       trust_enforcement_should_deny(proc_getpid(targetProc), targetEntitlementsNeeded & ~proc_getentitlements(targetProc), "primitive target requirement"))
     {
         goto out_eperm_no;
     }
     
     if(entitlementsNeeded != kPEEntitlementFlagNone &&
-       !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded))
+       !entitlement_got_entitlement(proc_getentitlements(proc), entitlementsNeeded) &&
+       trust_enforcement_should_deny(proc_getpid(proc), entitlementsNeeded & ~proc_getentitlements(proc), "primitive over process"))
     {
         goto out_eperm_no;
     }

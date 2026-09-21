@@ -63,7 +63,7 @@ extern const CGFloat NXRecoveryFontSize;
 
 @interface NXRecoveryViewController : UIViewController
 
-@property (nonatomic, readonly) NSArray<NXRecoveryItem *> *recoveryItems;
+@property (nonatomic, copy) NSArray<NXRecoveryItem *> *recoveryItems;
 @property (nonatomic) NSInteger recoveryIndex;
 @property (nonatomic, readonly) NXRecoveryItem *currentRecoveryItem;
 @property (nonatomic, readonly, getter=isRecoveryActive) BOOL recoveryActive;

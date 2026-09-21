@@ -50,6 +50,12 @@ typedef enum: UInt8 {
     kPETrustLevelTrusted = 2,   /* system trust */
 } PETrustLevel;
 
+typedef CF_ENUM(UInt32, PEEnforcementMode) {
+    kPEEnforcementModeEnforcing = 0,
+    kPEEnforcementModePermissive = 1,
+    kPEEnforcementModeDisabled = 2,
+};
+
 typedef struct {
     char path[MAXPATHLEN];
     char cdhash[USER_FSIGNATURES_CDHASH_LEN];
@@ -61,6 +67,11 @@ typedef struct {
 /* ----------------------------------------------------------------------
  *  Function Prototype
  * -------------------------------------------------------------------- */
+bool trust_enforcement_set_mode(PEEnforcementMode mode);
+PEEnforcementMode trust_enforcement_mode(void);
+bool trust_enforcement_should_deny(pid_t pid, PEEntitlementFlags missing, const char *operation);
+bool trust_enforcement_overrides(pid_t pid, PEEntitlementFlags missing, const char *operation);
+
 ksurface_trust_identity_t *trust_identity_get_kernel(void);
 
 /* they are immutable, except for maxLegacyEntitlements! */

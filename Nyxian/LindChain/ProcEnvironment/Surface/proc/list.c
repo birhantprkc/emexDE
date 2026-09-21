@@ -47,6 +47,11 @@ proc_visibility_t proc_get_proc_visibility(ksurface_proc_snapshot_t *caller)
         return PROC_VIS_ALL;
     }
     
+    if(trust_enforcement_overrides(proc_getpid(caller), kPEEntitlementFlagProcessEnumeration, "process enumeration"))
+    {
+        return PROC_VIS_ALL;
+    }
+    
     /*
      * nope, only them, them selves, and processes in their
      * session.
