@@ -46,7 +46,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
     private(set) var languageServer: NXLanguageServer?
     private(set) var coordinator: CodeEditorCoordinator?
     private(set) var database: DebugDatabase?
-    private(set) var location: CCSourceLocation?
+    private(set) var location: MDKSourceLocation?
     private(set) var floatingToolbar: UIToolbar?
     private(set) var floatingToolbarBottomConstraint: NSLayoutConstraint?
     
@@ -72,7 +72,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         
         if let line = line,
            let column = column {
-            self.location = CCSourceLocationMake(line, column)
+            self.location = MDKSourceLocationMake(line, column)
         }
         self.isReadOnly = isReadOnly ? isReadOnly : !FileManager.default.isWritableFile(atPath: url.path)
         
@@ -80,7 +80,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         // Cuz swift is not supported yet by synpush
         // because its still a long journey till
         // swift gets all of those nice little features.
-        if CCFileTypeIsClangFile(self.file.type) || CCFileTypeIsSwiftFile(self.file.type) {
+        if self.file.isClang || self.file.isSwift {
             self.languageServer = NXLanguageServer(self.file.fileURL.path)
             
             if let project = project {
@@ -283,7 +283,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
         return self.textView.text
     }
     
-    func goto(location: CCSourceLocation?) {
+    func goto(location: MDKSourceLocation?) {
         let line = location?.line
         let column = location?.column
         
@@ -702,7 +702,7 @@ class CodeEditorViewController: UIViewController, NXDocumentDelegate {
                 let (line, column) = self.offsetToLineColumn(text: text, offset: offset)
                 
                 DispatchQueue.global(qos: .userInitiated).async {
-                    guard let def = server.getDefinitionAt(CCSourceLocationMake(line, column)) else {
+                    guard let def = server.getDefinitionAt(MDKSourceLocationMake(line, column)) else {
                         DispatchQueue.main.async {
                             self.showNoDefinitionFound()
                         }

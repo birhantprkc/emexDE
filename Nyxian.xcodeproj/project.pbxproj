@@ -496,6 +496,7 @@
 		8FB3C2D23031460C00DB3ABC /* Exceptions for "Frameworks" folder in "MobileDevelopmentKit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				MobileDevelopmentKit/MDKBaseSwift.swift,
 				MobileDevelopmentKit/MobileDevelopmentKit.docc,
 				MobileDevelopmentKit/MobileDevelopmentKit.h,
 				MobileDevelopmentKit/PhaseEngine/MDKPhase.h,
@@ -517,6 +518,8 @@
 				MobileDevelopmentKit/Support/MDKOSVersion.h,
 				MobileDevelopmentKit/Support/MDKOSVersion.m,
 				MobileDevelopmentKit/Support/MDKOSVersion.swift,
+				MobileDevelopmentKit/Support/MDKSourceLocation.h,
+				MobileDevelopmentKit/Support/MDKSourceLocation.m,
 				MobileDevelopmentKit/Support/MDKThreadPool.h,
 				MobileDevelopmentKit/Support/MDKThreadPool.m,
 				MobileDevelopmentKit/Support/MDKThreadPoolGroup.h,
@@ -553,6 +556,7 @@
 				MobileDevelopmentKit/Support/MDKFileSourceLocation.h,
 				MobileDevelopmentKit/Support/MDKJob.h,
 				MobileDevelopmentKit/Support/MDKOSVersion.h,
+				MobileDevelopmentKit/Support/MDKSourceLocation.h,
 				MobileDevelopmentKit/Support/MDKThreadPool.h,
 				MobileDevelopmentKit/Support/MDKThreadPoolGroup.h,
 				MobileDevelopmentKit/Tools/Compiler/MDKCompiler.h,

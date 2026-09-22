@@ -22,12 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef MDKMACHO_H
-#define MDKMACHO_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKMACHO_H
+#define MOBILEDEVELOPMENTKIT_MDKMACHO_H
 
 #import <Foundation/Foundation.h>
-#include <CoreCompiler/CCMachO.h>
 
-CC_EXPORT NSData *MDKMachOObjectFileEmitWithText(const UInt8 *bytes, CFIndex length);
+NSData *MDKMachOObjectFileEmitWithText(const UInt8 *bytes, CFIndex length);
 
-#endif /* MDKMACHO_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKMACHO_H */

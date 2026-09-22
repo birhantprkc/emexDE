@@ -150,7 +150,7 @@
         }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't get remote compilation daemon instance."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:MDKDiagnosticTypeInternal level:MDKDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't get remote compilation daemon instance."]];
         }
         os_unfair_lock_unlock(&_lock);
         return NO;
@@ -194,7 +194,7 @@
         }
         if(diagnostics)
         {
-            *diagnostics = @[[MDKDiagnostic diagnosticWithType:kCCDiagnosticTypeInternal level:kCCDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
+            *diagnostics = @[[MDKDiagnostic diagnosticWithType:MDKDiagnosticTypeInternal level:MDKDiagnosticLevelFatal mainSource:job.inputFileURLs[0].path fileSourceLocation:nil message:@"Couldn't keep connection with remote compilation service instance."]];
         }
         os_unfair_lock_lock(&_lock);
         [_instance terminate];

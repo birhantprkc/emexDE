@@ -30,11 +30,11 @@
 
 @interface MDKPhase : NSObject
 
-@property (nonatomic, readonly) CCJobType type;
+@property (nonatomic, readonly) MDKJobType type;
 @property (nonatomic, readonly) BOOL isMultithreadingSupported;
 @property (nonatomic, readonly, nonnull) NSArray<MDKJob*> *jobs;
 
-+ (instancetype _Nonnull)phaseWithJobs:(NSArray<MDKJob*> * _Nonnull)jobs withJobType:(CCJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
++ (instancetype _Nonnull)phaseWithJobs:(NSArray<MDKJob*> * _Nonnull)jobs withJobType:(MDKJobType)type withMultithreadingSupport:(BOOL)isMultithreadingSupported;
 
 @end
 

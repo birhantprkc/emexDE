@@ -37,7 +37,7 @@
 - (void)reparseFile:(NSString*)content withArgs:(NSArray*)args;
 
 - (NSArray<MDKDiagnostic *> *)getDiagnostics;
-- (MDKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location;
+- (MDKFileSourceLocation*)getDefinitionAtLocation:(MDKSourceLocation)location;
 
 - (void)releaseMemory;
 

@@ -23,6 +23,17 @@
  */
 
 #import <MobileDevelopmentKit/MDKFileSourceLocation.h>
+#import <CoreCompiler/CCFileSourceLocation.h>
+
+static inline MDKSourceLocation MDKSourceLocationFromCCSourceLocation(CCSourceLocation location)
+{
+    return (MDKSourceLocation){ location.isValid, location.line, location.column };
+}
+
+static inline CCSourceLocation CCSourceLocationFromMDKSourceLocation(MDKSourceLocation location)
+{
+    return (CCSourceLocation){ location.isValid, location.line, location.column };
+}
 
 @implementation MDKFileSourceLocation
 
@@ -32,9 +43,9 @@
 }
 
 + (instancetype)fileSourceLocationWithFileURL:(NSURL*)fileURL
-                           withSourceLocation:(CCSourceLocation)location
+                           withSourceLocation:(MDKSourceLocation)location
 {
-    return (__bridge_transfer MDKFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL, location);
+    return (__bridge_transfer MDKFileSourceLocation*)CCFileSourceLocationCreate(kCFAllocatorSystemDefault, (__bridge CFURLRef)fileURL, CCSourceLocationFromMDKSourceLocation(location));
 }
 
 - (NSURL*)fileURL
@@ -42,9 +53,9 @@
     return (__bridge NSURL*)CCFileSourceLocationGetFileURL((__bridge void *)self);
 }
 
-- (CCSourceLocation)location
+- (MDKSourceLocation)location
 {
-    return CCFileSourceLocationGetLocation((__bridge void *)self);
+    return MDKSourceLocationFromCCSourceLocation(CCFileSourceLocationGetLocation((__bridge void *)self));
 }
 
 - (void)encodeWithCoder:(nonnull NSCoder *)coder
@@ -63,11 +74,11 @@
     {
         CFIndex line = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"location.line"]).intValue;
         CFIndex column = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"location.column"]).intValue;
-        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:CCSourceLocationMake(line, column)];
+        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:MDKSourceLocationMake(line, column)];
     }
     else
     {
-        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:CCSourceLocationZero];
+        return [MDKFileSourceLocation fileSourceLocationWithFileURL:fileURL withSourceLocation:MDKSourceLocationZero];
     }
 }
 

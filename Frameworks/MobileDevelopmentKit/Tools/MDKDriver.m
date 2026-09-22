@@ -72,9 +72,9 @@ static const void *MDKDriverDelegateKey = &MDKDriverDelegateKey;
 }
 
 + (instancetype)driverWithArguments:(NSArray<NSString*>*)arguments
-                           withType:(CCDriverType)type
+                           withType:(MDKDriverType)type
 {
-    return (__bridge_transfer MDKDriver*)CCDriverCreate(kCFAllocatorSystemDefault, (__bridge CFArrayRef)arguments, type);
+    return (__bridge_transfer MDKDriver*)CCDriverCreate(kCFAllocatorSystemDefault, (__bridge CFArrayRef)arguments, type == MDKDriverTypeClang ? kCCDriverTypeClang : kCCDriverTypeSwift);
 }
 
 - (NSArray<MDKJob*>*)generateJobs
@@ -108,9 +108,9 @@ static const void *MDKDriverDelegateKey = &MDKDriverDelegateKey;
     return (__bridge_transfer MDKSDK*)CCDriverCopySDK((__bridge CCDriverRef)self);
 }
 
-- (CCDriverType)type
+- (MDKDriverType)type
 {
-    return CCDriverGetType((__bridge CCDriverRef)self);
+    return CCDriverGetType((__bridge CCDriverRef)self) == kCCDriverTypeClang ? MDKDriverTypeClang : MDKDriverTypeSwift;
 }
 
 - (void)setDelegate:(id<MDKDriverDelegate>)delegate

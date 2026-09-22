@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKLINKER_H
-#define MDKLINKER_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKLINKER_H
+#define MOBILEDEVELOPMENTKIT_MDKLINKER_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKJob.h>
@@ -35,4 +35,4 @@
 
 @end
 
-#endif /* MDKLINKER_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKLINKER_H */

@@ -22,38 +22,32 @@
  * SOFTWARE.
  */
 
-#ifndef MOBILEDEVELOPMENTKIT_MDKASTUNIT_H
-#define MOBILEDEVELOPMENTKIT_MDKASTUNIT_H
+import Foundation
 
-#import <MobileDevelopmentKit/MDKCFType.h>
-#import <MobileDevelopmentKit/MDKDiagnostic.h>
-#import <MobileDevelopmentKit/MDKFile.h>
-#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
+extension MDKDiagnosticType: Codable {}
+extension MDKDiagnosticLevel: Codable {}
 
-typedef NS_ENUM(UInt8, MDKASTUnitType) {
-    MDKASTUnitTypeClang = 0,
-    MDKASTUnitTypeSwift,
-};
-
-@interface MDKASTUnit : MDKCFType
-
-@property (nonatomic, readonly) MDKFile *file;
-@property (nonatomic, readonly) NSArray<MDKDiagnostic*> *diagnostics;
-@property (nonatomic, readonly) BOOL hasErrorOccured;
-
-- (MDKFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(MDKSourceLocation)location;
-
-@end
-
-@interface MDKMutableASTUnit : MDKASTUnit
-
-@property (nonatomic, readwrite) MDKFile *file;
-
-+ (instancetype)unitWithType:(MDKASTUnitType)type;
-
-- (BOOL)reparse;
-- (void)setArguments:(NSArray<NSString*>*)arguments;
-
-@end
-
-#endif /* MOBILEDEVELOPMENTKIT_MDKASTUNIT_H */
+extension MDKSourceLocation: Codable {
+    public static let zero: MDKSourceLocation = MDKSourceLocationZero
+    
+    enum CodingKeys: String, CodingKey {
+        case isValid = "is_valid"
+        case line
+        case column
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(isValid.boolValue, forKey: .isValid)
+        try container.encode(line, forKey: .line)
+        try container.encode(column, forKey: .column)
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        self.init()
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.isValid = DarwinBoolean(try container.decode(Bool.self, forKey: .isValid))
+        self.line = try container.decode(CFIndex.self, forKey: .line)
+        self.column = try container.decode(CFIndex.self, forKey: .column)
+    }
+}

@@ -105,7 +105,7 @@ int dynamod_mprotect(void *addr,
         [data writeToURL:[[NSURL fileURLWithPath:NSHomeDirectory()] URLByAppendingPathComponent:@"/Documents/jit.macho"] atomically:YES];
         
         /* now we gotta link this shit */
-        MDKJob *job = [MDKJob jobWithType:kCCJobTypeLinker withArguments:@[
+        MDKJob *job = [MDKJob jobWithType:MDKJobTypeLinker withArguments:@[
             @"-arch",
             @"arm64",
             @"-platform_version",

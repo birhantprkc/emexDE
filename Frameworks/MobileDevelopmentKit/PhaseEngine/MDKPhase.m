@@ -27,7 +27,7 @@
 @implementation MDKPhase
 
 + (instancetype)phaseWithJobs:(NSArray<MDKJob*>*)jobs
-                  withJobType:(CCJobType)type
+                  withJobType:(MDKJobType)type
     withMultithreadingSupport:(BOOL)isMultithreadingSupported
 {
     MDKPhase *phase = super.alloc.init;

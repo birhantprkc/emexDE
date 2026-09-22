@@ -38,17 +38,17 @@ static MDKJob *MDKPhaseGenerationJobByAppendingArgumentsHelper(MDKJob *job,
 }
 
 static void MDKPhaseGenerationEndHelper(MDKPhaseEngine *engine,
-                                        CCJobType *type,
+                                        MDKJobType *type,
                                         NSMutableArray *phases,
                                         NSMutableArray<MDKJob*> *jobs)
 {
     switch(*type)
     {
-        case kCCJobTypeCompiler:
-            [phases addObject:[MDKPhase phaseWithJobs:[jobs copy] withJobType:kCCJobTypeCompiler withMultithreadingSupport:YES]];
+        case MDKJobTypeCompiler:
+            [phases addObject:[MDKPhase phaseWithJobs:[jobs copy] withJobType:MDKJobTypeCompiler withMultithreadingSupport:YES]];
             break;
-        case kCCJobTypeSwiftCompiler:
-        case kCCJobTypeLinker:
+        case MDKJobTypeSwiftCompiler:
+        case MDKJobTypeLinker:
             [phases addObject:[MDKPhase phaseWithJobs:[jobs copy] withJobType:*type withMultithreadingSupport:NO]];
             /* fallthrough */
         default:
@@ -57,25 +57,25 @@ static void MDKPhaseGenerationEndHelper(MDKPhaseEngine *engine,
     
     /* resetting generation flags and arrays to sentinel */
     [jobs removeAllObjects];
-    *type = kCCJobTypeUnknown;
+    *type = MDKJobTypeUnknown;
 }
 
 static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
-                                           CCJobType *type,
+                                           MDKJobType *type,
                                            NSMutableArray *phases,
                                            NSMutableArray<MDKJob*> *jobs,
                                            MDKJob *job)
 {
     switch(job.type)
     {
-        case kCCJobTypeCompiler:
-            if(*type == kCCJobTypeUnknown)
+        case MDKJobTypeCompiler:
+            if(*type == MDKJobTypeUnknown)
             {
             switch_to_compiler_job:
-                *type = kCCJobTypeCompiler;
+                *type = MDKJobTypeCompiler;
                 [jobs addObject:job];
             }
-            else if(*type == kCCJobTypeCompiler)
+            else if(*type == MDKJobTypeCompiler)
             {
                 [jobs addObject:job];
             }
@@ -85,7 +85,7 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
                 goto switch_to_compiler_job;
             }
             break;
-        case kCCJobTypeDriver:
+        case MDKJobTypeDriver:
         {
             MDKPhaseGenerationEndHelper(engine, type, phases, jobs);
             
@@ -97,14 +97,14 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
             
             break;
         }
-        case kCCJobTypeSwiftCompiler:
-            if(*type == kCCJobTypeUnknown)
+        case MDKJobTypeSwiftCompiler:
+            if(*type == MDKJobTypeUnknown)
             {
             switch_to_swift_compiler_job:
-                *type = kCCJobTypeSwiftCompiler;
+                *type = MDKJobTypeSwiftCompiler;
                 [jobs addObject:job];
             }
-            else if(*type == kCCJobTypeSwiftCompiler)
+            else if(*type == MDKJobTypeSwiftCompiler)
             {
                 [jobs addObject:job];
             }
@@ -114,16 +114,16 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
                 goto switch_to_swift_compiler_job;
             }
             break;
-        case kCCJobTypeSwiftDriver:
+        case MDKJobTypeSwiftDriver:
             break;
-        case kCCJobTypeLinker:
-            if(*type == kCCJobTypeUnknown)
+        case MDKJobTypeLinker:
+            if(*type == MDKJobTypeUnknown)
             {
             switch_to_linker_job:
-                *type = kCCJobTypeLinker;
+                *type = MDKJobTypeLinker;
                 [jobs addObject:MDKPhaseGenerationJobByAppendingArgumentsHelper(job, engine.otherLinkerFlags)];
             }
-            else if(*type == kCCJobTypeLinker)
+            else if(*type == MDKJobTypeLinker)
             {
                 [jobs addObject:MDKPhaseGenerationJobByAppendingArgumentsHelper(job, engine.otherLinkerFlags)];
             }
@@ -166,7 +166,7 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
     {
         phaseEngine->_otherClangFlags = clangFlags;
         phaseEngine->_otherLinkerFlags = linkerFlags;
-        phaseEngine->_driver = [MDKDriver driverWithArguments:clangFlags withType:kCCDriverTypeClang];
+        phaseEngine->_driver = [MDKDriver driverWithArguments:clangFlags withType:MDKDriverTypeClang];
     }
     return phaseEngine;
 }
@@ -180,7 +180,7 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
     {
         phaseEngine->_otherClangFlags = clangFlags;
         phaseEngine->_otherLinkerFlags = linkerFlags;
-        phaseEngine->_driver = [MDKDriver driverWithArguments:swiftFlags withType:kCCDriverTypeSwift];
+        phaseEngine->_driver = [MDKDriver driverWithArguments:swiftFlags withType:MDKDriverTypeSwift];
     }
     return phaseEngine;
 }
@@ -199,7 +199,7 @@ static void MDKPhaseGenerationAppendHelper(MDKPhaseEngine *engine,
 {
     NSMutableArray *phases = [NSMutableArray array];
     
-    CCJobType currentPhasesType = kCCJobTypeUnknown;
+    MDKJobType currentPhasesType = MDKJobTypeUnknown;
     NSMutableArray<MDKJob*> *currentPhasesJobs = [NSMutableArray array];
     
     NSArray<MDKJob*> *mainDriverJobs = [_driver generateJobs];

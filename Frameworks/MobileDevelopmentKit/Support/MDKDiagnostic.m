@@ -23,6 +23,55 @@
  */
 
 #import <MobileDevelopmentKit/MDKDiagnostic.h>
+#import <CoreCompiler/CCDiagnostic.h>
+
+static inline MDKDiagnosticType MDKDiagnosticTypeFromCCDiagnosticType(CCDiagnosticType type)
+{
+    switch(type)
+    {
+        case kCCDiagnosticTypeFile: return MDKDiagnosticTypeFile;
+        case kCCDiagnosticTypeTargetFile: return MDKDiagnosticTypeTargetFile;
+        case kCCDiagnosticTypeInternal: return MDKDiagnosticTypeInternal;
+        default: return MDKDiagnosticTypeUnknown;
+    }
+}
+
+static inline CCDiagnosticType CCDiagnosticTypeFromMDKDiagnosticType(MDKDiagnosticType type)
+{
+    switch(type)
+    {
+        case MDKDiagnosticTypeFile: return kCCDiagnosticTypeFile;
+        case MDKDiagnosticTypeTargetFile: return kCCDiagnosticTypeTargetFile;
+        case MDKDiagnosticTypeInternal: return kCCDiagnosticTypeInternal;
+        default: return kCCDiagnosticTypeUnknown;
+    }
+}
+
+static inline MDKDiagnosticLevel MDKDiagnosticLevelFromCCDiagnosticLevel(CCDiagnosticLevel level)
+{
+    switch(level)
+    {
+        case kCCDiagnosticLevelNote: return MDKDiagnosticLevelNote;
+        case kCCDiagnosticLevelRemark: return MDKDiagnosticLevelRemark;
+        case kCCDiagnosticLevelWarning: return MDKDiagnosticLevelWarning;
+        case kCCDiagnosticLevelError: return MDKDiagnosticLevelError;
+        case kCCDiagnosticLevelFatal: return MDKDiagnosticLevelFatal;
+        default: return MDKDiagnosticLevelUnknown;
+    }
+}
+
+static inline CCDiagnosticLevel CCDiagnosticLevelFromMDKDiagnosticLevel(MDKDiagnosticLevel level)
+{
+    switch(level)
+    {
+        case MDKDiagnosticLevelNote: return kCCDiagnosticLevelNote;
+        case MDKDiagnosticLevelRemark: return kCCDiagnosticLevelRemark;
+        case MDKDiagnosticLevelWarning: return kCCDiagnosticLevelWarning;
+        case MDKDiagnosticLevelError: return kCCDiagnosticLevelError;
+        case MDKDiagnosticLevelFatal: return kCCDiagnosticLevelFatal;
+        default: return kCCDiagnosticLevelUnknown;
+    }
+}
 
 @implementation MDKDiagnostic
 
@@ -31,24 +80,24 @@
     _CFRuntimeBridgeClasses(CCDiagnosticGetTypeID(), "MDKDiagnostic");
 }
 
-+ (instancetype)diagnosticWithType:(CCDiagnosticType)type
-                             level:(CCDiagnosticLevel)level
++ (instancetype)diagnosticWithType:(MDKDiagnosticType)type
+                             level:(MDKDiagnosticLevel)level
                         mainSource:(NSString*)mainSource
                 fileSourceLocation:(MDKFileSourceLocation *)fileSourceLocation
                            message:(NSString*)message
 {
     /* FIXME: will crash without message */
-    return (__bridge_transfer MDKDiagnostic*)CCDiagnosticCreate(kCFAllocatorSystemDefault, type, level, (__bridge CFStringRef)mainSource, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
+    return (__bridge_transfer MDKDiagnostic*)CCDiagnosticCreate(kCFAllocatorSystemDefault, CCDiagnosticTypeFromMDKDiagnosticType(type), CCDiagnosticLevelFromMDKDiagnosticLevel(level), (__bridge CFStringRef)mainSource, (__bridge CCFileSourceLocationRef)fileSourceLocation, (__bridge CFStringRef)message);
 }
 
-- (CCDiagnosticType)type
+- (MDKDiagnosticType)type
 {
-    return CCDiagnosticGetType((__bridge void *)self);
+    return MDKDiagnosticTypeFromCCDiagnosticType(CCDiagnosticGetType((__bridge void *)self));
 }
 
-- (CCDiagnosticLevel)level
+- (MDKDiagnosticLevel)level
 {
-    return CCDiagnosticGetLevel((__bridge void *)self);
+    return MDKDiagnosticLevelFromCCDiagnosticLevel(CCDiagnosticGetLevel((__bridge void *)self));
 }
 
 - (NSString*)mainSource
@@ -77,8 +126,8 @@
 
 - (nullable instancetype)initWithCoder:(nonnull NSCoder *)coder
 {
-    CCDiagnosticType type = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"type"]).unsignedCharValue;
-    CCDiagnosticLevel level = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"level"]).unsignedCharValue;
+    MDKDiagnosticType type = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"type"]).unsignedCharValue;
+    MDKDiagnosticLevel level = ((NSNumber*)[coder decodeObjectOfClass:[NSNumber class] forKey:@"level"]).unsignedCharValue;
     NSString *mainSource = [coder decodeObjectOfClass:[NSString class] forKey:@"mainSource"];
     MDKFileSourceLocation *fileSourceLocation = [coder decodeObjectOfClass:[MDKFileSourceLocation class] forKey:@"fileSourceLocation"];
     NSString *message = [coder decodeObjectOfClass:[NSString class] forKey:@"message"];

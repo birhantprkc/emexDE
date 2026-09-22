@@ -23,6 +23,7 @@
  */
 
 #import <MobileDevelopmentKit/MDKFile.h>
+#import <CoreCompiler/CCFile.h>
 #import <objc/runtime.h>
 
 @implementation MDKFile
@@ -58,9 +59,38 @@
     return (__bridge NSData*)CCFileGetUnsavedData((__bridge void *)self);
 }
 
-- (CCFileType)type
+- (MDKFileType)type
 {
-    return CCFileGetType((__bridge void *)self);
+    CCFileType type = CCFileGetType((__bridge void *)self);
+    switch(type)
+    {
+        case kCCFileTypeC: return MDKFileTypeC;
+        case kCCFileTypeCHeader: return MDKFileTypeCHeader;
+        case kCCFileTypeCXX: return MDKFileTypeCXX;
+        case kCCFileTypeCXXHeader: return MDKFileTypeCXXHeader;
+        case kCCFileTypeObjC: return MDKFileTypeObjC;
+        case kCCFileTypeObjCHeader: return MDKFileTypeObjCHeader;
+        case kCCFileTypeObjCXX: return MDKFileTypeObjCXX;
+        case kCCFileTypeObjCXXHeader: return MDKFileTypeObjCXXHeader;
+        case kCCFileTypeSwift: return MDKFileTypeC;
+        case kCCFileTypeObject: return MDKFileTypeC;
+        default: return MDKFileTypeUnknown;
+    }
+}
+
+- (BOOL)isSwift
+{
+    return (self.type == MDKFileTypeSwift);
+}
+
+- (BOOL)isClang
+{
+    return (self.type < MDKFileTypeSwift);
+}
+
+- (BOOL)isObject
+{
+    return (self.type == MDKFileTypeObject);
 }
 
 - (nonnull id)copyWithZone:(nullable NSZone *)zone

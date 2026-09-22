@@ -23,6 +23,7 @@
  */
 
 #import <MobileDevelopmentKit/MDKMachO.h>
+#import <CoreCompiler/CCMachO.h>
 
 NSData *MDKMachOObjectFileEmitWithText(const UInt8 *bytes,
                                        CFIndex length)

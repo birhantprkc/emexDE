@@ -27,17 +27,25 @@
 
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKDiagnostic.h>
-#import <CoreCompiler/CCJob.h>
+
+typedef NS_ENUM(UInt8, MDKJobType) {
+    MDKJobTypeCompiler = 0,
+    MDKJobTypeDriver,
+    MDKJobTypeSwiftCompiler,
+    MDKJobTypeSwiftDriver,
+    MDKJobTypeLinker,
+    MDKJobTypeUnknown
+};
 
 @interface MDKJob : MDKCFType <NSSecureCoding>
 
-@property (nonatomic, readonly) CCJobType type;
+@property (nonatomic, readonly) MDKJobType type;
 @property (nonatomic, readonly) NSArray<NSString*> *baseArguments;
 @property (nonatomic, readonly) NSArray<NSURL*> *inputFileURLs;
 @property (nonatomic, readonly) NSURL *outputFileURL;
 @property (nonatomic, readonly, copy) NSArray<NSString*> *arguments;
 
-+ (instancetype)jobWithType:(CCJobType)type withArguments:(NSArray<NSString*>*)arguments withInputFileURLs:(NSArray<NSURL*>*)inputFileURLs withOutputFileURL:(NSURL*)outputFileURL;
++ (instancetype)jobWithType:(MDKJobType)type withArguments:(NSArray<NSString*>*)arguments withInputFileURLs:(NSArray<NSURL*>*)inputFileURLs withOutputFileURL:(NSURL*)outputFileURL;
 
 - (BOOL)executeJobWithOutDiagnostics:(NSArray<MDKDiagnostic*>**)outDiagnostic withOutMainSource:(NSString**)outMainSource;
 

@@ -26,19 +26,34 @@
 #define MOBILEDEVELOPMENTKIT_MDKDIAGNOSTIC_H
 
 #import <Foundation/Foundation.h>
-#import <CoreCompiler/CCDiagnostic.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKFileSourceLocation.h>
 
+typedef NS_ENUM(UInt8, MDKDiagnosticType) {
+    MDKDiagnosticTypeFile = 0,
+    MDKDiagnosticTypeTargetFile,
+    MDKDiagnosticTypeInternal,
+    MDKDiagnosticTypeUnknown,
+};
+
+typedef NS_ENUM(UInt8, MDKDiagnosticLevel) {
+    MDKDiagnosticLevelNote = 0,
+    MDKDiagnosticLevelRemark,
+    MDKDiagnosticLevelWarning,
+    MDKDiagnosticLevelError,
+    MDKDiagnosticLevelFatal,
+    MDKDiagnosticLevelUnknown,
+};
+
 @interface MDKDiagnostic : MDKCFType <NSSecureCoding>
 
-@property (nonatomic, readonly) CCDiagnosticType type;
-@property (nonatomic, readonly) CCDiagnosticLevel level;
+@property (nonatomic, readonly) MDKDiagnosticType type;
+@property (nonatomic, readonly) MDKDiagnosticLevel level;
 @property (nonatomic, readonly) NSString *mainSource;
 @property (nonatomic, readonly) MDKFileSourceLocation *fileSourceLocation;
 @property (nonatomic, readonly) NSString *message;
 
-+ (instancetype)diagnosticWithType:(CCDiagnosticType)type level:(CCDiagnosticLevel)level mainSource:(NSString*)mainSource fileSourceLocation:(MDKFileSourceLocation *)fileSourceLocation message:(NSString*)message;
++ (instancetype)diagnosticWithType:(MDKDiagnosticType)type level:(MDKDiagnosticLevel)level mainSource:(NSString*)mainSource fileSourceLocation:(MDKFileSourceLocation *)fileSourceLocation message:(NSString*)message;
 
 @end
 

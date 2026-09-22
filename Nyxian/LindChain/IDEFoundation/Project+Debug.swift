@@ -24,7 +24,7 @@ import UIKit
 import MobileDevelopmentKit
 
 class DebugItem: Codable {
-    let severity: CCDiagnosticLevel
+    let severity: MDKDiagnosticLevel
     let message: String
     let originator: String
     
@@ -32,19 +32,9 @@ class DebugItem: Codable {
     private var isValid: Bool = false
     private var line: CFIndex = 0
     private var column: CFIndex = 0
+    var sourceLocation: MDKSourceLocation = .zero
     
-    var sourceLocation: CCSourceLocation {
-        get {
-            return CCSourceLocation(isValid: DarwinBoolean(booleanLiteral: self.isValid), line: self.line, column: self.column)
-        }
-        set {
-            self.isValid = newValue.isValid.boolValue
-            self.line = newValue.line
-            self.column = newValue.column
-        }
-    }
-    
-    init(originator: String = "self", severity: CCDiagnosticLevel, message: String, sourceLocation: CCSourceLocation = CCSourceLocationZero) {
+    init(originator: String = "self", severity: MDKDiagnosticLevel, message: String, sourceLocation: MDKSourceLocation = .zero) {
         self.originator = originator
         self.severity = severity
         self.message = message
@@ -118,7 +108,7 @@ class DebugDatabase: Codable {
         }
     }
     
-    func addMessage(message: String, title: String = "Internal", severity: CCDiagnosticLevel) {
+    func addMessage(message: String, title: String = "Internal", severity: MDKDiagnosticLevel) {
         os_unfair_lock_lock(&self.lock)
         let item = DebugItem(severity: severity, message: message)
         
@@ -141,7 +131,7 @@ class DebugDatabase: Codable {
         if items.count > 0 {
             var debugItems: [DebugItem] = []
             for item in items {
-                debugItems.append(DebugItem(severity: item.level, message: item.message, sourceLocation: item.fileSourceLocation?.location ?? CCSourceLocationZero))
+                debugItems.append(DebugItem(severity: item.level, message: item.message, sourceLocation: item.fileSourceLocation?.location ?? .zero))
             }
             
             guard let internalObject = self.debugObjects[title] else {
@@ -181,7 +171,7 @@ class DebugDatabase: Codable {
         
         let fileObject = DebugObject(title: absPath, flavour: .File)
         fileObject.debugItems = synItems.map {
-            DebugItem(severity: $0.level, message: $0.message, sourceLocation: $0.fileSourceLocation?.location ?? CCSourceLocationZero)
+            DebugItem(severity: $0.level, message: $0.message, sourceLocation: $0.fileSourceLocation?.location ?? .zero)
         }
         
         self.debugObjects[absPath] = fileObject
@@ -197,7 +187,7 @@ class DebugDatabase: Codable {
         let fileObject = self.debugObjects[absPath] ?? DebugObject(title: absPath, flavour: .File)
         
         let newItems = synItems.map {
-            DebugItem(originator: originatorPath, severity: $0.level, message: $0.message, sourceLocation: $0.fileSourceLocation?.location ?? CCSourceLocationZero)
+            DebugItem(originator: originatorPath, severity: $0.level, message: $0.message, sourceLocation: $0.fileSourceLocation?.location ?? .zero)
         }
         fileObject.debugItems.append(contentsOf: newItems)
         

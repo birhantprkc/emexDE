@@ -23,6 +23,7 @@
  */
 
 #import <MobileDevelopmentKit/MDKASTUnit.h>
+#import <CoreCompiler/CCASTUnit.h>
 #import <objc/runtime.h>
 
 @implementation MDKASTUnit
@@ -47,9 +48,9 @@
     return CCASTUnitErrorOccured((__bridge void *)self);
 }
 
-- (MDKFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(CCSourceLocation)location
+- (MDKFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(MDKSourceLocation)location
 {
-    return (__bridge_transfer MDKFileSourceLocation*)CCASTUnitCopyDefinitionAtLocation((__bridge void*)self, location);
+    return (__bridge_transfer MDKFileSourceLocation*)CCASTUnitCopyDefinitionAtLocation((__bridge void*)self, (CCSourceLocation){ location.isValid, location.line, location.column });
 }
 
 @end
@@ -58,9 +59,9 @@
 
 @dynamic file;
 
-+ (instancetype)unitWithType:(CCASTUnitType)type
++ (instancetype)unitWithType:(MDKASTUnitType)type
 {
-    MDKASTUnit *obj = (__bridge_transfer MDKASTUnit*)CCASTUnitCreateMutable(kCFAllocatorSystemDefault, type);
+    MDKASTUnit *obj = (__bridge_transfer MDKASTUnit*)CCASTUnitCreateMutable(kCFAllocatorSystemDefault, (type == MDKASTUnitTypeClang) ? kCCASTUnitTypeClang : kCCASTUnitTypeSwift);
     object_setClass(obj, [MDKMutableASTUnit class]);
     return (MDKMutableASTUnit *)obj;
 }

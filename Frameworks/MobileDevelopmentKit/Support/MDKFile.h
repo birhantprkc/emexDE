@@ -27,13 +27,30 @@
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
-#import <CoreCompiler/CCFile.h>
+
+typedef NS_ENUM(UInt8, MDKFileType) {
+    MDKFileTypeC = 0,
+    MDKFileTypeCHeader,
+    MDKFileTypeCXX,
+    MDKFileTypeCXXHeader,
+    MDKFileTypeObjC,
+    MDKFileTypeObjCHeader,
+    MDKFileTypeObjCXX,
+    MDKFileTypeObjCXXHeader,
+    MDKFileTypeSwift,
+    MDKFileTypeObject,
+    MDKFileTypeUnknown,
+};
 
 @interface MDKFile : MDKCFType <NSSecureCoding,NSCopying,NSMutableCopying>
 
 @property (nonatomic, readonly) NSURL *fileURL;
 @property (nonatomic, readonly) NSData *unsavedData;
-@property (nonatomic, readonly) CCFileType type;
+@property (nonatomic, readonly) MDKFileType type;
+
+@property (nonatomic, readonly) BOOL isSwift;
+@property (nonatomic, readonly) BOOL isClang;
+@property (nonatomic, readonly) BOOL isObject;
 
 + (instancetype)fileWithURL:(NSURL*)fileURL;
 + (instancetype)fileWithPath:(NSString*)filePath;

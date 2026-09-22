@@ -144,7 +144,7 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void))
     [driverFlags addObject:@"-fmodules"];
     [driverFlags addObject:@"-Wl,-undefined,dynamic_lookup"];
     
-    MDKDriver *driver = [MDKDriver driverWithArguments:driverFlags withType:kCCDriverTypeClang];
+    MDKDriver *driver = [MDKDriver driverWithArguments:driverFlags withType:MDKDriverTypeClang];
     if(driver == NULL)
     {
         klog_log("shimcache:emit", "couldn't get driver object", driverFlags);
@@ -168,19 +168,19 @@ LIBKERN_DEFINE_PATCHABLE(kern_return_t, ksurface_shimcache_build, (void))
             const char *domain = NULL;
             switch(diagnostic.level)
             {
-                case kCCDiagnosticLevelNote:
+                case MDKDiagnosticLevelNote:
                     domain = "shimcache:emit:diagnostic:note";
                     break;
-                case kCCDiagnosticLevelRemark:
+                case MDKDiagnosticLevelRemark:
                     domain = "shimcache:emit:diagnostic:remark";
                     break;
-                case kCCDiagnosticLevelWarning:
+                case MDKDiagnosticLevelWarning:
                     domain = "shimcache:emit:diagnostic:warning";
                     break;
-                case kCCDiagnosticLevelError:
+                case MDKDiagnosticLevelError:
                     domain = "shimcache:emit:diagnostic:error";
                     break;
-                case kCCDiagnosticLevelFatal:
+                case MDKDiagnosticLevelFatal:
                     domain = "shimcache:emit:diagnostic:fatal";
                     break;
                 default:

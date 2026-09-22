@@ -433,7 +433,7 @@ class SplitScreenDetailViewController: UIViewController, PEProcessObserver {
         if let existingTab = tabs.first(where: { $0.url == url }) {
             self.childButton = existingTab
             self.childVC = existingTab.vc
-            (self.childVC as! CodeEditorViewController).goto(location: CCSourceLocationMake(line, column))
+            (self.childVC as! CodeEditorViewController).goto(location: MDKSourceLocationMake(line, column))
             updateTabSelection(selectedTab: existingTab)
             return
         }

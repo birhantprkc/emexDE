@@ -131,7 +131,7 @@
     os_unfair_lock_lock(&_lock);
     
     /* creating new synpush core and update all */
-    _unit = [MDKMutableASTUnit unitWithType:CCFileTypeIsSwiftFile(_file.type) ? kCCASTUnitTypeSwift : kCCASTUnitTypeClang];
+    _unit = [MDKMutableASTUnit unitWithType:_file.isSwift ? MDKASTUnitTypeSwift : MDKASTUnitTypeClang];
     if(_unit == nil)
     {
         os_unfair_lock_unlock(&_lock);
@@ -148,7 +148,7 @@
     return succeed;
 }
 
-- (MDKFileSourceLocation*)getDefinitionAtLocation:(CCSourceLocation)location
+- (MDKFileSourceLocation*)getDefinitionAtLocation:(MDKSourceLocation)location
 {
     os_unfair_lock_lock(&_lock);
     MDKFileSourceLocation *fileSourceLocation = [_unit fileSourceLocationForDefinitionAtLocation:location];

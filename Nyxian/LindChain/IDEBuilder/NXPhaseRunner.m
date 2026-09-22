@@ -87,11 +87,11 @@
 {
     switch(phase.type)
     {
-        case kCCJobTypeCompiler:
-        case kCCJobTypeSwiftCompiler:
+        case MDKJobTypeCompiler:
+        case MDKJobTypeSwiftCompiler:
             [XCButton switchImageSyncWithSystemName:@"hammer.fill" animated:YES];
             break;
-        case kCCJobTypeLinker:
+        case MDKJobTypeLinker:
             [XCButton switchImageSyncWithSystemName:@"link" animated:YES];
             [[fallthrough]];
         default:

@@ -34,7 +34,7 @@ class CodeEditorCoordinator: NSObject, TextViewDelegate {
 
     private(set) var debounce: LDEDebouncer?
     private(set) var diag: [MDKDiagnostic] = []
-    private let vtkey: [CCDiagnosticLevel:(String,UIColor)] = [
+    private let vtkey: [MDKDiagnosticLevel:(String,UIColor)] = [
         .note: ("info.circle.fill", UIColor.systemBlue.withAlphaComponent(0.3)),
         .warning: ("exclamationmark.triangle.fill", UIColor.systemOrange.withAlphaComponent(0.3)),
         .error: ("xmark.octagon.fill", UIColor.systemRed.withAlphaComponent(0.3)),
@@ -61,10 +61,10 @@ class CodeEditorCoordinator: NSObject, TextViewDelegate {
             parent.project?.projectConfig.reloadIfNeeded()
             let flags: [String] = parent.isReadOnly ? NXProjectConfig.sdkCompilerFlags() ?? [] : parent.project?.projectConfig.compilerFlags ?? []
             
-            if CCFileTypeIsSwiftFile(parent.file.type) {
+            if parent.file.isSwift {
                 let swiftFies: [String] = LDEFilesFinder(parent.project?.url.path, ["swift"], ["Resources", "Config"])
                 server.reparseFile(self.parent?.textView.text, withArgs: (parent.project?.projectConfig.swiftFlags ?? []) + swiftFies)
-            } else if CCFileTypeIsClangFile(parent.file.type) {
+            } else if parent.file.isClang {
                 server.reparseFile(self.parent?.textView.text, withArgs: flags)
             }
             let diag = self.parent?.languageServer?.getDiagnostics() ?? []

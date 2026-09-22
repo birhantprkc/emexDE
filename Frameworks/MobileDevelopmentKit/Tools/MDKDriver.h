@@ -22,15 +22,19 @@
  * SOFTWARE.
  */
 
-#ifndef MDKDRIVER_H
-#define MDKDRIVER_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKDRIVER_H
+#define MOBILEDEVELOPMENTKIT_MDKDRIVER_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKJob.h>
 #import <MobileDevelopmentKit/MDKFile.h>
 #import <MobileDevelopmentKit/MDKSDK.h>
-#import <CoreCompiler/CCDriver.h>
+
+typedef NS_ENUM(UInt8, MDKDriverType) {
+    MDKDriverTypeClang = 0,
+    MDKDriverTypeSwift,
+};
 
 @class MDKDriver;
 
@@ -45,13 +49,13 @@
 
 @property (nonatomic, readonly, copy, nullable) NSURL *sysrootURL;
 @property (nonatomic, readonly, copy, nullable) MDKSDK *sdk;
-@property (nonatomic, readonly) CCDriverType type;
+@property (nonatomic, readonly) MDKDriverType type;
 
 @property (nonatomic, readwrite, weak) id<MDKDriverDelegate> delegate;
 
-+ (instancetype _Nullable)driverWithArguments:(NSArray<NSString*> * _Nonnull)arguments withType:(CCDriverType)type;
++ (instancetype _Nullable)driverWithArguments:(NSArray<NSString*> * _Nonnull)arguments withType:(MDKDriverType)type;
 - (NSArray<MDKJob*> * _Nullable)generateJobs;
 
 @end
 
-#endif /* MDKDRIVER_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKDRIVER_H */

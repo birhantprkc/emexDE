@@ -27,6 +27,7 @@
 
 #import <Foundation/Foundation.h>
 
+#import <MobileDevelopmentKit/MDKSourceLocation.h>
 #import <MobileDevelopmentKit/MDKASTUnit.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKCompiler.h>

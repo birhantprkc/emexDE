@@ -22,38 +22,20 @@
  * SOFTWARE.
  */
 
-#ifndef MOBILEDEVELOPMENTKIT_MDKASTUNIT_H
-#define MOBILEDEVELOPMENTKIT_MDKASTUNIT_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKSOURCELOCATION_H
+#define MOBILEDEVELOPMENTKIT_MDKSOURCELOCATION_H
 
-#import <MobileDevelopmentKit/MDKCFType.h>
-#import <MobileDevelopmentKit/MDKDiagnostic.h>
-#import <MobileDevelopmentKit/MDKFile.h>
-#import <MobileDevelopmentKit/MDKFileSourceLocation.h>
+#import <Foundation/Foundation.h>
 
-typedef NS_ENUM(UInt8, MDKASTUnitType) {
-    MDKASTUnitTypeClang = 0,
-    MDKASTUnitTypeSwift,
-};
+typedef struct {
+    Boolean isValid;
+    CFIndex line, column;
+} MDKSourceLocation;
 
-@interface MDKASTUnit : MDKCFType
+extern const MDKSourceLocation MDKSourceLocationZero;
 
-@property (nonatomic, readonly) MDKFile *file;
-@property (nonatomic, readonly) NSArray<MDKDiagnostic*> *diagnostics;
-@property (nonatomic, readonly) BOOL hasErrorOccured;
+MDKSourceLocation MDKSourceLocationMake(CFIndex line, CFIndex column);
+BOOL MDKSourceLocationIsValid(MDKSourceLocation location);
+BOOL MDKSourceLocationEqualToLocation(MDKSourceLocation location1, MDKSourceLocation location2);
 
-- (MDKFileSourceLocation*)fileSourceLocationForDefinitionAtLocation:(MDKSourceLocation)location;
-
-@end
-
-@interface MDKMutableASTUnit : MDKASTUnit
-
-@property (nonatomic, readwrite) MDKFile *file;
-
-+ (instancetype)unitWithType:(MDKASTUnitType)type;
-
-- (BOOL)reparse;
-- (void)setArguments:(NSArray<NSString*>*)arguments;
-
-@end
-
-#endif /* MOBILEDEVELOPMENTKIT_MDKASTUNIT_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKSOURCELOCATION_H */

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKCOMPILER_H
-#define MDKCOMPILER_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKCOMPILER_H
+#define MOBILEDEVELOPMENTKIT_MDKCOMPILER_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKJob.h>
@@ -37,4 +37,4 @@
 
 @end
 
-#endif /* MDKCOMPILER_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKCOMPILER_H */
