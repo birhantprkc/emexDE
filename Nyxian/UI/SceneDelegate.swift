@@ -608,12 +608,12 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
 }
 
 class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboardingViewControllerDelegate {
-    private func install(_ child: UIViewController) {
-        addChild(child)
-        child.view.frame = view.bounds
-        child.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(child.view)
-        child.didMove(toParent: self)
+    private let splashView = UIView()
+    private let logoView = UIImageView()
+    
+    private enum BootTransition {
+        case zoomThrough
+        case crossfade
     }
     
     override func viewDidLoad() {
@@ -623,18 +623,22 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
         
         self.view.backgroundColor = .systemBackground
         
-        guard let image: UIImage = UIImage(named: "EmexLogo") else { return }
-        let imageView: UIImageView = UIImageView(image: image)
+        splashView.backgroundColor = self.view.backgroundColor
+        splashView.frame = self.view.bounds
+        splashView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        self.view.addSubview(splashView)
         
-        imageView.translatesAutoresizingMaskIntoConstraints = false
+        logoView.image = UIImage(named: "EmexLogo")
+        logoView.contentMode = .scaleAspectFit
+        logoView.translatesAutoresizingMaskIntoConstraints = false
         
-        self.view.addSubview(imageView)
+        splashView.addSubview(logoView)
         
         NSLayoutConstraint.activate([
-            imageView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
-            imageView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            imageView.heightAnchor.constraint(equalToConstant: 125),
-            imageView.widthAnchor.constraint(equalToConstant: 125),
+            logoView.centerYAnchor.constraint(equalTo: splashView.centerYAnchor),
+            logoView.centerXAnchor.constraint(equalTo: splashView.centerXAnchor),
+            logoView.heightAnchor.constraint(equalToConstant: 125),
+            logoView.widthAnchor.constraint(equalToConstant: 125),
         ])
         
         DispatchQueue.global(qos: .utility).async {
@@ -647,12 +651,14 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
                 if mode == 2 {
                     let recoveryController = NXRecoveryViewController()
                     recoveryShowMenu(recoveryController: recoveryController)
-                    self.install(recoveryController)
+                    self.transition(to: recoveryController, style: .crossfade)
                     return
                 }
                 
                 self.changableStatusBarHidden = false
-                self.setNeedsStatusBarAppearanceUpdate()
+                UIView.animate(withDuration: 0.3) {
+                    self.setNeedsStatusBarAppearanceUpdate()
+                }
                 
                 if !trust_enforcement_set_mode(BootConfig.entitlementMode.kernelMode) {
                     assertionFailure("trust_enforcement_mode() was read before trust_enforcement_set_mode()")
@@ -698,26 +704,99 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
                 themedTabViewController.viewControllers = viewControllers
                 themedTabViewController.delegate = self
                 
-                self.install(themedTabViewController)
-                
-                if let _: NSNumber = UserDefaults.standard.object(forKey: "NXOnboardingSentinel") as? NSNumber {
-                    checkSigningSetup()
-                    return
+                self.transition(to: themedTabViewController) {
+                    if let _: NSNumber = UserDefaults.standard.object(forKey: "NXOnboardingSentinel") as? NSNumber {
+                        checkSigningSetup()
+                        return
+                    }
+                    
+                    let onboardingConfiguration = UIOnboardingViewConfiguration(appIcon: UIOnboardingHelper.setUpIcon(), firstTitleLine: UIOnboardingHelper.setUpFirstTitleLine(), secondTitleLine: UIOnboardingHelper.setUpSecondTitleLine(), features: UIOnboardingHelper.setUpFeatures(), textViewConfiguration: UIOnboardingHelper.setUpNotice(), buttonConfiguration: UIOnboardingHelper.setUpButton())
+                    let onboardingController: UIOnboardingViewController = UIOnboardingViewController(withConfiguration: onboardingConfiguration)
+                    onboardingController.delegate = self
+                    onboardingController.backgroundColor = LDETheme.currentTheme!.backgroundColor
+                    onboardingController.modalTransitionStyle = .crossDissolve
+                    
+                    themedTabViewController.present(onboardingController, animated: true)
                 }
-                
-                let onboardingConfiguration = UIOnboardingViewConfiguration(appIcon: UIOnboardingHelper.setUpIcon(), firstTitleLine: UIOnboardingHelper.setUpFirstTitleLine(), secondTitleLine: UIOnboardingHelper.setUpSecondTitleLine(), features: UIOnboardingHelper.setUpFeatures(), textViewConfiguration: UIOnboardingHelper.setUpNotice(), buttonConfiguration: UIOnboardingHelper.setUpButton())
-                let onboardingController: UIOnboardingViewController = UIOnboardingViewController(withConfiguration: onboardingConfiguration)
-                onboardingController.delegate = self
-                onboardingController.backgroundColor = LDETheme.currentTheme!.backgroundColor
-                
-                themedTabViewController.present(onboardingController, animated: false)
             }
         }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        startBreathing()
+    }
+    
+    private func startBreathing() {
+        guard !UIAccessibility.isReduceMotionEnabled,
+              splashView.superview != nil,
+              logoView.layer.animation(forKey: "breathe") == nil else { return }
+        
+        let pulse = CABasicAnimation(keyPath: "transform.scale")
+        pulse.fromValue = 1.0
+        pulse.toValue = 0.94
+        pulse.duration = 0.9
+        pulse.autoreverses = true
+        pulse.repeatCount = .infinity
+        pulse.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        logoView.layer.add(pulse, forKey: "breathe")
+    }
+    
+    private func transition(to child: UIViewController,
+                            style: BootTransition = .zoomThrough,
+                            completion: (() -> Void)? = nil) {
+        addChild(child)
+        child.view.frame = view.bounds
+        child.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(child.view, belowSubview: splashView)
+        child.view.layoutIfNeeded()
+        
+        if let presentation = logoView.layer.presentation() {
+            logoView.layer.transform = presentation.transform
+        }
+        logoView.layer.removeAnimation(forKey: "breathe")
+        
+        let finish = {
+            self.splashView.removeFromSuperview()
+            child.didMove(toParent: self)
+            completion?()
+        }
+        
+        if style == .crossfade || UIAccessibility.isReduceMotionEnabled {
+            UIView.animate(withDuration: 0.3, animations: {
+                self.splashView.alpha = 0
+            }, completion: { _ in
+                finish()
+            })
+            return
+        }
+        
+        child.view.transform = CGAffineTransform(scaleX: 0.97, y: 0.97)
+        
+        let splashOut = UIViewPropertyAnimator(duration: 0.4, curve: .easeOut) {
+            self.logoView.transform = CGAffineTransform(scaleX: 1.15, y: 1.15)
+            self.splashView.alpha = 0
+        }
+        
+        let appIn = UIViewPropertyAnimator(duration: 0.55, dampingRatio: 1.0) {
+            child.view.transform = .identity
+        }
+        
+        appIn.addCompletion { _ in
+            finish()
+        }
+        
+        splashOut.startAnimation()
+        appIn.startAnimation()
     }
     
     var changableStatusBarHidden = true
     override var prefersStatusBarHidden: Bool {
         return self.changableStatusBarHidden
+    }
+    
+    override var preferredStatusBarUpdateAnimation: UIStatusBarAnimation {
+        return .fade
     }
     
     func tabBarController(_ tabBarController: UITabBarController, shouldSelect viewController: UIViewController) -> Bool {
@@ -735,7 +814,6 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
         onboardingViewController.modalTransitionStyle = .crossDissolve
         onboardingViewController.dismiss(animated: true, completion: nil)
         
-        // storing sentinel so it will not appear again
         UserDefaults.standard.set(NSNumber(booleanLiteral: true), forKey: "NXOnboardingSentinel")
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
