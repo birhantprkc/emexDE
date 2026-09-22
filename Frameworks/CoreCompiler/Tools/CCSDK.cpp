@@ -35,6 +35,7 @@ struct __CCSDK {
     CFRuntimeBase _base;
     CFURLRef directoryURL;
     std::unique_ptr<clang::DarwinSDKInfo>(sdkInfo);
+    CFArrayRef supportedVersions;
 };
 
 static CFTypeRef CCSDKCopy(CFAllocatorRef allocator,
@@ -131,6 +132,11 @@ CCSDKRef CCSDKCreateWithDirectoryURL(CFAllocatorRef allocator,
 
 CFStringRef CCSDKCopyVersion(CCSDKRef sdk)
 {
+    if(sdk == nullptr)
+    {
+        return nullptr;
+    }
+    
     VersionTuple versionTuple = sdk->sdkInfo->getVersion();
     std::string versionStr = versionTuple.getAsString();
     if(versionStr.empty())
@@ -149,16 +155,159 @@ CFStringRef CCSDKCopyVersion(CCSDKRef sdk)
 
 CFURLRef CCSDKGetDirectoryURL(CCSDKRef sdk)
 {
+    if(sdk == nullptr)
+    {
+        return nullptr;
+    }
+    
     return sdk->directoryURL;
 }
 
 CCSDKOSType CCSDKGetOSType(CCSDKRef sdk)
 {
+    if(sdk == nullptr)
+    {
+        return kCCSDKOSTypeUnknown;
+    }
+    
     switch(sdk->sdkInfo->getOS())
     {
         case Triple::OSType::Darwin:
-            return CCSDKOSTypeDarwin;
+            return kCCSDKOSTypeDarwin;
         default:
-            return CCSDKOSTypeUnknown;
+            return kCCSDKOSTypeUnknown;
     }
+}
+
+CFArrayRef CCSDKGetSupportedVersions(CCSDKRef sdk)
+{
+    if(sdk == nullptr)
+    {
+        return nullptr;
+    }
+    
+    if(sdk->supportedVersions)
+    {
+        return sdk->supportedVersions;
+    }
+    
+    CFAllocatorRef allocator = CFGetAllocator(sdk);
+    CFURLRef settingsURL = CFURLCreateCopyAppendingPathComponent(allocator, sdk->directoryURL, CFSTR("SDKSettings.plist"), false);
+    if(settingsURL == nullptr)
+    {
+        return nullptr;
+    }
+    
+    CFStringRef settingsPath = CFURLCopyFileSystemPath(settingsURL, kCFURLPOSIXPathStyle);
+    CFRelease(settingsURL);
+    if(settingsPath == nullptr)
+    {
+        return nullptr;
+    }
+    
+    const char *fileSystemPath = CFStringGetCStringPtr(settingsPath, kCFStringEncodingUTF8);
+    if(fileSystemPath == nullptr)
+    {
+        CFRelease(settingsPath);
+        return nullptr;
+    }
+    
+    std::FILE *file = std::fopen(fileSystemPath, "rb");
+    if(file == nullptr)
+    {
+        CFRelease(settingsPath);
+        return nullptr;
+    }
+    
+    std::fseek(file, 0, SEEK_END);
+    long length = std::ftell(file);
+    std::fseek(file, 0, SEEK_SET);
+    
+    UInt8 *buffer = (UInt8*)std::malloc(length);
+    std::fread(buffer, 1, length, file);
+    std::fclose(file);
+    
+    CFDataRef plistData = CFDataCreateWithBytesNoCopy(kCFAllocatorDefault, buffer, length, kCFAllocatorMalloc);
+    CFRelease(settingsPath);
+    if(plistData == nullptr)
+    {
+        return nullptr;
+    }
+    
+    CFErrorRef error = NULL;
+    CFPropertyListFormat format;
+    CFDictionaryRef plist = (CFDictionaryRef)CFPropertyListCreateWithData(kCFAllocatorDefault, plistData, kCFPropertyListImmutable, &format, &error);
+    CFRelease(plistData);
+    if(plist == nullptr)
+    {
+        return nullptr;
+    }
+    
+    if(CFGetTypeID(plist) != CFDictionaryGetTypeID())
+    {
+        CFRelease(plist);
+        return nullptr;
+    }
+    
+    CFTypeRef validDeploymentTargets = nullptr;
+    
+    /*
+     * this is a modern apple SDK, from now on
+     * we already know that the legacy path is
+     * not working if this doesn't.
+     */
+    CFTypeRef supportedTargets = CFDictionaryGetValue(plist, CFSTR("SupportedTargets"));
+    if(supportedTargets != nullptr && CFGetTypeID(supportedTargets) == CFDictionaryGetTypeID())
+    {
+        CFTypeRef platform = CFDictionaryGetValue((CFDictionaryRef)supportedTargets, CFSTR("iphoneos"));
+        if(platform != nullptr && CFGetTypeID(platform) == CFDictionaryGetTypeID())
+        {
+            validDeploymentTargets = CFDictionaryGetValue((CFDictionaryRef)platform, CFSTR("ValidDeploymentTargets"));
+            if(validDeploymentTargets != nullptr && CFGetTypeID(validDeploymentTargets) == CFArrayGetTypeID())
+            {
+                validDeploymentTargets = validDeploymentTargets;
+                goto got_targets;
+            }
+        }
+    }
+    
+    /*
+     * must be a legacy SDK, usually not shipped
+     * on Nyxian, weird. Maybe someone using MDK
+     * in a 3rd party IDE x3 Thank you for your
+     * support!
+     */
+    validDeploymentTargets = CFDictionaryGetValue((CFDictionaryRef)plist, CFSTR("ValidDeploymentTargets"));
+    
+got_targets:
+    
+    if(validDeploymentTargets == nullptr || CFGetTypeID(validDeploymentTargets) != CFArrayGetTypeID())
+    {
+        CFRelease(plist);
+        return nullptr;
+    }
+    
+    /*
+     * type validation, it shall only contain strings
+     * never numbers, etc.
+     */
+    CFIndex count = CFArrayGetCount((CFArrayRef)validDeploymentTargets);
+    for(CFIndex index = 0; index < count; index++)
+    {
+        CFTypeRef value = CFArrayGetValueAtIndex((CFArrayRef)validDeploymentTargets, index);
+        if(CFGetTypeID(value) != CFStringGetTypeID())
+        {
+            CFRelease(plist);
+            return nullptr;
+        }
+    }
+    
+    sdk->supportedVersions = (CFArrayRef)CFRetain(validDeploymentTargets);
+    CFRelease(plist);
+    if(sdk->supportedVersions == nullptr)
+    {
+        return nullptr;
+    }
+    
+    return sdk->supportedVersions;
 }
