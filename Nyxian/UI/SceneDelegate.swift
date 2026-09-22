@@ -645,6 +645,9 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
                     recoveryWipeCache(c)
                 }
             },
+            NXRecoveryItem(title: "Flash ROM") { c in
+                
+            },
             NXRecoveryItem(title: "Nyxian Files") { c in
                 c?.enterFileBrowser(atPath: NSHomeDirectory(), root: NSHomeDirectory(), header: "Nyxian Files", onBack: { recovery in
                     if let recovery = recovery {
