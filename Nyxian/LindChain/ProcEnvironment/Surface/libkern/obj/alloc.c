@@ -27,6 +27,35 @@
 #include <string.h>
 #include <assert.h>
 
+static inline bool __kvobject_init(kvobject_main_event_handler_t handler,
+                                   kvobject_base_type_t base_type,
+                                   kvobject_t *kvo)
+{
+    /* setting up kvobject for usage */
+    kvo->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
+    kvo->base_type = base_type;
+    kvo->state = kvObjStateNormal;
+    kvo->main_handler = handler;
+    
+    /* only normal objects get those locks */
+    if(base_type != kvObjBaseTypeObjectSnapshot)
+    {
+        /* safely initializing both locks */
+        if(pthread_rwlock_init(&(kvo->rwlock), NULL) != 0)
+        {
+            return false;
+        }
+        
+        if(pthread_rwlock_init(&(kvo->event_rwlock), NULL) != 0)
+        {
+            pthread_rwlock_destroy(&(kvo->rwlock));
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 static inline kvobject_t *__kvobject_alloc(kvobject_main_event_handler_t handler,
                                            kvobject_base_type_t base_type)
 {
@@ -46,29 +75,14 @@ static inline kvobject_t *__kvobject_alloc(kvobject_main_event_handler_t handler
         return NULL;
     }
     
-    /* setting up kvobject for usage */
-    kvo->refcount = 1;                          /* starting as retained for the caller, cuz the caller gets one reference */
-    kvo->base_type = base_type;
-    kvo->state = kvObjStateNormal;
-    kvo->main_handler = handler;
-    
-    /* only normal objects get those locks */
-    if(base_type != kvObjBaseTypeObjectSnapshot)
+    if(!__kvobject_init(handler, base_type, kvo))
     {
-        /* safely initializing both locks */
-        if(pthread_rwlock_init(&(kvo->rwlock), NULL) != 0)
-        {
-            free(kvo);
-            return NULL;
-        }
-        
-        if(pthread_rwlock_init(&(kvo->event_rwlock), NULL) != 0)
-        {
-            pthread_rwlock_destroy(&(kvo->rwlock));
-            free(kvo);
-            return NULL;
-        }
+        free(kvo);
+        return NULL;
     }
+    
+    /* allocated by my runtime ^^ */
+    kvo->memoryIsOwned = true;
     
     return kvo;
 }
@@ -172,4 +186,64 @@ out_unlock:
     }
     
     return kvo_snap;
+}
+
+size_t kvobject_size(kvobject_main_event_handler_t handler)
+{
+    return (size_t)handler(NULL, kvObjEventInit, 0);
+}
+
+bool kvobject_snapshot_into_mem(void *mem,
+                                kvobject_t *kvo,
+                                kvobject_snapshot_options_t option)
+{
+    assert(kvo != NULL);
+    
+    bool did_succeed = false;
+    if(!kvo_retain(kvo))
+    {
+        goto out_unlock;
+    }
+    
+    kvo_rdlock(kvo);
+    
+    assert(kvo->base_type == kvObjBaseTypeObject && kvo->main_handler != NULL);
+    
+    /* zero out buffer (like calloc) */
+    bzero(mem, (size_t)kvo->main_handler(NULL, kvObjEventInit, 0));
+    if(!__kvobject_init(kvo->main_handler, kvObjBaseTypeObjectSnapshot, (kvobject_t*)mem))
+    {
+        /* didnt initialize :c */
+        goto out_unlock;
+    }
+    
+    /* set orig pointer if applicable */
+    if(option == kvObjSnapReferenced ||
+       option == kvObjSnapConsumeReference)
+    {
+        ((kvobject_t*)mem)->orig = kvo;
+    }
+    
+    /* preparing stack array */
+    kvobject_t *kvoarr[2] = { (kvobject_t*)mem, kvo };
+    if(((kvobject_t*)mem)->main_handler(kvoarr, kvObjEventSnapshot, 0) != 0)
+    {
+        did_succeed = false;
+    }
+    else
+    {
+        did_succeed = true;
+    }
+    
+out_unlock:
+    kvo_unlock(kvo);
+    
+    /* release object if applicable */
+    if(option == kvObjSnapStatic ||
+       option == kvObjSnapConsumeReference)
+    {
+        kvo_release(kvo);
+    }
+    
+    return did_succeed;
 }

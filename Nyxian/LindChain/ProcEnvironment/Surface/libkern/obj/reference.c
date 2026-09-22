@@ -30,6 +30,11 @@ bool kvobject_retain(kvobject_t *kvo)
 {
     assert(kvo != NULL);
     
+    if(!kvo->memoryIsOwned)
+    {
+        kpanic("object with type %d was attempted to retain while unowned", kvo->base_type);
+    }
+    
     /* performing retain if valid */
     while(1)
     {
@@ -93,7 +98,10 @@ void kvobject_release(kvobject_t *kvo)
                 break;
         }
         
-        free(kvo);
+        if(kvo->memoryIsOwned)
+        {
+            free(kvo);
+        }
     }
     else if(old <= 0)
     {

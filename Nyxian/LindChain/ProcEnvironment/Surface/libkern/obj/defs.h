@@ -94,6 +94,7 @@ struct kvevent {
 struct kvobject {
     /* type of object */
     kvobject_base_type_t base_type;
+    bool memoryIsOwned;
     
     /*
      * reference count of an object if

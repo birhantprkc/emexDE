@@ -37,7 +37,8 @@
  * as asking processes for their pid is extremely stupid.
  * so we ensure nothing can be tempered.
  */
-static ksurface_proc_snapshot_t *syscall_get_caller_proc_snapshot(mach_msg_header_t *msg)
+static inline bool syscall_get_caller_proc_snapshot(mach_msg_header_t *msg,
+                                                    ksurface_proc_snapshot_t *owned)
 {
     /*
      * The XNU kernel gurantees a trailer if asked
@@ -66,7 +67,7 @@ static ksurface_proc_snapshot_t *syscall_get_caller_proc_snapshot(mach_msg_heade
      * kvo_snapshot with that configuration consumes the objects
      * reference on failure aswell.
      */
-    return kvo_snapshot(proc, kvObjSnapConsumeReference);
+    return kvo_snapshot_into_mem(owned, proc, kvObjSnapConsumeReference);
 }
 
 /*
@@ -156,6 +157,12 @@ void* syscall_worker(void *ctx)
     /* receive buffer to receive request from guest */
     recv_buffer_t *buffer = NULL;
     
+    ksurface_proc_snapshot_t *proc_snapshot = calloc(1, kvo_size(GET_KVOBJECT_MAIN_EVENT_HANDLER(proc)));
+    if(proc_snapshot == NULL)
+    {
+        kpanic("syscall server worker thread died, no memory for proc_snapshot owned memory");
+    }
+    
     /*
      * setting options, this is what XPC cannot really give us
      * we simply tell XNU to always give us the identity of the process
@@ -183,6 +190,7 @@ void* syscall_worker(void *ctx)
         uint32_t out_ports_cnt = 0;         /* the amount of outports the syscall exports to the caller */
         task_t task = MACH_PORT_NULL;       /* the mach task of the caller */
         errno_t err = 0;                    /* the errno value */
+        bool has_proc = false;
         
         /* waiting for the syscall client to invoke its syscall */
         mach_msg_return_t mr = mach_msg(&(buffer->header), options, 0, sizeof(recv_buffer_t), server->port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
@@ -197,7 +205,6 @@ void* syscall_worker(void *ctx)
         }
         
         /* getting request from receive buffer */
-        ksurface_proc_snapshot_t *proc_snapshot = NULL;
         syscall_request_t *req = (syscall_request_t *)&(buffer->header);
         
         /* validating message header */
@@ -225,14 +232,14 @@ void* syscall_worker(void *ctx)
          * by just letting it send some pid, that would be
          * fragile and unsecure.
          */
-        proc_snapshot = syscall_get_caller_proc_snapshot(&(buffer->header));
-        if(proc_snapshot == NULL)
+        if(!syscall_get_caller_proc_snapshot(&(buffer->header), proc_snapshot))
         {
             /* checking if proc copy is null */
             err = EAGAIN;
             result = -1;
             goto cleanup;
         }
+        has_proc = true;
         
         /*
          * getting task port, its not needed to
@@ -271,7 +278,7 @@ void* syscall_worker(void *ctx)
         
     cleanup:
         /* destroying snapshot of process */
-        if(proc_snapshot != NULL)
+        if(has_proc)
         {
             /*
              * proc snapshot must be non-null
