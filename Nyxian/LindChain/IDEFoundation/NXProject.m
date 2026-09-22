@@ -78,7 +78,8 @@
         _bundleid = [self.dictionary objectForKey:@"NXBundleIdentifier" withDefaultObject:[NSString stringWithFormat:@"app.nyxian.%@.%@", [[NXUser shared] username], [self executable]]];
         _deploymentTarget = [self.dictionary objectForKey:@"NXDeploymentTarget" withDefaultObject:@"25.0"];
         _outputPath = [self.dictionary varObjectForKey:@"NXOutputPath"];
-        _signMachOWithNyxianEntitlements = [self.dictionary booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:true];
+        _signMachOWithNyxianEntitlements = [self.dictionary booleanForKey:@"NXSignMachOWithNyxianEntitlements" withDefaultValue:YES];
+        _linkFrameworksAutomatically = [self.dictionary booleanForKey:@"NXLinkFrameworksAutomatically" withDefaultValue:NO];
         
         /* MARK: info plist data */
         NSMutableDictionary *mutableInfoDictionary = [[self.dictionary objectForKey:@"NXBundleInfo" withDefaultObject:@{}] mutableCopy];
@@ -256,7 +257,8 @@
         @"NXClangFlags": NXCompilerFlagsForCodeTemplateLanguage(schemeKind, languageKind),
         @"NXLinkerFlags": @[],
         @"NXSwiftFlags": NXSwiftFlagsForCodeTemplateLanguage(schemeKind, languageKind),
-        @"NXSignMachOWithNyxianEntitlements": @(YES) /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
+        @"NXSignMachOWithNyxianEntitlements": @(YES),   /* FIXME: when enabled certain signers outside of zsign may fail to sign the MachO although its usually allowed to have trailing bits after the MachO ended, ldid has a weird non standard check that even is not inside of apples code sign cuz i tried to sign a MachO in strict mode and it passed including the trailing bits. */
+        @"NXLinkFrameworksAutomatically": schemeKind == NXProjectSchemeKindKSurfaceKext ? @(NO) : @(YES),
     }];
     
     switch(schemeKind)

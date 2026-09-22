@@ -94,10 +94,6 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
     {
         return [baseFlags arrayByAddingObjectsFromArray:@[
             @"-fobjc-arc",
-            @"-framework",
-            @"Foundation",
-            @"-framework",
-            @"UIKit"
         ]];
     }
     else if(schemeKind == NXProjectSchemeKindUtility)
@@ -106,8 +102,6 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
         {
             return [baseFlags arrayByAddingObjectsFromArray:@[
                 @"-fobjc-arc",
-                @"-framework",
-                @"Foundation"
             ]];
         }
         else if(languageKind == NXProjectLanguageKindCXX)
@@ -120,8 +114,7 @@ NSArray<NSString*> *NXCompilerFlagsForCodeTemplateLanguage(NXProjectSchemeKind s
         {
             /* so people won't be confused on how to add framework flags */
             return [baseFlags arrayByAddingObjectsFromArray:@[
-                @"-framework",
-                @"Foundation"
+                @"-fobjc-arc",
             ]];
         }
     }

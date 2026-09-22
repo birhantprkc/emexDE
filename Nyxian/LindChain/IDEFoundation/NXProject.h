@@ -42,6 +42,7 @@
 @property (nonatomic,strong,readonly) NSString *deploymentTarget;
 @property (nonatomic,strong,readonly) NSString *outputPath;
 @property (nonatomic,readonly) BOOL signMachOWithNyxianEntitlements;
+@property (nonatomic,readonly) BOOL linkFrameworksAutomatically;
 
 @property (nonatomic,readonly) BOOL deploymentTargetContainsWhitespaces;
 

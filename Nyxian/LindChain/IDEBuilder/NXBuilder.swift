@@ -32,8 +32,8 @@ final class NXBuilder: NSObject {
     private(set) var phaseRunner: NXPhaseRunner
     private(set) var remoteCompiler: NXRemoteCompiler? = nil
     
-    private(set) var  incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
-    private(set) var  useRemoteServiceIfAvailable: Bool = UserDefaults.standard.object(forKey: "LDERemoteCompileService") as? Bool ?? true
+    private(set) var incrementalBuild: Bool = UserDefaults.standard.object(forKey: "LDEIncrementalBuild") as? Bool ?? true
+    private(set) var useRemoteServiceIfAvailable: Bool = UserDefaults.standard.object(forKey: "LDERemoteCompileService") as? Bool ?? true
     private let argsString: String
     
     static var builds: Bool = false
@@ -69,7 +69,7 @@ final class NXBuilder: NSObject {
             return nil
         }
         
-        self.argsString = self.project.projectConfig.swiftFlags.joined(separator: " ") + self.project.projectConfig.compilerFlags.joined(separator: " ")
+        self.argsString = self.project.projectConfig.swiftFlags.joined(separator: " ") + self.project.projectConfig.compilerFlags.joined(separator: " ") + " \(self.project.projectConfig.linkFrameworksAutomatically)"
         
         // Check if the args string matches up
         if self.incrementalBuild,

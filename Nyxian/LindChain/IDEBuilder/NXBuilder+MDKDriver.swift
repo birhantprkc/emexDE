@@ -144,25 +144,27 @@ extension NXBuilder: MDKDriverDelegate {
             newJobs = jobs
         }
         
-        if var linkerJob: MDKJob = newJobs.last,
-           linkerJob.type == .linker {
-            var linkerFlgs: [String] = linkerJob.baseArguments
-            
-            for dependency in depsSet {
-                if dependency.name != "UIUtilities" {   // Call it the black sheep framework >:3
-                    if dependency.isFramework {
-                        linkerFlgs.append("-framework")
-                        linkerFlgs.append(dependency.name)
-                    } else if let libName = dependency.name {
-                        linkerFlgs.append("-l\(libName)")
+        if self.project.projectConfig.linkFrameworksAutomatically {
+            if var linkerJob: MDKJob = newJobs.last,
+               linkerJob.type == .linker {
+                var linkerFlgs: [String] = linkerJob.baseArguments
+                
+                for dependency in depsSet {
+                    if dependency.name != "UIUtilities" {   // Call it the black sheep framework >:3
+                        if dependency.isFramework {
+                            linkerFlgs.append("-framework")
+                            linkerFlgs.append(dependency.name)
+                        } else if let libName = dependency.name {
+                            linkerFlgs.append("-l\(libName)")
+                        }
                     }
                 }
+                
+                newJobs.removeLast()
+                linkerJob = MDKJob(type: .linker, withArguments: linkerFlgs, withInputFileURLs: linkerJob.inputFileURLs, withOutputFileURL: linkerJob.outputFileURL)
+                print("\(linkerJob.arguments ?? [])")
+                newJobs.append(linkerJob)
             }
-            
-            newJobs.removeLast()
-            linkerJob = MDKJob(type: .linker, withArguments: linkerFlgs, withInputFileURLs: linkerJob.inputFileURLs, withOutputFileURL: linkerJob.outputFileURL)
-            print("\(linkerJob.arguments ?? [])")
-            newJobs.append(linkerJob)
         }
         
         return newJobs

@@ -99,6 +99,8 @@ CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef allocator,
     if(homeEnv)
     {
         dependencyScanner->BaseArgs.push_back("-fmodules");
+        dependencyScanner->BaseArgs.push_back("-fimplicit-module-maps");
+        dependencyScanner->BaseArgs.push_back("-fmodules-cache-path=" + std::string(homeEnv) + "/Documents/Cache/Clang");
     }
     CFIndex count = CFArrayGetCount(arguments);
     for(CFIndex i = 0; i < count; i++)
