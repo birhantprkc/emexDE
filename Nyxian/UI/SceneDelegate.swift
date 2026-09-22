@@ -542,6 +542,65 @@ func recoveryWipeData(_ c: NXRecoveryViewController) {
     }
 }
 
+func recoveryWipeCache(_ c: NXRecoveryViewController) {
+    let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).standardizedFileURL
+    let homePath = home.path
+    
+    let targets = ["Library/Caches", "tmp"].map {
+        home.appendingPathComponent($0, isDirectory: true)
+    }
+    
+    let keep: Set<String> = [
+        home.appendingPathComponent("Library/Caches").standardizedFileURL.path,
+        home.appendingPathComponent("Library/Preferences").standardizedFileURL.path,
+    ]
+    
+    c.recoveryLogMax = max(c.recoveryLogMax, 16)
+    
+    let started = CFAbsoluteTimeGetCurrent()
+    c.recoveryLog("\n-- Wiping cache...")
+    
+    DispatchQueue.global(qos: .userInitiated).async {
+        var success = true
+        var totalBytes: Int64 = 0
+        
+        for dir in targets {
+            let name = dir.lastPathComponent
+            DispatchQueue.main.async { c.recoveryLog("Formatting /\(name)...") }
+            
+            var stats = WipeStats()
+            let ok = removeTree(dir, keeping: keep, isRoot: true, home: homePath, stats: &stats)
+            success = success && ok
+            totalBytes += stats.bytes
+            
+            let summary = "  \(stats.removedFiles) files, \(stats.removedDirectories) dirs, \(formatBytes(stats.bytes))"
+            let shown = Array(stats.failures.prefix(maxFailuresShown))
+            let hidden = stats.failures.count - shown.count
+            
+            DispatchQueue.main.async {
+                c.recoveryLog(summary)
+                for f in shown {
+                    c.recoveryLogError("  failed: \(f.path): \(f.reason)")
+                }
+                if hidden > 0 {
+                    c.recoveryLogError("  ... and \(hidden) more (see system log)")
+                }
+            }
+        }
+        
+        let elapsed = String(format: "%.1f", CFAbsoluteTimeGetCurrent() - started)
+        let tail = "(\(formatBytes(totalBytes)) in \(elapsed)s)"
+        
+        DispatchQueue.main.async {
+            if success {
+                c.recoveryLog("Cache wipe complete. \(tail)")
+            } else {
+                c.recoveryLogError("Cache wipe failed. \(tail)")
+            }
+        }
+    }
+}
+
 func recoveryConfirmWipe(recoveryController c: NXRecoveryViewController) {
     c.enterRecovery(
         withHeader: "Wipe all user data?\n THIS CAN NOT BE UNDONE!",
@@ -579,6 +638,11 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
             NXRecoveryItem(title: "Wipe data / factory reset") { c in
                 if let c = c {
                     recoveryConfirmWipe(recoveryController: c)
+                }
+            },
+            NXRecoveryItem(title: "Wipe cache") { c in
+                if let c = c {
+                    recoveryWipeCache(c)
                 }
             },
             NXRecoveryItem(title: "Nyxian Files") { c in
