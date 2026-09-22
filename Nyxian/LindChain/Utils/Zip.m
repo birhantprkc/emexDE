@@ -177,7 +177,8 @@ BOOL unzipArchiveAtPathWithoutParentDirectory(NSString *zipPath,
         NSString *fullPath = [[destinationPath stringByAppendingPathComponent:strippedPath] stringByStandardizingPath];
         NSString *destinationPrefix = [standardDestination stringByAppendingString:@"/"];
         
-        if(![fullPath isEqualToString:standardDestination] && [fullPath hasPrefix:destinationPrefix])
+        if(![fullPath isEqualToString:standardDestination] &&
+           ![fullPath hasPrefix:destinationPrefix])
         {
             NSLog(@"Skipping unsafe archive path: %@", relativePath);
             success = NO;
