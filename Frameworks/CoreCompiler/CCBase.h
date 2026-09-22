@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCBASE_H
-#define CCBASE_H
+#ifndef CORECOMPILER_CCBASE_H
+#define CORECOMPILER_CCBASE_H
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <CoreCompiler/CFRuntime.h>
@@ -35,4 +35,4 @@
 #define CC_EXPORT extern __attribute__((visibility("default")))
 #endif
 
-#endif /* CCBASE_H */
+#endif /* CORECOMPILER_CCBASE_H */

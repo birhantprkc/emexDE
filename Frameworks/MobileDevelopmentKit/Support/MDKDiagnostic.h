@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKDIAGNOSTIC_H
-#define MDKDIAGNOSTIC_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKDIAGNOSTIC_H
+#define MOBILEDEVELOPMENTKIT_MDKDIAGNOSTIC_H
 
 #import <Foundation/Foundation.h>
 #import <CoreCompiler/CCDiagnostic.h>
@@ -42,4 +42,4 @@
 
 @end
 
-#endif /* MDKDIAGNOSTIC_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKDIAGNOSTIC_H */

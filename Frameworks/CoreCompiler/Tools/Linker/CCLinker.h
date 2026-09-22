@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCLINKER_H
-#define CCLINKER_H
+#ifndef CORECOMPILER_CCLINKER_H
+#define CORECOMPILER_CCLINKER_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCDiagnostic.h>
@@ -31,4 +31,4 @@
 
 CC_EXPORT Boolean CCLinkerJobExecute(CCJobRef job, CFArrayRef *outDiagnostics);
 
-#endif /* CCLINKER_H */
+#endif /* CORECOMPILER_CCLINKER_H */

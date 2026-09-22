@@ -23,8 +23,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCSWIFTCOMPILER_H
-#define CCSWIFTCOMPILER_H
+#ifndef CORECOMPILER_CCSWIFTCOMPILER_H
+#define CORECOMPILER_CCSWIFTCOMPILER_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCDiagnostic.h>
@@ -32,4 +32,4 @@
 
 CC_EXPORT Boolean CCSwiftCompilerJobExecute(CCJobRef job, CFArrayRef *outDiagnostics, CFStringRef *outMainSource);
 
-#endif /* CCSWIFTCOMPILER_H */
+#endif /* CORECOMPILER_CCSWIFTCOMPILER_H */

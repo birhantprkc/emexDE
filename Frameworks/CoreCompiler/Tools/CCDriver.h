@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCDRIVER_H
-#define CCDRIVER_H
+#ifndef CORECOMPILER_CCDRIVER_H
+#define CORECOMPILER_CCDRIVER_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCJob.h>
@@ -51,4 +51,4 @@ CC_EXPORT void *CCDriverGetOutputPathCallbackContext(CCDriverRef driver);
 CC_EXPORT CFURLRef CCDriverCopySysrootURL(CCDriverRef driver);
 CC_EXPORT CCSDKRef CCDriverCopySDK(CCDriverRef driver);
 
-#endif /* CCDRIVER_H */
+#endif /* CORECOMPILER_CCDRIVER_H */

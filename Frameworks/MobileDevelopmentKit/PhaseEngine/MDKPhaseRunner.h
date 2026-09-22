@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKPHASERUNNER_H
-#define MDKPHASERUNNER_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKPHASERUNNER_H
+#define MOBILEDEVELOPMENTKIT_MDKPHASERUNNER_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKPhaseEngine.h>
@@ -56,4 +56,4 @@
 
 @end
 
-#endif /* MDKPHASERUNNER_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKPHASERUNNER_H */

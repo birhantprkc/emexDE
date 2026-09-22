@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKFILE_H
-#define MDKFILE_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKFILE_H
+#define MOBILEDEVELOPMENTKIT_MDKFILE_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
@@ -51,4 +51,4 @@
 
 @end
 
-#endif /* MDKFILE_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKFILE_H */

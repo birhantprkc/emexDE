@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCFILE_H
-#define CCFILE_H
+#ifndef CORECOMPILER_CCFILE_H
+#define CORECOMPILER_CCFILE_H
 
 #include <CoreCompiler/CCBase.h>
 
@@ -65,4 +65,4 @@ CC_EXPORT Boolean CCFileTypeIsClangFile(CCFileType type);
 CC_EXPORT Boolean CCFileTypeIsSwiftFile(CCFileType type);
 CC_EXPORT Boolean CCFileTypeIsObjectFile(CCFileType type);
 
-#endif /* CCFILE_H */
+#endif /* CORECOMPILER_CCFILE_H */

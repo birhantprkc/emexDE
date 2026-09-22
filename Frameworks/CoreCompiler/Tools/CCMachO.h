@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef CCMACHO_H
-#define CCMACHO_H
+#ifndef CORECOMPILER_CCMACHO_H
+#define CORECOMPILER_CCMACHO_H
 
 #include <CoreCompiler/CCBase.h>
 
 CC_EXPORT CFDataRef CCMachOObjectFileEmitWithText(const UInt8 *bytes, CFIndex length);
 
-#endif /* CCMACHO_H */
+#endif /* CORECOMPILER_CCMACHO_H */

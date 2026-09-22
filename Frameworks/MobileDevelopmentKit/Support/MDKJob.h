@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKJOB_H
-#define MDKJOB_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKJOB_H
+#define MOBILEDEVELOPMENTKIT_MDKJOB_H
 
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKDiagnostic.h>
@@ -43,4 +43,4 @@
 
 @end
 
-#endif /* MDKJOB_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKJOB_H */

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKTHREADPOOL_H
-#define MDKTHREADPOOL_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKTHREADPOOL_H
+#define MOBILEDEVELOPMENTKIT_MDKTHREADPOOL_H
 
 #import <Foundation/Foundation.h>
 #import <CoreCompiler/CCUtils.h>
@@ -44,4 +44,4 @@ void MDKPthreadDispatch(void (^code)(void));
 
 @end
 
-#endif /* MDKTHREADPOOL_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKTHREADPOOL_H */

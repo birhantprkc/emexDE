@@ -22,15 +22,9 @@
  * SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#ifndef CORECOMPILER_H
+#define CORECOMPILER_H
 
-//! Project version number for CoreCompiler.
-FOUNDATION_EXPORT double CoreCompilerVersionNumber;
-
-//! Project version string for CoreCompiler.
-FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
-
-// In this header, you should import all the public headers of your framework using statements like #import <CoreCompiler/PublicHeader.h>
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCSourceLocation.h>
 #include <CoreCompiler/CCFile.h>
@@ -46,3 +40,7 @@ FOUNDATION_EXPORT const unsigned char CoreCompilerVersionString[];
 #include <CoreCompiler/CCLinker.h>
 #include <CoreCompiler/CCUtils.h>
 #include <CoreCompiler/CCMachO.h>
+
+#endif /* CORECOMPILER_H
+
+*/

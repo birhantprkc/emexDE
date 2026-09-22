@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-#ifndef MDKCFTYPE_H
-#define MDKCFTYPE_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKCFTYPE_H
+#define MOBILEDEVELOPMENTKIT_MDKCFTYPE_H
 
 #import <Foundation/Foundation.h>
 
 @interface MDKCFType : NSObject
 @end
 
-#endif /* !MDKCFTYPE_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKCFTYPE_H */

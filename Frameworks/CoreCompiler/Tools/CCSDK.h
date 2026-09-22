@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCSDK_H
-#define CCSDK_H
+#ifndef CORECOMPILER_CCSDK_H
+#define CORECOMPILER_CCSDK_H
 
 #include <CoreCompiler/CCBase.h>
 
@@ -44,4 +44,4 @@ CC_EXPORT CFStringRef CCSDKCopyVersion(CCSDKRef sdk);
 CC_EXPORT CFURLRef CCSDKGetDirectoryURL(CCSDKRef sdk);
 CC_EXPORT CCSDKOSType CCSDKGetOSType(CCSDKRef sdk);
 
-#endif /* CCSDK_H */
+#endif /* CORECOMPILER_CCSDK_H */

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCDEPENDENCYSCANNER_H
-#define CCDEPENDENCYSCANNER_H
+#ifndef CORECOMPILER_CCDEPENDENCYSCANNER_H
+#define CORECOMPILER_CCDEPENDENCYSCANNER_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCFile.h>
@@ -36,4 +36,4 @@ CC_EXPORT CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef alloca
 
 CC_EXPORT CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef dependencyScanner, CCFileRef file);
 
-#endif /* CCDEPENDENCYSCANNER_H */
+#endif /* CORECOMPILER_CCDEPENDENCYSCANNER_H */

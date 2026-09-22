@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCUTILSPRIVATE_H
-#define CCUTILSPRIVATE_H
+#ifndef CORECOMPILER_CCUTILSPRIVATE_H
+#define CORECOMPILER_CCUTILSPRIVATE_H
 
 #if __cplusplus
 
@@ -36,4 +36,4 @@ CC_CXX_EXPORT llvm::SmallVector<const char *, 64> StringVectorToCStrings(const l
 
 #endif /* __cplusplus */
 
-#endif /* CCUTILSPRIVATE_H */
+#endif /* CORECOMPILER_CCUTILSPRIVATE_H */

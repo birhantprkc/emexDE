@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCFILESOURCELOCATION_H
-#define CCFILESOURCELOCATION_H
+#ifndef CORECOMPILER_CCFILESOURCELOCATION_H
+#define CORECOMPILER_CCFILESOURCELOCATION_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCSourceLocation.h>
@@ -37,4 +37,4 @@ CC_EXPORT CCFileSourceLocationRef CCFileSourceLocationCreate(CFAllocatorRef allo
 CC_EXPORT CFURLRef CCFileSourceLocationGetFileURL(CCFileSourceLocationRef fileSourceLocation);
 CC_EXPORT CCSourceLocation CCFileSourceLocationGetLocation(CCFileSourceLocationRef fileSourceLocation);
 
-#endif /* CCFILESOURCELOCATION_H */
+#endif /* CORECOMPILER_CCFILESOURCELOCATION_H */

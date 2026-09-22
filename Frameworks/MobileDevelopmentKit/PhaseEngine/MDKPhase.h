@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKPHASE_H
-#define MDKPHASE_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKPHASE_H
+#define MOBILEDEVELOPMENTKIT_MDKPHASE_H
 
 #import <Foundation/Foundation.h>
 #import <MobileDevelopmentKit/MDKJob.h>
@@ -38,4 +38,4 @@
 
 @end
 
-#endif /* MDKPHASE_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKPHASE_H */

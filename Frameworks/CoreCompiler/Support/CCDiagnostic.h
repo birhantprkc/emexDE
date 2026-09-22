@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCDIAGNOSTIC_H
-#define CCDIAGNOSTIC_H
+#ifndef CORECOMPILER_CCDIAGNOSTIC_H
+#define CORECOMPILER_CCDIAGNOSTIC_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCFileSourceLocation.h>
@@ -56,4 +56,4 @@ CC_EXPORT CFStringRef CCDiagnosticGetMainSource(CCDiagnosticRef diagnostic);
 CC_EXPORT CCFileSourceLocationRef CCDiagnosticGetFileSourceLocation(CCDiagnosticRef diagnostic);
 CC_EXPORT CFStringRef CCDiagnosticGetMessage(CCDiagnosticRef diagnostic);
 
-#endif /* CCDIAGNOSTIC_H */
+#endif /* CORECOMPILER_CCDIAGNOSTIC_H */

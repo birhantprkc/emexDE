@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCSOURCELOCATION_H
-#define CCSOURCELOCATION_H
+#ifndef CORECOMPILER_CCSOURCELOCATION_H
+#define CORECOMPILER_CCSOURCELOCATION_H
 
 #include <CoreCompiler/CCBase.h>
 
@@ -38,4 +38,4 @@ CC_EXPORT CCSourceLocation CCSourceLocationMake(CFIndex line, CFIndex column);
 CF_EXPORT Boolean CFSourceLocationIsValid(CCSourceLocation location);
 CC_EXPORT Boolean CCSourceLocationEqualToLocation(CCSourceLocation location1, CCSourceLocation location2);
 
-#endif /* CCSOURCELOCATION_H */
+#endif /* CORECOMPILER_CCSOURCELOCATION_H */

@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCJOB_H
-#define CCJOB_H
+#ifndef CORECOMPILER_CCJOB_H
+#define CORECOMPILER_CCJOB_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCDiagnostic.h>
@@ -54,4 +54,4 @@ CC_EXPORT Boolean CCJobExecuteJob(CCJobRef job, CFArrayRef *outDiagnostic, CFStr
 
 CC_EXPORT Boolean CCJobTypeSupportsMultithreading(CCJobType type);
 
-#endif /* CCJOB_H */
+#endif /* CORECOMPILER_CCJOB_H */

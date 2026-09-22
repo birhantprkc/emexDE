@@ -24,9 +24,6 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-CF_EXPORT double LiveShimVersionNumber;
-CF_EXPORT const unsigned char LiveShimVersionString[];
-
 #include <LiveShim/LiveShimSyscall.h>
 #include <LiveShim/dyld.h>
 #include <LiveShim/patchcache.h>

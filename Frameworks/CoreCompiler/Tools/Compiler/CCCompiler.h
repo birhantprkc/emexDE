@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef CCCOMPILER_H
-#define CCCOMPILER_H
+#ifndef CORECOMPILER_CCCOMPILER_H
+#define CORECOMPILER_CCCOMPILER_H
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCASTUnit.h>
@@ -31,4 +31,4 @@
 
 CC_EXPORT CCASTUnitRef CCCompilerJobExecute(CCJobRef job);
 
-#endif /* CCCOMPILER_H */
+#endif /* CORECOMPILER_CCCOMPILER_H */

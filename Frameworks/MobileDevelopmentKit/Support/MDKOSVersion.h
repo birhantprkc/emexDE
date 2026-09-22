@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef MDKOSVERSION_H
-#define MDKOSVERSION_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKOSVERSION_H
+#define MOBILEDEVELOPMENTKIT_MDKOSVERSION_H
 
 #import <Foundation/Foundation.h>
 
@@ -59,4 +59,4 @@ NSString * _Nullable MDKNumericVersionToVersionString(uint32_t numeric);
 
 @end
 
-#endif /* MDKOSVERSION_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKOSVERSION_H */
