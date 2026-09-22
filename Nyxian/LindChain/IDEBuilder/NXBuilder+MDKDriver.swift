@@ -28,13 +28,12 @@ extension NXBuilder: MDKDriverDelegate {
     }
     
     func driver(_ driver: MDKDriver, editJobListForJobList jobs: [MDKJob]) -> [MDKJob]? {
-        if self.projectDirty || driver.type != .clang {
+        if driver.type != .clang {
             return jobs
         }
         
         // This can now in theory run in parallel ?:3
         // Lets make incremental build fast again >=3
-        print("[#] JOBS.IN: \(jobs)");
         var newJobs: [MDKJob] = []
         var depsSet: Set<MDKDependency> = Set()
         
@@ -141,7 +140,31 @@ extension NXBuilder: MDKDriverDelegate {
             }
         }
         
-        print("[#] JOBS.OUT: \(newJobs)");
+        if self.projectDirty {
+            newJobs = jobs
+        }
+        
+        if var linkerJob: MDKJob = newJobs.last,
+           linkerJob.type == .linker {
+            var linkerFlgs: [String] = linkerJob.baseArguments
+            
+            for dependency in depsSet {
+                if dependency.name != "UIUtilities" {   // Call it the black sheep framework >:3
+                    if dependency.isFramework {
+                        linkerFlgs.append("-framework")
+                        linkerFlgs.append(dependency.name)
+                    } else if let libName = dependency.name {
+                        linkerFlgs.append("-l\(libName)")
+                    }
+                }
+            }
+            
+            newJobs.removeLast()
+            linkerJob = MDKJob(type: .linker, withArguments: linkerFlgs, withInputFileURLs: linkerJob.inputFileURLs, withOutputFileURL: linkerJob.outputFileURL)
+            print("\(linkerJob.arguments ?? [])")
+            newJobs.append(linkerJob)
+        }
+        
         return newJobs
     }
 }
