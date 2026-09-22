@@ -31,6 +31,7 @@
 #import <MobileDevelopmentKit/MDKASTUnit.h>
 #import <MobileDevelopmentKit/MDKCFType.h>
 #import <MobileDevelopmentKit/MDKCompiler.h>
+#import <MobileDevelopmentKit/MDKDependency.h>
 #import <MobileDevelopmentKit/MDKDependencyScanner.h>
 #import <MobileDevelopmentKit/MDKDiagnostic.h>
 #import <MobileDevelopmentKit/MDKFile.h>

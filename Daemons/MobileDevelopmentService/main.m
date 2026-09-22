@@ -32,6 +32,7 @@ static MDKDependencyScanner *dependencyScanner = nil;
 - (void)executeJob:(MDKJob*)job withReply:(void (^)(BOOL success, NSArray<MDKDiagnostic*> *diagnostics, NSString *mainSource))reply;
 - (void)setupDependencyScannerWithArguments:(NSArray<NSString*>*)arguments withReply:(void (^)(BOOL success))reply;
 - (void)headersForFile:(MDKFile*)file withReply:(void (^)(NSArray<MDKFile*> *files))reply;
+- (void)dependenciesForFile:(MDKFile*)file withReply:(void (^)(BOOL success, NSArray<MDKFile*> *files, NSArray<MDKDependency*> *dependencies))reply;
 
 @end
 
@@ -68,6 +69,17 @@ static MDKDependencyScanner *dependencyScanner = nil;
 {
     MDKPthreadDispatch(^{
         reply([dependencyScanner headerFilesForFile:file]);
+    });
+}
+
+- (void)dependenciesForFile:(MDKFile*)file
+                  withReply:(void (^)(BOOL success, NSArray<MDKFile*> *files, NSArray<MDKDependency*> *dependencies))reply
+{
+    MDKPthreadDispatch(^{
+        NSArray<MDKFile*> *outHeaders = nil;
+        NSArray<MDKDependency*> *outDependencies = nil;
+        BOOL didSucceed = [dependencyScanner dependenciesForFile:file withHeaderFilePaths:&outHeaders withDependencies:&outDependencies];
+        reply(didSucceed, outHeaders, outDependencies);
     });
 }
 

@@ -53,7 +53,7 @@ static void CCDependencyScannerFinalize(CFTypeRef cf)
 static void CCDependencyScannerInit(CFTypeRef cf)
 {
     CCDependencyScannerRef dependencyScanner = (CCDependencyScannerRef)cf;
-    new (&dependencyScanner->service) DependencyScanningService(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Make, CASOptions{}, /*CAS=*/nullptr, /*Cache=*/nullptr);
+    new (&dependencyScanner->service) DependencyScanningService(ScanningMode::DependencyDirectivesScan, ScanningOutputFormat::Full, CASOptions{}, /*CAS=*/nullptr, /*Cache=*/nullptr);
     new (&dependencyScanner->BaseArgs) std::vector<std::string>();
     new (&dependencyScanner->sysroot) std::string();
     new (&dependencyScanner->resourceDir) std::string();
@@ -98,6 +98,8 @@ CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef allocator,
     const char *homeEnv = std::getenv("HOME");
     if(homeEnv)
     {
+        dependencyScanner->BaseArgs.push_back("-fmodules");
+        dependencyScanner->BaseArgs.push_back("-fimplicit-module-maps");
         dependencyScanner->BaseArgs.push_back("-fmodules-cache-path=" + std::string(homeEnv) + "/Documents/Cache/Clang");
     }
     CFIndex count = CFArrayGetCount(arguments);
@@ -147,23 +149,42 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
 {
     assert(file != nullptr);
     
+    __block CFArrayRef headers = nullptr;
+    CCDependencyScannerCopyDependenciesForFile(dependencyScanner, file, ^(Boolean success, CFArrayRef headerFilePaths, CFArrayRef dependencies){
+        if(success)
+        {
+            headers = headerFilePaths;
+        }
+    });
+    return headers;
+}
+
+void CCDependencyScannerCopyDependenciesForFile(CCDependencyScannerRef dependencyScanner,
+                                                CCFileRef file,
+                                                void (^callback)(Boolean success, CFArrayRef headerFilePaths, CFArrayRef dependencies))
+{
+    assert(file != nullptr);
+    
     CFURLRef fileURL = CCFileGetFileURL(file);
     if(fileURL == nullptr)  /* MARK: might be guranteed */
     {
-        return nullptr;
+        callback(false, nullptr, nullptr);
+        return;
     }
     
     CFStringRef filePath = CFURLCopyFileSystemPath(fileURL, kCFURLPOSIXPathStyle);
     if(filePath == nullptr)
     {
-        return nullptr;
+        callback(false, nullptr, nullptr);
+        return;
     }
     
     const char *filePathCStr = CFStringGetCStringPtr(filePath, kCFStringEncodingUTF8);
     if(filePathCStr == nullptr)
     {
         CFRelease(filePath);
-        return nullptr;
+        callback(false, nullptr, nullptr);
+        return;
     }
     
     std::string filePathStr(filePathCStr);
@@ -174,13 +195,39 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
     std::vector<std::string> Args = dependencyScanner->BaseArgs;
     Args.push_back(filePathStr.c_str());
     
+    CFMutableArrayRef dependencyArray = CFArrayCreateMutable(kCFAllocatorDefault, 0, &kCFTypeArrayCallBacks);
+    if(dependencyArray == nullptr)
+    {
+        callback(false, nullptr, nullptr);
+        return;
+    }
+    
     llvm::DenseSet<ModuleID> alreadySeen;
-    auto lookupModuleOutput = [](const ModuleDeps &MD, ModuleOutputKind kind) -> std::string
+    auto lookupModuleOutput = [dependencyArray](const ModuleDeps &MD, ModuleOutputKind kind) -> std::string
     {
         switch(kind)
         {
             case ModuleOutputKind::ModuleFile:
             {
+                for(auto library = MD.LinkLibraries.begin(); library != MD.LinkLibraries.end(); ++library)
+                {
+                    CFStringRef libraryStr = CFStringCreateWithCString(kCFAllocatorDefault, library->Library.c_str(), kCFStringEncodingUTF8);
+                    if(libraryStr == nullptr)
+                    {
+                        continue;
+                    }
+                    
+                    CCDependencyRef dependency = CCDependencyCreate(kCFAllocatorDefault, libraryStr, library->IsFramework);
+                    CFRelease(libraryStr);
+                    if(dependency == nullptr)
+                    {
+                        continue;
+                    }
+                    
+                    CFArrayAppendValue(dependencyArray, dependency);
+                    CFRelease(dependency);
+                }
+                
                 std::string name = MD.ID.ModuleName;
                 for(char &c : name)
                 {
@@ -205,7 +252,9 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
     if(!depsOrErr)
     {
         llvm::errs() << llvm::toString(depsOrErr.takeError()) << '\n';
-        return nullptr;
+        CFRelease(dependencyArray);
+        callback(false, nullptr, nullptr);
+        return;
     }
     
     const TranslationUnitDeps &deps = *depsOrErr;
@@ -214,7 +263,9 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
     CFMutableArrayRef headers = CFArrayCreateMutable(allocator, 0, &kCFTypeArrayCallBacks);
     if(!headers)
     {
-        return nullptr;
+        CFRelease(dependencyArray);
+        callback(false, nullptr, nullptr);
+        return;
     }
     
     llvm::StringSet<> seen;
@@ -271,5 +322,5 @@ CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef 
         });
     }
     
-    return headers;
+    return callback(true, headers, dependencyArray);
 }

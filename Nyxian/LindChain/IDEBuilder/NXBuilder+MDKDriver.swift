@@ -36,6 +36,7 @@ extension NXBuilder: MDKDriverDelegate {
         // Lets make incremental build fast again >=3
         print("[#] JOBS.IN: \(jobs)");
         var newJobs: [MDKJob] = []
+        var depsSet: Set<MDKDependency> = Set()
         
         let userSelectedValue: NSNumber? = UserDefaults.standard.object(forKey: "cputhreads") as? NSNumber
         let userSelected = userSelectedValue?.intValue ?? CCGetMaximumPerformanceCores()
@@ -79,15 +80,31 @@ extension NXBuilder: MDKDriverDelegate {
                         return
                     }
                     
-                    // Checking if the header files included by the source code are newer than the object file
                     let inputFile: MDKFile = MDKFile(url: inputFileURL)
-                    guard let headers = self.dependencyScanner.headerFiles(for: inputFile) else {
+                    
+                    // Checking if the header files included by the source code are newer than the object file
+                    var outHeaders: NSArray? = nil
+                    var outDependencies: NSArray? = nil
+                    if !self.dependencyScanner.dependencies(for: inputFile, withHeaderFilePaths: &outHeaders, withDependencies: &outDependencies) {
                         self.database.removeFileDebug(ofPath: inputFile.fileURL.path)
                         os_unfair_lock_lock(&osUnfairLock)
                         newJobs.append(job)
                         os_unfair_lock_unlock(&osUnfairLock)
                         return
                     }
+                    
+                    guard let headers = outHeaders as? [MDKFile],
+                          let dependencies = outDependencies as? [MDKDependency] else {
+                        self.database.removeFileDebug(ofPath: inputFile.fileURL.path)
+                        os_unfair_lock_lock(&osUnfairLock)
+                        newJobs.append(job)
+                        os_unfair_lock_unlock(&osUnfairLock)
+                        return
+                    }
+                    
+                    os_unfair_lock_lock(&osUnfairLock)
+                    depsSet.formUnion(dependencies)
+                    os_unfair_lock_unlock(&osUnfairLock)
                     
                     var needsRebuild = false
                     for header in headers {

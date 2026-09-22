@@ -226,14 +226,7 @@ bool kvobject_snapshot_into_mem(void *mem,
     
     /* preparing stack array */
     kvobject_t *kvoarr[2] = { (kvobject_t*)mem, kvo };
-    if(((kvobject_t*)mem)->main_handler(kvoarr, kvObjEventSnapshot, 0) != 0)
-    {
-        did_succeed = false;
-    }
-    else
-    {
-        did_succeed = true;
-    }
+    did_succeed = ((kvobject_t*)mem)->main_handler(kvoarr, kvObjEventSnapshot, 0) == 0;
     
 out_unlock:
     kvo_unlock(kvo);

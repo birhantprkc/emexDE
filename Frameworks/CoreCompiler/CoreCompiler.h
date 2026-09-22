@@ -34,6 +34,7 @@
 #include <CoreCompiler/CCDriver.h>
 #include <CoreCompiler/CCSDK.h>
 #include <CoreCompiler/CCASTUnit.h>
+#include <CoreCompiler/CCDependency.h>
 #include <CoreCompiler/CCDependencyScanner.h>
 #include <CoreCompiler/CCCompiler.h>
 #include <CoreCompiler/CCSwiftCompiler.h>
@@ -41,6 +42,4 @@
 #include <CoreCompiler/CCUtils.h>
 #include <CoreCompiler/CCMachO.h>
 
-#endif /* CORECOMPILER_H
-
-*/
+#endif /* CORECOMPILER_H */

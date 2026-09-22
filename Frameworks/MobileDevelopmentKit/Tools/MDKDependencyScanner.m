@@ -42,4 +42,28 @@
     return (__bridge_transfer NSArray<MDKFile*>*)CCDependencyScannerCopyDependencyFilesForFile((__bridge CCDependencyScannerRef)self, (__bridge CCFileRef)file);
 }
 
+- (BOOL)dependenciesForFile:(MDKFile*)file
+        withHeaderFilePaths:(NSArray<MDKFile*>**)headerFilePaths
+           withDependencies:(NSArray<MDKDependency*>**)dependencies;
+{
+    __block BOOL didSucceed = NO;
+    __block NSArray<MDKFile*> *outHeaderFilePaths = NULL;
+    __block NSArray<MDKDependency*> *outDependencies = NULL;
+    CCDependencyScannerCopyDependenciesForFile((__bridge CCDependencyScannerRef)self, (__bridge CCFileRef)file, ^(Boolean success, CFArrayRef headers, CFArrayRef dependecyArray){
+        didSucceed = success;
+        outHeaderFilePaths = (__bridge_transfer NSArray<MDKFile*>*)headers;
+        outDependencies = (__bridge_transfer NSArray<MDKDependency*>*)dependecyArray;
+    });
+    
+    if(headerFilePaths != nil)
+    {
+        *headerFilePaths = outHeaderFilePaths;
+    }
+    if(dependencies != nil)
+    {
+        *dependencies = outDependencies;
+    }
+    return didSucceed;
+}
+
 @end

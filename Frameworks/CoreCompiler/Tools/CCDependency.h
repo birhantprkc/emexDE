@@ -22,20 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H
-#define MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H
+#ifndef CORECOMPILER_CCDEPENDENCY_H
+#define CORECOMPILER_CCDEPENDENCY_H
 
-#import <MobileDevelopmentKit/MDKCFType.h>
-#import <MobileDevelopmentKit/MDKFile.h>
-#import <MobileDevelopmentKit/MDKDependency.h>
+#include <CoreCompiler/CCBase.h>
 
-@interface MDKDependencyScanner : MDKCFType
+typedef struct __CCDependency *CCDependencyRef;
 
-+ (instancetype)dependencyScannerWithArguments:(NSArray<NSString*>*)arguments;
+CC_EXPORT CFTypeID CCDependencyGetTypeID(void);
 
-- (NSArray<MDKFile*>*)headerFilesForFile:(MDKFile*)file;
-- (BOOL)dependenciesForFile:(MDKFile*)file withHeaderFilePaths:(NSArray<MDKFile*>**)headerFilePaths withDependencies:(NSArray<MDKDependency*>**)dependencies;
+CC_EXPORT CCDependencyRef CCDependencyCreate(CFAllocatorRef allocator, CFStringRef name, Boolean isFramework);
 
-@end
+CC_EXPORT CFStringRef CCDependencyGetName(CCDependencyRef dependency);
+CC_EXPORT Boolean CCDependencyIsFramework(CCDependencyRef dependency);
 
-#endif /* MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H */
+#endif /* CORECOMPILER_CCDEPENDENCY_H */

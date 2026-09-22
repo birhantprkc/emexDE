@@ -47,6 +47,13 @@
     return [_remoteCompiler headersForFile:file];
 }
 
+- (BOOL)dependenciesForFile:(MDKFile*)file
+        withHeaderFilePaths:(NSArray<MDKFile*>**)headerFilePaths
+           withDependencies:(NSArray<MDKDependency*>**)dependencies
+{
+    return [_remoteCompiler dependenciesForFile:file withHeaderFilePaths:headerFilePaths withDependencies:dependencies];
+}
+
 + (Class)class
 {
     return [MDKDependencyScanner class];
@@ -123,11 +130,14 @@
             }
         };
         NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:@protocol(NXCompilationServiceProtocol)];
-        NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKFile class], [MDKJob class], [MDKDiagnostic class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
+        NSSet *classes = [NSSet setWithObjects: [NSArray class], [MDKFile class], [MDKJob class], [MDKDiagnostic class], [MDKDependency class], [MDKFileSourceLocation class], [NSString class], [NSURL class], nil];
         [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:0 ofReply:NO];
         [iface setClasses:classes forSelector:@selector(executeJob:withReply:) argumentIndex:1 ofReply:YES];
         [iface setClasses:classes forSelector:@selector(headersForFile:withReply:) argumentIndex:0 ofReply:NO];
         [iface setClasses:classes forSelector:@selector(headersForFile:withReply:) argumentIndex:0 ofReply:YES];
+        [iface setClasses:classes forSelector:@selector(dependenciesForFile:withReply:) argumentIndex:0 ofReply:NO];
+        [iface setClasses:classes forSelector:@selector(dependenciesForFile:withReply:) argumentIndex:1 ofReply:YES];
+        [iface setClasses:classes forSelector:@selector(dependenciesForFile:withReply:) argumentIndex:2 ofReply:YES];
         remoteCompiler->_connection.remoteObjectInterface = iface;
         [remoteCompiler->_connection resume];
         
@@ -301,6 +311,67 @@
         [_instance terminate];
         os_unfair_lock_unlock(&_lock);
         return nil;
+    }
+    
+    return result;
+}
+
+- (BOOL)dependenciesForFile:(MDKFile*)file
+        withHeaderFilePaths:(NSArray<MDKFile*>**)headerFilePaths
+           withDependencies:(NSArray<MDKDependency*>**)dependencies
+{
+    os_unfair_lock_lock(&_lock);
+    if(_instance == nil)
+    {
+        os_unfair_lock_unlock(&_lock);
+        return nil;
+    }
+    os_unfair_lock_unlock(&_lock);
+    
+    __block BOOL failed = NO;
+    dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+    __block BOOL result = false;
+    __block NSArray<MDKFile*> *outHeaders;
+    __block NSArray<MDKDependency*> *outDependencies;
+    
+    id proxy = [_connection remoteObjectProxyWithErrorHandler:^(NSError *error) {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }];
+    
+    if(proxy == NULL)
+    {
+        /* semaphores remember the signal, it doesnt have to catch them in time */
+        failed = YES;
+        dispatch_semaphore_signal(sema);
+    }
+    else
+    {
+        [proxy dependenciesForFile:file withReply:^(BOOL success, NSArray<MDKFile*> *hdrs, NSArray<MDKDependency*> *deps){
+            result = success;
+            outHeaders = hdrs;
+            outDependencies = deps;
+            dispatch_semaphore_signal(sema);
+        }];
+    }
+    
+    dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+    if(failed)
+    {
+        os_unfair_lock_lock(&_lock);
+        [_instance terminate];
+        os_unfair_lock_unlock(&_lock);
+        return nil;
+    }
+    
+    if(headerFilePaths != nil)
+    {
+        *headerFilePaths = outHeaders;
+    }
+    if(dependencies != nil)
+    {
+        *dependencies = outDependencies;
     }
     
     return result;

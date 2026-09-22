@@ -22,20 +22,18 @@
  * SOFTWARE.
  */
 
-#ifndef MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H
-#define MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H
+#ifndef MOBILEDEVELOPMENTKIT_MDKDEPENDENCY_H
+#define MOBILEDEVELOPMENTKIT_MDKDEPENDENCY_H
 
 #import <MobileDevelopmentKit/MDKCFType.h>
-#import <MobileDevelopmentKit/MDKFile.h>
-#import <MobileDevelopmentKit/MDKDependency.h>
 
-@interface MDKDependencyScanner : MDKCFType
+@interface MDKDependency : MDKCFType <NSSecureCoding>
 
-+ (instancetype)dependencyScannerWithArguments:(NSArray<NSString*>*)arguments;
+@property (nonatomic, strong) NSString *name;
+@property (nonatomic) BOOL isFramework;
 
-- (NSArray<MDKFile*>*)headerFilesForFile:(MDKFile*)file;
-- (BOOL)dependenciesForFile:(MDKFile*)file withHeaderFilePaths:(NSArray<MDKFile*>**)headerFilePaths withDependencies:(NSArray<MDKDependency*>**)dependencies;
++ (instancetype)dependencyWithName:(NSString*)name isFramework:(BOOL)isFramework;
 
 @end
 
-#endif /* MOBILEDEVELOPMENTKIT_MDKDEPENDENCYSCANNER_H */
+#endif /* MOBILEDEVELOPMENTKIT_MDKDEPENDENCY_H */

@@ -27,6 +27,7 @@
 
 #include <CoreCompiler/CCBase.h>
 #include <CoreCompiler/CCFile.h>
+#include <CoreCompiler/CCDependency.h>
 
 typedef struct __CCDependencyScanner *CCDependencyScannerRef;
 
@@ -35,5 +36,6 @@ CC_EXPORT CFTypeID CCDependencyScannerGetTypeID(void);
 CC_EXPORT CCDependencyScannerRef CCDependencyScannerCreate(CFAllocatorRef allocator, CFArrayRef arguments);
 
 CC_EXPORT CFArrayRef CCDependencyScannerCopyDependencyFilesForFile(CCDependencyScannerRef dependencyScanner, CCFileRef file);
+CC_EXPORT void CCDependencyScannerCopyDependenciesForFile(CCDependencyScannerRef dependencyScanner, CCFileRef file, void (^callback)(Boolean success, CFArrayRef headerFilePaths, CFArrayRef dependencies));
 
 #endif /* CORECOMPILER_CCDEPENDENCYSCANNER_H */
