@@ -51,3 +51,18 @@ extension MDKSourceLocation: Codable {
         self.column = try container.decode(CFIndex.self, forKey: .column)
     }
 }
+
+extension MDKFileType: Codable {
+    public var isSwift: Bool {
+        return self == .swift
+    }
+    
+    public var isClang: Bool {
+        let swift: MDKFileType = .swift
+        return self.rawValue < swift.rawValue
+    }
+    
+    public var isObject: Bool {
+        return self == .object
+    }
+}
