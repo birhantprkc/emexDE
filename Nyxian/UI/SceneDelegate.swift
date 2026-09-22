@@ -713,8 +713,20 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
                                 for file in signFiles {
                                     if !LCUtils.signMachOWithoutPatch(at: slot.appendingPathComponent(String(file))) {
                                         c.recoveryLogError("ERROR: failed to sign \(file)")
+                                        try? FileManager.default.removeItem(at: slot)
+                                        return
                                     } else {
                                         c.recoveryLog("signed \(file)")
+                                    }
+                                }
+                                
+                                for file in signFiles {
+                                    if !vnode_refresh_with_path(slot.appendingPathComponent(String(file)).path) {
+                                        c.recoveryLogError("ERROR: failed to refresh \(file)")
+                                        try? FileManager.default.removeItem(at: slot)
+                                        return
+                                    } else {
+                                        c.recoveryLog("refreshed \(file)")
                                     }
                                 }
                             } catch {
@@ -807,6 +819,8 @@ class BootViewController: UIViewController, UITabBarControllerDelegate, UIOnboar
                         recoveryController.recoveryLogError("ERROR: Couldnt load ROM: \(String(cString: dlerror()))")
                         recoveryShowMenu(recoveryController: recoveryController)
                         self.transition(to: recoveryController, style: .crossfade)
+                        return
+                    } else {
                         return
                     }
                 }
