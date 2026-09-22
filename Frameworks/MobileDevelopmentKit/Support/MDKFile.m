@@ -72,8 +72,8 @@
         case kCCFileTypeObjCHeader: return MDKFileTypeObjCHeader;
         case kCCFileTypeObjCXX: return MDKFileTypeObjCXX;
         case kCCFileTypeObjCXXHeader: return MDKFileTypeObjCXXHeader;
-        case kCCFileTypeSwift: return MDKFileTypeC;
-        case kCCFileTypeObject: return MDKFileTypeC;
+        case kCCFileTypeSwift: return MDKFileTypeSwift;
+        case kCCFileTypeObject: return MDKFileTypeObject;
         default: return MDKFileTypeUnknown;
     }
 }
