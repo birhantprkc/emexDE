@@ -817,37 +817,45 @@ func recoveryShowMenu(recoveryController: NXRecoveryViewController) {
                                 }
                                 
                                 // fixing up explicit paths and registering them in signFiles if needed
-                                c.recoveryLog("signing files")
-                                var signFiles: [String] = []
+                                c.recoveryLog("fixing up explicit paths")
+                                var signFiles: [(String,Int)] = []
                                 for path in manifest.paths {
-                                    c.recoveryLog("setting up explicit path \(path.path)")
+                                    c.recoveryLog("fixing up explicit path \(path.path)")
                                     
                                     let url: URL = slot.appendingPathComponent(path.path)
-                                    try FileManager.default.setAttributes([.posixPermissions:path.permission], ofItemAtPath: url.path)
                                     if path.requiresCodeSigning {
-                                        signFiles.append(path.path)
+                                        signFiles.append((path.path, path.permission))
+                                    } else {
+                                        try FileManager.default.setAttributes([.posixPermissions:path.permission], ofItemAtPath: url.path)
                                     }
                                 }
                                 
                                 // fixing up code signing of paths if required
+                                c.recoveryLog("signing files")
                                 for file in signFiles {
-                                    if !NXBootSignMachOWithoutPatch(slot.appendingPathComponent(String(file))) {
-                                        c.recoveryLogError("ERROR: failed to sign \(file)")
+                                    if !NXBootSignMachOWithoutPatch(slot.appendingPathComponent(String(file.0))) {
+                                        c.recoveryLogError("ERROR: failed to sign \(file.0)")
                                         try? FileManager.default.removeItem(at: slot)
                                         return
                                     } else {
-                                        c.recoveryLog("signed \(file)")
+                                        c.recoveryLog("signed \(file.0)")
                                     }
                                 }
                                 
                                 for file in signFiles {
-                                    if !refreshVnode(atPath: slot.appendingPathComponent(String(file)).path) {
-                                        c.recoveryLogError("ERROR: failed to refresh \(file)")
+                                    if !refreshVnode(atPath: slot.appendingPathComponent(String(file.0)).path) {
+                                        c.recoveryLogError("ERROR: failed to refresh \(file.0)")
                                         try? FileManager.default.removeItem(at: slot)
                                         return
                                     } else {
-                                        c.recoveryLog("refreshed \(file)")
+                                        c.recoveryLog("refreshed \(file.0)")
                                     }
+                                }
+                                
+                                // fixing up permissions of sign files
+                                c.recoveryLog("refixing sign files permissions")
+                                for file in signFiles {
+                                    try FileManager.default.setAttributes([.posixPermissions:file.1], ofItemAtPath: slot.appendingPathComponent(String(file.0)).path)
                                 }
                                 
                                 if let installer = manifest.installer {
