@@ -311,7 +311,7 @@ private func lastDlError() -> String {
     return "unknown dyld error"
 }
 
-private func loadSlot() -> SlotLoadResult {
+private func loadSlot(loadSuperslotForcefully: Bool) -> SlotLoadResult {
     let fm = FileManager.default
     let slot = flashedSlotURL()
     let manifestURL = slot.appendingPathComponent("manifest.plist")
@@ -319,7 +319,8 @@ private func loadSlot() -> SlotLoadResult {
     let image: URL
     let name: String
     
-    if fm.fileExists(atPath: manifestURL.path) {
+    if fm.fileExists(atPath: manifestURL.path),
+       !loadSuperslotForcefully {
         do {
             let manifest = try ROMManifest(manifestPlistURL: manifestURL)
             image = try slotFile(manifest.executable, in: slot)
@@ -948,11 +949,13 @@ class BootViewController: UIViewController {
             NXVolumeButtonMonitor.disarm()
             
             if mode == 2 {
-                DispatchQueue.main.async { self.enterRecovery(error: nil) }
+                DispatchQueue.main.async {
+                    self.enterRecovery(error: nil)
+                }
                 return
             }
             
-            let slot = loadSlot()
+            let slot = loadSlot(loadSuperslotForcefully: mode == 1)
             
             DispatchQueue.main.async {
                 guard case let .loaded(name, slotMain, slotDidAppear, slotCreateWindow) = slot else {
