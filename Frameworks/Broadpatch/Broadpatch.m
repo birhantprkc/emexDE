@@ -74,6 +74,10 @@ LIBKERN_DEFINE_INTERPOSE_PATCHABLE(chflags);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(truncate);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(ftruncate);
 
+/* PTY */
+LIBKERN_DEFINE_INTERPOSE_PATCHABLE(openpty);
+LIBKERN_DEFINE_INTERPOSE_PATCHABLE(forkpty);    /* whyyyy would you want to use this (ehehe (everyone wants to use this ;-;)) */
+
 /* task API */
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(task_get_special_port);
 LIBKERN_DEFINE_INTERPOSE_PATCHABLE(task_set_special_port);
