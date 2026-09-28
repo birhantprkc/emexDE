@@ -63,7 +63,7 @@ void environment_client_connect_to_syscall_proxy(PEMachPort *port)
 
 #pragma mark - Initilizer
 
-static void PEInsertLibrariesIfNeeded(void)
+void PEInsertLibrariesIfNeeded(void)
 {
     const char *librariesToInsert = getenv("DYLD_INSERT_LIBRARIES");
     if(librariesToInsert == NULL)
