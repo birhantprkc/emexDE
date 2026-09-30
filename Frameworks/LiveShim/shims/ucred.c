@@ -44,6 +44,37 @@ LIBKERN_PATCH(gid_t, getegid, (void),
     return (gid_t)liveshim_syscall(SYS_getegid);
 });
 
+/* MARK: the fs layer has no UNIX ownership semantics yet */
+LIBKERN_PATCH(int, chown, (const char *path,
+                           uid_t owner,
+                           gid_t group),
+{
+    return LIBKERN_ORIG(chown)(path, 501, 501);
+});
+
+LIBKERN_PATCH(int, lchown, (const char *path,
+                            uid_t owner,
+                            gid_t group),
+{
+    return LIBKERN_ORIG(lchown)(path, 501, 501);
+});
+
+LIBKERN_PATCH(int, fchown, (int fd,
+                            uid_t owner,
+                            gid_t group),
+{
+    return LIBKERN_ORIG(fchown)(fd, 501, 501);
+});
+
+LIBKERN_PATCH(int, fchownat, (int fd,
+                              const char *path,
+                              uid_t owner,
+                              gid_t group,
+                              int flags),
+{
+    return LIBKERN_ORIG(fchownat)(fd, path, 501, 501, flags);
+});
+
 LIBKERN_PATCH(pid_t, getppid, (void),
 {
     return (pid_t)liveshim_syscall(SYS_getppid);
@@ -108,6 +139,10 @@ static void InstallPatches(void)
     LIBKERN_INSTALL_PATCH(getgid);
     LIBKERN_INSTALL_PATCH(geteuid);
     LIBKERN_INSTALL_PATCH(getegid);
+    LIBKERN_INSTALL_PATCH(chown);
+    LIBKERN_INSTALL_PATCH(lchown);
+    LIBKERN_INSTALL_PATCH(fchown);
+    LIBKERN_INSTALL_PATCH(fchownat);
     LIBKERN_INSTALL_PATCH(getppid);
     LIBKERN_INSTALL_PATCH(setuid);
     LIBKERN_INSTALL_PATCH(seteuid);
