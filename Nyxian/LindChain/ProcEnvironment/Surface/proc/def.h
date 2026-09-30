@@ -27,6 +27,10 @@
 #include <LindChain/ProcEnvironment/Surface/trust/trust.h>
 #include <sys/sysctl.h>
 
+#ifndef PE_SUPPLEMENTARY_GROUPS_MAX
+#define PE_SUPPLEMENTARY_GROUPS_MAX 32
+#endif
+
 /// Helper macros
 #define proc_getpid(proc) ((proc)->bsd.kp_proc.p_pid)
 #define proc_getpidv(proc) ((proc)->nyx.pidv)
@@ -137,6 +141,12 @@ struct ksurface_proc {
         pid_t sid;
         pid_t pgid;
         int pidv;
+        
+        /* BSD login identity and supplementary groups */
+        char login_name[MAXLOGNAME];
+        uint16_t login_name_len;
+        gid_t supplementary_groups[PE_SUPPLEMENTARY_GROUPS_MAX];
+        uint16_t supplementary_group_count;
         
         /* wait4 markers */
         int64_t p_status;

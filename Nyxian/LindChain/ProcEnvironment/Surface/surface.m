@@ -68,6 +68,8 @@ syscall_list_item_t sys_list[] = {
     { .name = "SYS_getsid",         .sysnum = SYS_getsid,       .hndl = GET_SYSCALL_HANDLER(getsid)         },
     { .name = "SYS_setsid",         .sysnum = SYS_setsid,       .hndl = GET_SYSCALL_HANDLER(setsid)         },
     { .name = "SYS_getpgid",        .sysnum = SYS_getpgid,      .hndl = GET_SYSCALL_HANDLER(getpgid)        },
+    { .name = "SYS_loginctl",       .sysnum = SYS_loginctl,     .hndl = GET_SYSCALL_HANDLER(loginctl)       },
+    { .name = "SYS_groupctl",       .sysnum = SYS_groupctl,     .hndl = GET_SYSCALL_HANDLER(groupctl)       },
 #endif /* KSURFACE_SYS_UCRED_ENABLED */
     
 #if KSURFACE_SYS_PROC_ENABLED
