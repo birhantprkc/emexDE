@@ -21,6 +21,7 @@
 
 #include <LiveShim/shim.h>
 #include <LiveShim/dyld.h>
+#include <LiveShim/dyld_node_remap.h>
 #include <LiveShim/cdhash.h>
 #include <Frameworks/HWHook/HWHookThreadContext.h>
 #include <mach-o/dyld_images.h>
@@ -32,8 +33,6 @@
 #include <os/lock.h>
 #include <LiveShim/patchcache.h>
 #include <Broadpatch/Broadpatch.h>
-#include <Nyxian/LindChain/Private/mach/mach_vm.h>
-#include <Nyxian/LindChain/ProcEnvironment/LiveContainer/LCMachOUtils.h>
 
 #if __has_include(<ksurface_config.h>)
 #include <ksurface_config.h>
@@ -61,355 +60,307 @@ static inline void _dyld_hook_log_timestamp(void)
 #define dyld_hook_log(fmt, ...) ((void)0)
 #endif /* KSURFACE_DYLD_HOOK_LOGGING_ENABLED */
 
-#define PE_MMAP_FD_CACHE_MAX 128
+static int (*orig_dyld_open)(const char *path, int flags, mode_t mode);
+static int (*orig_dyld_fcntl)(int fildes, int cmd, void *param);
+static int (*orig_dyld_fstat64)(int fildes, struct stat *buf);
+static int (*orig_dyld_stat64)(const char *path, struct stat *buf);
+static int (*orig_dyld_openat)(int fd, const char *path, int flags, mode_t mode);
 
-typedef struct {
-    dev_t dev;
-    ino_t ino;
+static int hook_fcntl(int fildes,
+                      int cmd,
+                      void *param)
+{
+    dyld_hook_log("[hook_fcntl:args] (fildes = %d, cmd: %d, param: %p)\n", fildes, cmd, param);
+    int ret = orig_dyld_fcntl(fildes, cmd, param);
+    if(cmd == F_GETPATH)
+    {
+        dyld_hook_log("[hook_fcntl:orig_return] (ret = %d, path: %s)\n", ret, (char*)param);
+        dyld_hook_log("[hook_fcntl] [library validation bypass] fooling da cutie dyld >:3\n");
+        if(inode_bank_get_path(inode_for_fd(fildes), param, MAXPATHLEN))
+        {
+            dyld_hook_log("[hook_fcntl] [library validation bypass] redirecting (fd = %d) to (path = %s)\n", fildes, (char*)param);
+        }
+    }
+#if KSURFACE_DYLD_HOOK_LOGGING_ENABLED
+    else
+    {
+        dyld_hook_log("[hook_fcntl:orig_return] (ret = %d)\n", ret);
+    }
+#endif /* KSURFACE_DYLD_HOOK_LOGGING_ENABLED */
     
-    int shadow_fd;
-    char shadow_path[PATH_MAX];
+#if KSURFACE_DYLD_HOOK_LOGGING_ENABLED
+    if(cmd == F_GETPATH)
+    {
+        dyld_hook_log("[hook_fcntl:return] (ret = %d, path: %s)\n", ret, (char*)param);
+    }
+    else
+    {
+        dyld_hook_log("[hook_fcntl:return] (ret = %d)\n", ret);
+    }
+#endif /* KSURFACE_DYLD_HOOK_LOGGING_ENABLED */
     
-    off_t signed_slice;
-    bool signature_registered;
-} dyld_fd_cache_entry_t;
+    return ret;
+}
 
 static const char *mmap_sandbox_map_exec_allowed_path = NULL;
-
-static _Thread_local dyld_fd_cache_entry_t dyld_fd_cache[PE_MMAP_FD_CACHE_MAX];
-static _Thread_local size_t dyld_fd_cache_count;
 
 static _Thread_local bool cdhash_verified = false;
 static _Thread_local bool cdhash_must_valid;
 static _Thread_local bool open_hardlock;
 static _Thread_local const char *cdhash_data_container_match;
 static _Thread_local dlopen_cdhash_verifier_failed_callback_t cdhash_verifier_failed_callback;
-
-LIBKERN_DEFINE_PATCHABLE(bool, dyld_should_shadow_file, (int fd,
-                                                         char path[PATH_MAX]))
+static int path_validation_bypass_open(int fd,
+                                       int flags)
 {
-    if(fcntl(fd, F_GETPATH, path) == -1)
+    char actualPath[PATH_MAX];
+    if(fcntl(fd, F_GETPATH, actualPath) != -1)
     {
-        return false;
-    }
-    
-    static const char prefix[] = "/private/var/mobile/Containers/Data";
-    const size_t prefix_len = sizeof(prefix) - 1;
-    if(strncmp(path, prefix, prefix_len) != 0)
-    {
-        return false;
-    }
-    
-    return path[prefix_len] == '\0' || path[prefix_len] == '/';
-}
-
-LIBKERN_DEFINE_PATCHABLE(dyld_fd_cache_entry_t *, dyld_fd_cache_find, (dev_t dev,
-                                                                       ino_t ino))
-{
-    for(size_t i = 0; i < dyld_fd_cache_count; ++i)
-    {
-        dyld_fd_cache_entry_t *entry = &dyld_fd_cache[i];
-        if(entry->dev == dev && entry->ino == ino)
-        {
-            return entry;
-        }
-    }
-    
-    return NULL;
-}
-
-LIBKERN_DEFINE_PATCHABLE(dyld_fd_cache_entry_t *, dyld_fd_cache_insert, (dev_t dev,
-                                                                         ino_t ino,
-                                                                         int shadow_fd,
-                                                                         const char *shadow_path))
-{
-    if(dyld_fd_cache_count >= PE_MMAP_FD_CACHE_MAX)
-    {
-        return NULL;
-    }
-    
-    dyld_fd_cache_entry_t *entry = &dyld_fd_cache[dyld_fd_cache_count++];
-    
-    memset(entry, 0, sizeof(*entry));
-    
-    entry->dev = dev;
-    entry->ino = ino;
-    entry->shadow_fd = shadow_fd;
-    entry->signed_slice = (off_t)-1;
-    entry->signature_registered = false;
-    
-    strlcpy(entry->shadow_path, shadow_path, sizeof(entry->shadow_path));
-    
-    return entry;
-}
-
-LIBKERN_DEFINE_PATCHABLE(void, dyld_fd_cache_reset, (void))
-{
-    for(size_t i = 0; i < dyld_fd_cache_count; ++i)
-    {
-        dyld_fd_cache_entry_t *entry = &dyld_fd_cache[i];
+        dyld_hook_log("[path_validation_bypass_open:path] %s\n", actualPath);
         
-        if(entry->shadow_fd >= 0)
+        const char prefix[] = "/private/var/mobile/Containers/Data";
+        if(strncmp(actualPath, prefix, sizeof(prefix) - 1) == 0)
         {
-            close(entry->shadow_fd);
-        }
-
-        if(entry->shadow_path[0] != '\0')
-        {
-            unlink(entry->shadow_path);
+            /* need a new path */
+            char newTmpPath[PATH_MAX];
+            snprintf(newTmpPath, sizeof(newTmpPath),  "%s/tmp/%d/0x%llx.dylib", mmap_sandbox_map_exec_allowed_path, getpid(), inode_for_fd(fd));    /* use tmp so iOS clears it automatically in LP home */
+            
+            dyld_hook_log("[path_validation_bypass_open] [library validation bypass] new path: %s\n", newTmpPath);
+            dyld_hook_log("[path_validation_bypass_open] [library validation bypass] dyld needs to think that %s is located at %s\n", newTmpPath, actualPath);
+            
+            int copyfd = open(newTmpPath, flags);
+            if(copyfd >= 0)
+            {
+                close(fd);
+                dup2(copyfd, fd);
+                close(copyfd);
+                dyld_hook_log("[path_validation_bypass_open] [library validation bypass] path already has APFS CoW copy\n");
+                goto lv_bypass_setup_done;
+            }
+            
+            dyld_hook_log("[path_validation_bypass_open] [library validation bypass] APFS CoW copy needed\n");
+            if(fclonefileat(fd, AT_FDCWD, newTmpPath, 0) == 0)
+            {
+                dyld_hook_log("[path_validation_bypass_open] [library validation bypass] APFS CoW copy succeeded\n");
+                copyfd = open(newTmpPath, flags);
+                if(copyfd < 0)
+                {
+                    dyld_hook_log("[path_validation_bypass_open] [library validation bypass] couldn't open file descriptor\n");
+                    goto lv_bypass_setup_done;
+                }
+            }
+            else
+            {
+             
+                dyld_hook_log("[path_validation_bypass_open] [library validation bypass] APFS CoW copy failed(errno: %s), falling back to copyfile\n", strerror(errno));
+                copyfd = open(newTmpPath, O_RDWR | O_CREAT | O_TRUNC, 0777);
+                if(copyfd < 0)
+                {
+                    dyld_hook_log("[path_validation_bypass_open] [library validation bypass] couldn't open file descriptor\n");
+                    goto lv_bypass_setup_done;
+                }
+            
+                int ret = fcopyfile(fd, copyfd, NULL, COPYFILE_DATA);
+                close(copyfd);
+                if(ret != 0)
+                {
+                    dyld_hook_log("[path_validation_bypass_open] [library validation bypass] fcopyfile failed: %s\n", strerror(errno));
+                    goto lv_bypass_setup_done;
+                }
+                dyld_hook_log("[path_validation_bypass_open] [library validation bypass] fcopyfile succeeded\n");
+                
+                copyfd = open(newTmpPath, flags);
+                if(copyfd < 0)
+                {
+                    dyld_hook_log("[path_validation_bypass_open] [library validation bypass] couldn't open file descriptor\n");
+                    goto lv_bypass_setup_done;
+                }
+            }
+            
+            /* this to orient or selfs */
+            ino_t inode = inode_for_fd(copyfd);
+            dyld_hook_log("[path_validation_bypass_open] [library validation bypass] setting up inode redirection for inode: 0x%llx\n", inode);
+            inode_bank_put(inode, newTmpPath);
+            inode_bank_set_redirect(inode, actualPath);
+            
+            close(fd);
+            dup2(copyfd, fd);
+            close(copyfd);
+            
+        lv_bypass_setup_done:
+            
+            if(cdhash_must_valid && !cdhash_verified)
+            {
+                /* no matter what this is not reentrant */
+                cdhash_must_valid = false;
+                cdhash_verified = false;
+                
+                lseek(fd, 0, SEEK_SET);
+                /* need to get cdhash and then reset it's position */
+                
+                
+                uint8_t cdhash[USER_FSIGNATURES_CDHASH_LEN];
+                bool success = CDHashOfFD(fd, (uint8_t*)&cdhash);
+                dyld_hook_log("[path_validation_bypass_open] [nyxian cdhash verifier] (foundCdhash = %p, cdhash = %p)\n", cdhash, cdhash_data_container_match);
+                
+                /* match */
+                if(!success ||
+                   cdhash_data_container_match == NULL ||
+                   memcmp(cdhash_data_container_match, cdhash, USER_FSIGNATURES_CDHASH_LEN) != 0)
+                {
+                    cdhash_verified = false;
+                    dyld_hook_log("[path_validation_bypass_open] [nyxian cdhash verifier] cdhash does not match, calling callback if givven\n");
+                    
+#if KSURFACE_DYLD_HARDENED_CDHASH_VERIFIER
+                    open_hardlock = true;
+#else
+                    if(cdhash_verifier_failed_callback != NULL)
+                    {
+                        cdhash_verifier_failed_callback(fd, &open_hardlock);
+                    }
+#endif /* !KSURFACE_DYLD_HARDENED_CDHASH_VERIFIER */
+                    
+                    /* callback can set open hardlock */
+                    if(open_hardlock)
+                    {
+                        dyld_hook_log("[path_validation_bypass_open] [error: hard locked]\n");
+                        errno = EACCES;
+                        close(fd);
+                        fd = -1;
+                    }
+                }
+                else
+                {
+                    dyld_hook_log("[path_validation_bypass_open] [nyxian cdhash verifier] cdhash valid!\n");
+                    cdhash_verified = true;
+                    lseek(fd, 0, SEEK_SET);
+                }
+            }
         }
     }
-    
-    memset(dyld_fd_cache, 0, sizeof(dyld_fd_cache));
-    dyld_fd_cache_count = 0;
+    return fd;
 }
 
-LIBKERN_DEFINE_PATCHABLE(bool, dyld_verify_shadow_cdhash_if_needed, (int fd))
+static int hook_open(const char *path,
+                     int flags,
+                     mode_t mode)
 {
-    if(!cdhash_must_valid || cdhash_verified)
-    {
-        return true;
-    }
-    
-    cdhash_must_valid = false;
-    cdhash_verified = false;
-    
-    uint8_t found_cdhash[USER_FSIGNATURES_CDHASH_LEN];
-    
-    lseek(fd, 0, SEEK_SET);
-    bool success = CDHashOfFD(fd, found_cdhash);
-    lseek(fd, 0, SEEK_SET);
-
-    if(success && cdhash_data_container_match != NULL && memcmp(cdhash_data_container_match, found_cdhash, USER_FSIGNATURES_CDHASH_LEN) == 0)
-    {
-        dyld_hook_log("[dyld_verify_shadow_cdhash_if_needed] cdhash valid\n");
-        cdhash_verified = true;
-        return true;
-    }
-    
-    dyld_hook_log("[dyld_verify_shadow_cdhash_if_needed] cdhash mismatch\n");
-    
-#if KSURFACE_DYLD_HARDENED_CDHASH_VERIFIER
-    open_hardlock = true;
-#else
-    if(cdhash_verifier_failed_callback != NULL)
-    {
-        cdhash_verifier_failed_callback(
-            fd,
-            &open_hardlock
-        );
-    }
-#endif
-    
+    dyld_hook_log("[hook_open:args] (path = %s, flags = %d, mode = %d)\n", path, flags, mode);
     if(open_hardlock)
     {
-        dyld_hook_log("[dyld_verify_shadow_cdhash_if_needed] cdhash hardlock\n");
+        dyld_hook_log("[hook_open:args] [error: hard locked]\n");
         errno = EACCES;
-        return false;
+        return -1;
     }
     
-    return true;
+    int fd = orig_dyld_open(path, flags, mode);
+    if(fd < 0 || flags & O_DIRECTORY)
+    {
+        goto just_return;
+    }
+    
+    fd = path_validation_bypass_open(fd, flags);
+    
+just_return:
+    dyld_hook_log("[hook_open:return] (fd = %d)\n", fd);
+    return fd;
 }
 
-LIBKERN_DEFINE_PATCHABLE(int, dyld_create_shadow_fd, (int original_fd,
-                                                      ino_t ino,
-                                                      char shadow_path[PATH_MAX]))
+static int hook_openat(int dirfd,
+                       const char *path,
+                       int flags,
+                       mode_t mode)
 {
-    if(mmap_sandbox_map_exec_allowed_path == NULL)
+    dyld_hook_log("[hook_openat:args] (dirfd = %d, path = %s, flags = %d, mode = %d)\n", dirfd, path, flags, mode);
+    if(open_hardlock)
     {
-        errno = EINVAL;
+        dyld_hook_log("[hook_openat:args] [error: hard locked]\n");
+        errno = EACCES;
         return -1;
     }
     
-    char tmp_dir[PATH_MAX];
-    char pid_dir[PATH_MAX];
-    if((snprintf(tmp_dir, sizeof(tmp_dir), "%s/tmp", mmap_sandbox_map_exec_allowed_path) >= sizeof(tmp_dir)) ||
-       (mkdir(tmp_dir, 0777) != 0 && errno != EEXIST) ||
-       (snprintf(pid_dir, sizeof(pid_dir), "%s/%d", tmp_dir, getpid()) >= sizeof(pid_dir)) ||
-       (mkdir(pid_dir, 0777) != 0 && errno != EEXIST) ||
-       (snprintf(shadow_path, PATH_MAX, "%s/0x%llx.dylib", pid_dir, (unsigned long long)ino) >= PATH_MAX))
+    int fd = orig_dyld_openat(dirfd, path, flags, mode);
+    if(fd < 0 || flags & O_DIRECTORY)
     {
-        return -1;
+        goto just_return;
     }
     
-    int shadow_fd = open(shadow_path, O_RDONLY);
-    if(shadow_fd >= 0)
-    {
-        goto validate_shadow;
-    }
+    fd = path_validation_bypass_open(fd, flags);
     
-    if(fclonefileat(original_fd, AT_FDCWD, shadow_path, 0) == 0)
-    {
-        shadow_fd = open(shadow_path, O_RDONLY);
-        if(shadow_fd >= 0)
-        {
-            return shadow_fd;
-        }
-        unlink(shadow_path);
-        return -1;
-    }
-    
-    if(errno == EEXIST)
-    {
-        shadow_fd = open(shadow_path, O_RDONLY);
-        if(shadow_fd >= 0)
-        {
-            return shadow_fd;
-        }
-    }
-    
-    int source_fd = dup(original_fd);
-    if(source_fd < 0)
-    {
-        return -1;
-    }
-    
-    if(lseek(source_fd, 0, SEEK_SET) == (off_t)-1)
-    {
-        int saved_errno = errno;
-        close(source_fd);
-        errno = saved_errno;
-        return -1;
-    }
-    
-    int out_fd = open(shadow_path, O_RDWR | O_CREAT | O_TRUNC, 0777);
-    if(out_fd < 0)
-    {
-        int saved_errno = errno;
-        close(source_fd);
-        errno = saved_errno;
-        return -1;
-    }
-    
-    int copy_result = fcopyfile(source_fd, out_fd, NULL, COPYFILE_DATA);
-    int saved_errno = errno;
-    
-    close(source_fd);
-    close(out_fd);
-    
-    if(copy_result != 0)
-    {
-        unlink(shadow_path);
-        errno = saved_errno;
-        return -1;
-    }
-    
-    shadow_fd = open(shadow_path, O_RDONLY);
-    if(shadow_fd < 0)
-    {
-        saved_errno = errno;
-        unlink(shadow_path);
-        errno = saved_errno;
-        return -1;
-    }
-    
-validate_shadow:
-    if(!dyld_verify_shadow_cdhash_if_needed(shadow_fd))
-    {
-        int saved_errno = errno ? errno : EACCES;
-        close(shadow_fd);
-        unlink(shadow_path);
-        errno = saved_errno;
-        return -1;
-    }
-    
-    return shadow_fd;
+just_return:
+    dyld_hook_log("[hook_openat:return] (fd = %d)\n", fd);
+    return fd;
 }
 
-LIBKERN_DEFINE_PATCHABLE(int, dyld_get_cached_fd, (int original_fd,
-                                                   off_t mapping_offset,
-                                                   bool require_signature))
+static const time_t fake_time = 1700000000;
+
+static int hook_fstat64(int fd,
+                        struct stat *buf)
 {
-    struct stat st;
-    
-    if(fstat(original_fd, &st) != 0)
+    dyld_hook_log("[hook_fstat64:args] (fd = %d, buf = %p)\n", fd, buf);
+    int ret = orig_dyld_fstat64(fd, buf);
+    if(ret == 0)
     {
-        return -1;
-    }
-    if(!S_ISREG(st.st_mode))
-    {
-        return original_fd;
-    }
-    
-    char original_path[PATH_MAX];
-    if(!dyld_should_shadow_file(original_fd, original_path))
-    {
-        return original_fd;
-    }
-    
-    dyld_fd_cache_entry_t *entry = dyld_fd_cache_find(st.st_dev, st.st_ino);
-    if(entry == NULL)
-    {
-        char shadow_path[PATH_MAX];
-        int shadow_fd = dyld_create_shadow_fd(original_fd, st.st_ino, shadow_path);
-        if(shadow_fd < 0)
+        char canon[PATH_MAX];
+        if(inode_bank_get_path(buf->st_ino, canon, sizeof(canon)) || orig_dyld_fcntl(fd, F_GETPATH, canon) != -1)
         {
-            return -1;
+            ino_t fake_ino = fake_inode_for_path(canon);
+            dyld_hook_log("[hook_fstat64] [library validation bypass] changing inode:\n");
+            dyld_hook_log("    st_ino: %llu -> %llu\n", buf->st_ino, fake_ino);
+            buf->st_ino = fake_ino;
         }
         
-        entry = dyld_fd_cache_insert(st.st_dev,st.st_ino, shadow_fd, shadow_path);
-        if(entry == NULL)
-        {
-            int saved_errno = ENFILE;
-            close(shadow_fd);
-            unlink(shadow_path);
-            errno = saved_errno;
-            return -1;
-        }
-    }
-    
-    if(require_signature)
-    {
-        LCMachO *machO = LCMapMachOFromFDRO(dup(entry->shadow_fd));
-        if(machO == NULL)
-        {
-            errno = ENOEXEC;
-            return -1;
-        }
+        dyld_hook_log("[hook_fstat64] [library validation bypass] changing times:\n");
+        dyld_hook_log("    st_mtimespec: %lu -> %lu\n", buf->st_mtimespec.tv_sec, fake_time);
+        buf->st_mtimespec.tv_sec = fake_time;
+        buf->st_mtimespec.tv_nsec = 0;
+        dyld_hook_log("    st_ctimespec: %lu -> %lu\n", buf->st_ctimespec.tv_sec, fake_time);
+        buf->st_ctimespec.tv_sec = fake_time;
+        buf->st_ctimespec.tv_nsec = 0;
+        dyld_hook_log("    st_birthtimespec: %lu -> %lu\n", buf->st_birthtimespec.tv_sec, fake_time);
+        buf->st_birthtimespec.tv_sec = fake_time;
+        buf->st_birthtimespec.tv_nsec = 0;
         
-        bool success = LCCheckCodeSignature(machO);
-        LCUnmapMachO(machO);
-        if(!success)
-        {
-            errno = ENOEXEC;
-            return -1;
-        }
+        dyld_hook_log("[hook_fstat64] [library validation bypass] zeroing out dev device:\n");
+        dyld_hook_log("    st_dev: %d -> %d\n", buf->st_dev, 0);
     }
-    
-    return entry->shadow_fd;
+    dyld_hook_log("[hook_fstat64:return] (ret = %d)\n", ret);
+    return ret;
 }
 
-void * hook_mmap(void *addr,
-                 size_t len,
-                 int prot,
-                 int flags,
-                 int fd,
-                 off_t offset)
+static int hook_stat64(const char *path,
+                       struct stat *buf)
 {
-    dyld_hook_log("[hook_mmap] (addr=%p, len=0x%zx, prot=0x%x, flags=0x%x, fd=%d, offset=0x%llx)\n", addr, len, prot, flags, fd, (unsigned long long)offset);
-    if(len == 0)
+    dyld_hook_log("[hook_stat64:args] (path = %s, buf = %p)\n", path, buf);
+    int ret = orig_dyld_stat64(path, buf);
+    if(ret == 0)
     {
-        errno = EINVAL;
-        return MAP_FAILED;
-    }
-    if(len > SIZE_MAX - (VM_PAGE_SIZE - 1))
-    {
-        errno = ENOMEM;
-        return MAP_FAILED;
-    }
-    
-    int map_fd = fd;
-    if(fd >= 0 && !(flags & MAP_ANON))
-    {
-        bool require_signature = (prot & PROT_EXEC) != 0;
-        map_fd = dyld_get_cached_fd(fd, offset, require_signature);
-        if(map_fd < 0)
+        char canon[PATH_MAX];
+        if(!realpath(path, canon))
         {
-            return MAP_FAILED;
+            strlcpy(canon, path, sizeof(canon));
         }
+        
+        ino_t fake_ino = fake_inode_for_path(canon);
+        dyld_hook_log("[hook_stat64] [library validation bypass] changing inode:\n");
+        dyld_hook_log("    st_ino: %llu -> %llu\n", buf->st_ino, fake_ino);
+        buf->st_ino = fake_ino;   /* canonicalizes internally */
+        
+        dyld_hook_log("[hook_stat64] [library validation bypass] changing times:\n");
+        dyld_hook_log("    st_mtimespec: %lu -> %lu\n", buf->st_mtimespec.tv_sec, fake_time);
+        buf->st_mtimespec.tv_sec = fake_time;
+        buf->st_mtimespec.tv_nsec = 0;
+        dyld_hook_log("    st_ctimespec: %lu -> %lu\n", buf->st_ctimespec.tv_sec, fake_time);
+        buf->st_ctimespec.tv_sec = fake_time;
+        buf->st_ctimespec.tv_nsec = 0;
+        dyld_hook_log("    st_birthtimespec: %lu -> %lu\n", buf->st_birthtimespec.tv_sec, fake_time);
+        buf->st_birthtimespec.tv_sec = fake_time;
+        buf->st_birthtimespec.tv_nsec = 0;
+        
+        dyld_hook_log("[hook_stat64] [library validation bypass] zeroing out dev device:\n");
+        dyld_hook_log("    st_dev: %d -> %d\n", buf->st_dev, 0);
     }
-    
-    return mmap(addr, len, prot, flags, map_fd, offset);
+    dyld_hook_log("[hook_stat64:return] (ret = %d)\n", ret);
+    return ret;
 }
 
 HWHookThreadContextRef HWHookDlopenThreadContext(void)
@@ -422,16 +373,61 @@ HWHookThreadContextRef HWHookDlopenThreadContext(void)
     static HWHookThreadContextRef context = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        if(patchcache[kDyldPtrMmap] == 0x0)
+        orig_dyld_fcntl = (void*)patchcache[kDyldPtrFcntl];
+        orig_dyld_open = (void*)patchcache[kDyldPtrOpen];
+        orig_dyld_fstat64 = (void*)patchcache[kDyldPtrFstat64];
+        orig_dyld_stat64 = (void*)patchcache[kDyldPtrStat64];
+        orig_dyld_openat = (void*)patchcache[kDyldPtrOpenat];
+        if(orig_dyld_fcntl == NULL || orig_dyld_open == NULL || orig_dyld_fstat64 == NULL || orig_dyld_stat64 == NULL || orig_dyld_openat == NULL)
         {
             return;
         }
         
-        HWHookRef mmapHook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, (void*)patchcache[kDyldPtrMmap], hook_mmap);
-        if(mmapHook == NULL)
+        HWHookRef fcntlHook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, orig_dyld_fcntl, hook_fcntl);
+        if(fcntlHook == NULL)
         {
             return;
         }
+        
+        HWHookRef openHook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, orig_dyld_open, hook_open);
+        if(openHook == NULL)
+        {
+            CFRelease(fcntlHook);
+            return;
+        }
+        
+        HWHookRef fstat64Hook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, orig_dyld_fstat64, hook_fstat64);
+        if(fstat64Hook == NULL)
+        {
+            CFRelease(fcntlHook);
+            CFRelease(openHook);
+            return;
+        }
+        
+        HWHookRef stat64Hook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, orig_dyld_stat64, hook_stat64);
+        if(fstat64Hook == NULL)
+        {
+            CFRelease(fcntlHook);
+            CFRelease(openHook);
+            CFRelease(fstat64Hook);
+            return;
+        }
+        
+        HWHookRef openatHook = HWHookCreateWithPointerToSymbol(kCFAllocatorDefault, orig_dyld_openat, hook_openat);
+        if(openatHook == NULL)
+        {
+            CFRelease(fcntlHook);
+            CFRelease(openHook);
+            CFRelease(fstat64Hook);
+            CFRelease(stat64Hook);
+            return;
+        }
+        
+        HWHookSetDisableContextHooksInFrame(fcntlHook, true);
+        HWHookSetDisableContextHooksInFrame(openHook, true);
+        HWHookSetDisableContextHooksInFrame(fstat64Hook, true);
+        HWHookSetDisableContextHooksInFrame(stat64Hook, true);
+        HWHookSetDisableContextHooksInFrame(openatHook, true);
         
         context = HWHookThreadContextCreate(kCFAllocatorDefault);
         if(context == NULL)
@@ -439,11 +435,19 @@ HWHookThreadContextRef HWHookDlopenThreadContext(void)
             goto release_hooks;
         }
         
-        if(!HWHookThreadContextAppendHook(context, mmapHook))
+        if(!HWHookThreadContextAppendHook(context, fcntlHook) ||
+           !HWHookThreadContextAppendHook(context, openHook) ||
+           !HWHookThreadContextAppendHook(context, fstat64Hook) ||
+           !HWHookThreadContextAppendHook(context, stat64Hook) ||
+           !HWHookThreadContextAppendHook(context, openatHook))
         {
             CFRelease(context);
         release_hooks:
-            CFRelease(mmapHook);
+            CFRelease(fcntlHook);
+            CFRelease(openHook);
+            CFRelease(fstat64Hook);
+            CFRelease(stat64Hook);
+            CFRelease(openatHook);
             return;
         }
     });
@@ -452,21 +456,23 @@ HWHookThreadContextRef HWHookDlopenThreadContext(void)
 
 LIBKERN_PATCH(void*, dlopen, (const char *path, int mode),
 {
+    inode_bank_init();
+    
     char newTmpPath[PATH_MAX];
     snprintf(newTmpPath, sizeof(newTmpPath), "%s/tmp", mmap_sandbox_map_exec_allowed_path);
     mkdir(newTmpPath, 0777);
-    snprintf(newTmpPath, sizeof(newTmpPath), "%s/%d", newTmpPath, getpid());
+    snprintf(newTmpPath, sizeof(newTmpPath), "%s/tmp/%d", mmap_sandbox_map_exec_allowed_path, getpid());
     mkdir(newTmpPath, 0777);
     
     dyld_hook_log("[hook_dlopen] %s\n", path);
     
     open_hardlock = false;
     HWHookThreadContextRef context = HWHookDlopenThreadContext();
-    HWHookThreadContextEnter(context);
+    HWHookThreadContextEnter(context);  /* is nil safe, so it shall work anyways */
     void *ret = dlopen__orig(path, mode);
     HWHookThreadContextExit(context);
     
-    dyld_fd_cache_reset();
+    inode_bank_unlink_all(newTmpPath);
     rmdir(newTmpPath);
     return ret;
 });

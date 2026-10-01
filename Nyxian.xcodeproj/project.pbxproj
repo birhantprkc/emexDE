@@ -866,6 +866,8 @@
 				LiveShim/mach/fileport.h,
 				LiveShim/mach/fileport.m,
 				LiveShim/private/cdhash.h,
+				LiveShim/private/dyld_node_remap.c,
+				LiveShim/private/dyld_node_remap.h,
 				LiveShim/ServiceKit/Service.h,
 				LiveShim/ServiceKit/Service.m,
 				LiveShim/ServiceKit/ServiceProtocol.h,
@@ -886,6 +888,7 @@
 			privateHeaders = (
 				LiveShim/mach/fileport.h,
 				LiveShim/private/cdhash.h,
+				LiveShim/private/dyld_node_remap.h,
 				LiveShim/shims/shim.h,
 			);
 			publicHeaders = (
