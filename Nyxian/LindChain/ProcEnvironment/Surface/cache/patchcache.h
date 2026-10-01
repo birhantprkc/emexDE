@@ -27,11 +27,7 @@
 
 enum {
     /* for the RO file system sandbox mmap bypass */
-    kDyldPtrOpen = 0,
-    kDyldPtrFcntl,
-    kDyldPtrFstat64,
-    kDyldPtrStat64,
-    kDyldPtrOpenat,
+    kDyldPtrMmap = 0,
     
     /* for the dlopen with the lock bypasses */
     kDyldLockUnlockFunc,

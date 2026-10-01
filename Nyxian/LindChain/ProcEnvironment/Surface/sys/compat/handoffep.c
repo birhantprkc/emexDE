@@ -26,6 +26,7 @@
 #include <LindChain/ProcEnvironment/Surface/sys/compat/handoffep.h>
 #include <LindChain/ProcEnvironment/Surface/proc/def.h>
 #include <LindChain/ProcEnvironment/Surface/proc/spawn.h>
+#include <LindChain/Utils/DynaMod.h>
 
 DEFINE_SYSCALL_HANDLER(handoffep)
 {

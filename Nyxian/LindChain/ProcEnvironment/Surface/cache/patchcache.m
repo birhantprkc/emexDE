@@ -79,77 +79,6 @@ static inline uintptr_t a64_resolve_bl(const uint32_t *pc)
     return (uintptr_t)pc + (imm26 << 2);
 }
 
-static void *findDyldFcntl17(const char *base)
-{
-    static const uint32_t movFAddFileSigsReturn = 0x52800C21;
-    static const uint32_t movFGetSigsInfo = 0x52800D21;
-    
-    const size_t scanSize = 0x80000;
-    const uint32_t *text = (const uint32_t *)base;
-    const size_t count = scanSize / sizeof(uint32_t);
-    
-    for(size_t i = 0; i < count; i++)
-    {
-        if(text[i] != movFAddFileSigsReturn)
-        {
-            continue;
-        }
-        
-        size_t bl1End = i + 12;
-        if(bl1End > count)
-        {
-            bl1End = count;
-        }
-        
-        for (size_t j = i + 1; j < bl1End; j++)
-        {
-            if(!a64_is_bl(text[j]))
-            {
-                continue;
-            }
-            
-            uintptr_t target1 = a64_resolve_bl(&text[j]);
-            size_t secondEnd = i + 0x100;
-            if(secondEnd > count)
-            {
-                secondEnd = count;
-            }
-            
-            for (size_t k = j + 1; k < secondEnd; k++)
-            {
-                if(text[k] != movFGetSigsInfo)
-                {
-                    continue;
-                }
-                
-                size_t bl2End = k + 12;
-                if(bl2End > count)
-                {
-                    bl2End = count;
-                }
-                
-                for(size_t l = k + 1; l < bl2End; l++)
-                {
-                    if(!a64_is_bl(text[l]))
-                    {
-                        continue;
-                    }
-                    
-                    uintptr_t target2 =
-                    a64_resolve_bl(&text[l]);
-                    
-                    if(target1 == target2)
-                    {
-                        return (void *)target1;
-                    }
-                }
-            }
-        }
-    }
-    
-    return NULL;
-}
-
 static void searchDyldFunctions(const char *base,
                                 dyld_search_entry_t *entries,
                                 size_t count)
@@ -215,30 +144,14 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
     
     static dyld_search_entry_t entries[kDyldPtrCount] = {
         /* first shit */
-        [kDyldPtrOpen] = {
-            .signature = 0xD4001001D28000B0ULL,
-            .found = NULL,
-        },
-        [kDyldPtrFcntl] = {
-            .signature = 0xD4001001D2800B90ULL,
-            .found = NULL,
-        },
-        [kDyldPtrFstat64] = {
-            .signature = 0xD4001001D2802A70ULL,
-            .found = NULL,
-        },
-        [kDyldPtrStat64] = {
-            .signature = 0xD4001001D2802A50ULL,
-            .found = NULL,
-        },
-        [kDyldPtrOpenat] = {
-            .signature = 0xD4001001D28039F0ULL,
+        [kDyldPtrMmap] = {
+            .signature = 0xD4001001D28018B0ULL,
             .found = NULL,
         },
         
         /* rest is null by default */
     };
-    searchDyldFunctions(dyldBase, entries, kDyldPtrOpenat + 1);
+    searchDyldFunctions(dyldBase, entries, kDyldPtrMmap + 1);
     
     /* now the shit that takes 20~30ms if not cached properly */
     const char *libdyldPath = "/usr/lib/system/libdyld.dylib";
@@ -366,20 +279,9 @@ static kern_return_t findDyldFunctionPointers(uint64_t out[kDyldPtrCount])
     }
     
     /* on iOS 17 it seems like there is no normal fcntl call */
-    if(!@available(iOS 18.0, *))
-    {
-        if(entries[kDyldPtrFcntl].found == NULL)
-        {
-            entries[kDyldPtrFcntl].found = findDyldFcntl17(dyldBase);
-        }
-    }
-    
     static const char *names[kDyldPtrCount] = {
-        "dyld.open",
-        "dyld.fcntl",
-        "dyld.fstat64",
-        "dyld.stat64",
-        "dyld.openat",
+        "dyld.mmap",
+        
         "dyld.lockUnlockFunc",
         
         "_NSGetExecutablePath.vtable.fn",
