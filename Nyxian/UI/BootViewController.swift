@@ -949,7 +949,7 @@ private func flashROM(archive: URL, log: RomLog) throws -> ROMManifest {
     if !signFiles.isEmpty {
         log.info("signing files")
         for file in signFiles {
-            guard NXBootSignMachOWithoutPatch(slot.appendingPathComponent(file.path)) else {
+            guard NXSignMachOAuto(slot.appendingPathComponent(file.path)) else {
                 throw romError("failed to sign \(file.path)")
             }
             log.info("signed \(file.path)")
@@ -994,13 +994,30 @@ private func flashROM(archive: URL, log: RomLog) throws -> ROMManifest {
 }
 
 private func recoveryFlashROM(_ c: NXRecoveryViewController, archive: URL) {
+    guard !romIsBusy(c) else { return }
+    c.enterConsole()
+    
     runRomOperation(c) { log in
         do {
             let manifest = try flashROM(archive: archive, log: log)
             log.info("flashed \(manifest.name) \(manifest.version)")
+            DispatchQueue.main.async {
+                c.recoveryLog("\nFlash complete.\nPress both volume buttons to reboot when ready.")
+                c.finishConsole(selectAction: { _ in
+                    restartSelf()
+                })
+            }
         } catch {
             log.error("ERROR: \(error.localizedDescription)")
             try? FileManager.default.removeItem(at: flashedSlotURL())
+            DispatchQueue.main.async {
+                c.recoveryLogError("\nFlash failed.\nPress both volume buttons to return to the menu.")
+                c.finishConsole(selectAction: { c in
+                    guard let c = c else { return }
+                    c.exitConsole()
+                    recoveryShowMenu(recoveryController: c)
+                })
+            }
         }
     }
 }

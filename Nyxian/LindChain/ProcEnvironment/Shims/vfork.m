@@ -1407,72 +1407,93 @@ static bool pe_capture_process_state(void)
     g_checkpoint->saved_cwd_fd = -1;
     g_checkpoint->saved_cwd_path_valid = false;
     g_checkpoint->cwd[0] = '\0';
-    
+
     if(getcwd(g_checkpoint->cwd, sizeof(g_checkpoint->cwd)) != NULL)
     {
         g_checkpoint->saved_cwd_path_valid = true;
     }
     else
     {
-        int cwd_path_errno = errno;
+        /*
+         * The sandbox can deny getcwd() for an otherwise valid cwd.
+         * Path capture is diagnostic/best-effort only.
+         */
         g_checkpoint->cwd[0] = '\0';
     }
-    
+
     g_checkpoint->saved_umask = umask(0);
     umask(g_checkpoint->saved_umask);
-    
+
     int sigmask_result = pthread_sigmask(SIG_SETMASK, NULL, &g_checkpoint->saved_sigmask);
     if(sigmask_result != 0)
     {
         errno = sigmask_result;
         return false;
     }
-    
+
     pe_capture_signal_state();
     if(!pe_capture_fd_baseline())
     {
         return false;
     }
-    
+
     g_checkpoint->saved_cwd_fd = pe_capture_cwd_fd();
-    if(g_checkpoint->saved_cwd_fd < 0 && !g_checkpoint->saved_cwd_path_valid)
+    if(g_checkpoint->saved_cwd_fd < 0 &&
+       !g_checkpoint->saved_cwd_path_valid)
     {
-        int e = errno ? errno : ENOENT;
-        errno = e;
-        return false;
+        /*
+         * Do not fail fork()/vfork() just because userspace cannot obtain an
+         * fd or pathname for cwd. The kernel cwd itself remains valid.
+         *
+         * Rollback does not replace cwd, so if the fake child leaves cwd
+         * unchanged, the restored parent is already in the correct directory.
+         */
+        g_checkpoint->saved_cwd_fd = -1;
+        g_checkpoint->saved_cwd_path_valid = false;
+        g_checkpoint->cwd[0] = '\0';
+        errno = 0;
     }
-    
+
     return true;
 }
 
 static int pe_restore_process_state_from_helper(void)
 {
     pe_restore_fd_state();
-    
-    int cwd_rc = -1;
+
+    /*
+     * No cwd snapshot is a valid state. In that case rollback simply leaves
+     * the current kernel cwd alone.
+     */
+    int cwd_rc = 0;
     int cwd_errno = 0;
-    
+
     if(g_checkpoint->saved_cwd_fd >= 0)
     {
         cwd_rc = fchdir(g_checkpoint->saved_cwd_fd);
-        cwd_errno = errno;
+        if(cwd_rc != 0)
+        {
+            cwd_errno = errno;
+        }
     }
-    
+
     if(cwd_rc != 0 && g_checkpoint->saved_cwd_path_valid)
     {
         cwd_rc = chdir(g_checkpoint->cwd);
-        cwd_errno = errno;
+        if(cwd_rc != 0)
+        {
+            cwd_errno = errno;
+        }
+        else
+        {
+            cwd_errno = 0;
+        }
     }
-    
-    if(cwd_rc != 0 && cwd_errno == 0)
-    {
-        cwd_errno = ENOENT;
-    }
-    
+
     umask(g_checkpoint->saved_umask);
     pe_restore_signal_state();
-    
-    return cwd_rc == 0 ? 0 : cwd_errno;
+
+    return cwd_rc == 0 ? 0 : (cwd_errno ? cwd_errno : ENOENT);
 }
 
 static pid_t pe_allocate_synthetic_pid(void)
@@ -1942,86 +1963,137 @@ static bool pe_build_pending_spawn_actions(posix_spawn_file_actions_t *actions,
 
 static pid_t pe_spawn_pending_exec_after_restore(void)
 {
-    if(!g_checkpoint->pending_exec || g_checkpoint->pending_exec_path == NULL || g_checkpoint->pending_exec_argv == NULL)
+    if(!g_checkpoint->pending_exec ||
+       g_checkpoint->pending_exec_path == NULL ||
+       g_checkpoint->pending_exec_argv == NULL)
     {
         errno = EFAULT;
         return -1;
     }
-    
+
     posix_spawn_file_actions_t actions;
     int exec_spool_fds[PE_MAX_LOCAL_PIPES];
     if(!pe_build_pending_spawn_actions(&actions, exec_spool_fds))
     {
         return -1;
     }
-    
+
+    bool const child_cwd_capture_available =
+        g_checkpoint->pending_exec_cwd_fd >= 0 ||
+        g_checkpoint->pending_exec_cwd[0] != '\0';
+
+    bool const parent_cwd_restore_available =
+        g_checkpoint->saved_cwd_fd >= 0 ||
+        g_checkpoint->saved_cwd_path_valid;
+
     bool child_cwd_selected = false;
     int child_cwd_errno = 0;
-    
-    if(g_checkpoint->pending_exec_cwd_fd >= 0)
+
+    /*
+     * Only perform a process-global cwd switch when we know we can restore the
+     * parent's cwd afterward. If the parent's cwd is opaque, leave cwd alone
+     * and let posix_spawn inherit the restored kernel cwd.
+     */
+    if(child_cwd_capture_available && parent_cwd_restore_available)
     {
-        if(fchdir(g_checkpoint->pending_exec_cwd_fd) == 0)
+        if(g_checkpoint->pending_exec_cwd_fd >= 0)
         {
-            child_cwd_selected = true;
+            if(fchdir(g_checkpoint->pending_exec_cwd_fd) == 0)
+            {
+                child_cwd_selected = true;
+            }
+            else
+            {
+                child_cwd_errno = errno;
+            }
         }
-        else
+
+        if(!child_cwd_selected &&
+           g_checkpoint->pending_exec_cwd[0] != '\0')
         {
-            child_cwd_errno = errno;
+            if(chdir(g_checkpoint->pending_exec_cwd) == 0)
+            {
+                child_cwd_selected = true;
+            }
+            else
+            {
+                child_cwd_errno = errno;
+            }
+        }
+
+        if(!child_cwd_selected)
+        {
+            int e = child_cwd_errno ? child_cwd_errno : ENOENT;
+            posix_spawn_file_actions_destroy(&actions);
+            pe_close_exec_spool_fds(exec_spool_fds);
+            errno = e;
+            return -1;
         }
     }
-    
-    if(!child_cwd_selected && g_checkpoint->pending_exec_cwd[0] != '\0')
-    {
-        if(chdir(g_checkpoint->pending_exec_cwd) == 0)
-        {
-            child_cwd_selected = true;
-        }
-        else
-        {
-            child_cwd_errno = errno;
-        }
-    }
-    
-    if(!child_cwd_selected)
-    {
-        int e = child_cwd_errno ? child_cwd_errno : ENOENT;
-        posix_spawn_file_actions_destroy(&actions);
-        pe_close_exec_spool_fds(exec_spool_fds);
-        errno = e;
-        return -1;
-    }
-    
+
+    /*
+     * If cwd capture was unavailable, or the parent cwd is opaque and cannot
+     * safely be restored after a temporary chdir, no cwd syscall is issued.
+     * posix_spawn therefore inherits the restored kernel cwd.
+     */
+
     pid_t spawned_pid = -1;
-    int rc = g_checkpoint->pending_exec_find_binary ? posix_spawnp(&spawned_pid, g_checkpoint->pending_exec_path, &actions, NULL, g_checkpoint->pending_exec_argv, g_checkpoint->pending_exec_envp) : posix_spawn(&spawned_pid, g_checkpoint->pending_exec_path, &actions, NULL, g_checkpoint->pending_exec_argv, g_checkpoint->pending_exec_envp);
+    int rc = g_checkpoint->pending_exec_find_binary
+        ? posix_spawnp(&spawned_pid,
+                       g_checkpoint->pending_exec_path,
+                       &actions,
+                       NULL,
+                       g_checkpoint->pending_exec_argv,
+                       g_checkpoint->pending_exec_envp)
+        : posix_spawn(&spawned_pid,
+                      g_checkpoint->pending_exec_path,
+                      &actions,
+                      NULL,
+                      g_checkpoint->pending_exec_argv,
+                      g_checkpoint->pending_exec_envp);
+
     int spawn_errno = rc;
+
     if(rc == 0)
     {
         for(int slot = 0; slot < PE_MAX_LOCAL_PIPES; slot++)
         {
-            if(exec_spool_fds[slot] >= 0 && g_checkpoint->local_pipes[slot].used && g_checkpoint->local_pipes[slot].spool_active)
+            if(exec_spool_fds[slot] >= 0 &&
+               g_checkpoint->local_pipes[slot].used &&
+               g_checkpoint->local_pipes[slot].spool_active)
             {
-                g_checkpoint->local_pipes[slot].spool_read_offset = g_checkpoint->local_pipes[slot].spool_length;
+                g_checkpoint->local_pipes[slot].spool_read_offset =
+                    g_checkpoint->local_pipes[slot].spool_length;
             }
         }
     }
-    
+
     pe_close_exec_spool_fds(exec_spool_fds);
-    int parent_cwd_rc = -1;
-    if(g_checkpoint->saved_cwd_fd >= 0)
+
+    if(child_cwd_selected)
     {
-        parent_cwd_rc = fchdir(g_checkpoint->saved_cwd_fd);
+        int parent_cwd_rc = -1;
+
+        if(g_checkpoint->saved_cwd_fd >= 0)
+        {
+            parent_cwd_rc = fchdir(g_checkpoint->saved_cwd_fd);
+        }
+
+        if(parent_cwd_rc != 0 &&
+           g_checkpoint->saved_cwd_path_valid)
+        {
+            parent_cwd_rc = chdir(g_checkpoint->cwd);
+        }
     }
-    if(parent_cwd_rc != 0 && g_checkpoint->saved_cwd_path_valid)
-    {
-        parent_cwd_rc = chdir(g_checkpoint->cwd);
-    }
+
     posix_spawn_file_actions_destroy(&actions);
+
     if(rc != 0)
     {
         errno = spawn_errno;
         return -1;
     }
-    
+
     return spawned_pid;
 }
 
@@ -2036,17 +2108,28 @@ static __attribute__((noreturn)) void pe_defer_exec_and_restore(const char *path
     g_checkpoint->pending_exec_find_binary = find_binary;
     g_checkpoint->pending_exec_cwd_fd = -1;
     g_checkpoint->pending_exec_cwd[0] = '\0';
-    
-    if(getcwd(g_checkpoint->pending_exec_cwd, sizeof(g_checkpoint->pending_exec_cwd)) == NULL)
+
+    if(getcwd(g_checkpoint->pending_exec_cwd,
+              sizeof(g_checkpoint->pending_exec_cwd)) == NULL)
     {
-        int cwd_path_errno = errno;
         g_checkpoint->pending_exec_cwd[0] = '\0';
     }
-    
+
     g_checkpoint->pending_exec_cwd_fd = pe_capture_cwd_fd();
-    bool const have_pending_cwd = g_checkpoint->pending_exec_cwd_fd >= 0 || g_checkpoint->pending_exec_cwd[0] != '\0';
-    
-    if(g_checkpoint->pending_exec_path == NULL || g_checkpoint->pending_exec_argv == NULL || (envp != NULL && g_checkpoint->pending_exec_envp == NULL) || !have_pending_cwd)
+
+    /*
+     * Cwd capture is deliberately not part of exec validity. If both cwd
+     * probes fail, deferred posix_spawn will inherit the restored kernel cwd.
+     */
+    if(g_checkpoint->pending_exec_cwd_fd < 0 &&
+       g_checkpoint->pending_exec_cwd[0] == '\0')
+    {
+        errno = 0;
+    }
+
+    if(g_checkpoint->pending_exec_path == NULL ||
+       g_checkpoint->pending_exec_argv == NULL ||
+       (envp != NULL && g_checkpoint->pending_exec_envp == NULL))
     {
         int e = errno ? errno : ENOMEM;
         g_checkpoint->pending_exec = false;
@@ -2062,10 +2145,10 @@ static __attribute__((noreturn)) void pe_defer_exec_and_restore(const char *path
         g_checkpoint->return_pid = PE_EXEC_PENDING_PID;
         g_checkpoint->restore_errno = 0;
     }
-    
+
     g_checkpoint->helper_action = PE_HELPER_RESTORE;
     semaphore_signal(g_checkpoint->request_semaphore);
-    
+
     thread_suspend(g_checkpoint->target_thread);
     __builtin_unreachable();
 }
