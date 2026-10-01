@@ -873,6 +873,7 @@
 				LiveShim/ServiceKit/ServiceProtocol.h,
 				LiveShim/shims/dyld.c,
 				LiveShim/shims/dyld.h,
+				LiveShim/shims/io.c,
 				LiveShim/shims/ioctl.c,
 				LiveShim/shims/libproc.c,
 				LiveShim/shims/mount.c,
